@@ -1,7 +1,10 @@
 {
   "name": "backend",
   "scripts": {
-    "dev": "bun run --hot src/index.ts"
+    "dev": "bun run --hot src/index.ts",
+    "lint": "eslint .",
+    "test": "vitest run --reporter=default --reporter=json --outputFile=test-result.json",
+    "typecheck": "tsc --noEmit"
   },
   "dependencies": {
     "@hono/standard-validator": "^0.2.2",

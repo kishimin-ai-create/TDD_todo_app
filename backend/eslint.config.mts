@@ -65,15 +65,6 @@ export default defineConfig([
       camelcase: ["warn", { properties: "never" }],
       "@stylistic/semi": ["warn", "always"],
       "@typescript-eslint/switch-exhaustiveness-check": "warn",
-      "import/order": [
-        "error",
-        {
-          alphabetize: {
-            order: "asc",
-            caseInsensitive: true,
-          },
-        },
-      ],
       "unused-imports/no-unused-imports": "error",
       "unused-imports/no-unused-vars": [
         "warn",
