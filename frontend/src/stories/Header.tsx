@@ -12,6 +12,7 @@ export interface HeaderProps {
   onCreateAccount?: () => void;
 }
 
+/** Header */
 export const Header = ({
   user,
   onLogin,
