@@ -22,5 +22,11 @@
     "noFallthroughCasesInSwitch": true,
     "noUncheckedSideEffectImports": true
   },
-  "include": ["vite.config.ts"]
+  "include": [
+    "vite.config.ts",
+    "playwright.config.ts",
+    "vitest.shims.d.ts",
+    ".storybook/**/*.ts",
+    "e2e/**/*.ts"
+  ]
 }

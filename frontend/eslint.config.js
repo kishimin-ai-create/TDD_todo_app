@@ -34,7 +34,7 @@ export default defineConfig([
             FunctionDeclaration: true,
             MethodDefinition: true,
             ClassDeclaration: true,
-            ArrowFunctionExpression: true,
+            ArrowFunctionExpression: false,
           },
         },
       ],
