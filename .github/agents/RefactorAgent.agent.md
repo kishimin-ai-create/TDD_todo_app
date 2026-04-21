@@ -318,7 +318,7 @@ try {
 
 **Why safe**: Same error path, identical return values, behavior preserved.
 
-## 📋 Specific Refactoring Techniques for Backend (Fastify + TypeScript)
+## 📋 Specific Refactoring Techniques for Backend (Hono + TypeScript)
 
 ### Technique 1: Extract Port/Adapter Responsibilities
 

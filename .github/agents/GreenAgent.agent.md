@@ -24,7 +24,7 @@ Green Agent receives:
 2. **Specification Document** - Business requirements and expected behavior
 3. **Target** - Module path where implementation should be written (e.g.,
    `CreateAppInteractor`, `AppCreatePage`)
-4. **Domain/Technology** - Backend (TypeScript + Fastify), Frontend (React +
+4. **Domain/Technology** - Backend (TypeScript + Hono), Frontend (React +
    TypeScript), Database (MySQL), etc.
 
 **Example Input:**
@@ -33,7 +33,7 @@ Green Agent receives:
 Test File: "backend/src/usecase/interactors/CreateApp.test.ts"
 Spec File: "docs/spec/features/001_create_app.md"
 Target: "CreateAppInteractor"
-Framework: "Fastify backend with vitest"
+Framework: "Hono backend with vitest"
 ```
 
 ## 📤 Output
