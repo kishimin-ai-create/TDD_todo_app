@@ -4,8 +4,12 @@ This repository defines reusable Copilot custom commands under `.github/`.
 
 ## How to use prompt commands
 
-Prompt files are stored in `.github/prompts/` and are invoked from Copilot Chat
-with `/`.
+Prompt files are stored in `.github/prompts/`.
+
+> [!NOTE]
+> Prompt files may work in Copilot Chat surfaces that support repository prompt
+> files, but they are not guaranteed to appear as `/...` commands in Copilot
+> CLI. For Copilot CLI, prefer the `@AgentName` commands documented below.
 
 ### `/write-article`
 
@@ -76,6 +80,23 @@ Behavior:
 
 - Writes the spec to `docs/spec/backend/openapi.yaml`
 - Uses implemented backend behavior as the source of truth
+
+### `@WorkSummaryAgent`
+
+Summarize what has been done so far in this repository or current session.
+
+Example:
+
+```text
+@WorkSummaryAgent this session
+```
+
+Other examples:
+
+```text
+@WorkSummaryAgent backend only
+@WorkSummaryAgent recent changes
+```
 
 ## Notes
 
