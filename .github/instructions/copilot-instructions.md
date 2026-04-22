@@ -1,3 +1,16 @@
+# Protected paths
+
+Use [`.github/rules/protected-paths.md`](../rules/protected-paths.md) as the
+source of truth for protected paths.
+
+- Do not modify files or folders listed in `.github/rules/protected-paths.md`
+  unless the user explicitly requests a change to that exact path.
+- Currently protected:
+  - `AGENTS.md`
+  - `README.md`
+- You may read protected files for context, but you must not edit, rename, move,
+  or delete them unless the user explicitly asks for it.
+
 # backend
 
 ### Directory Structure for Clean Architecture
