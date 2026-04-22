@@ -40,6 +40,24 @@ source of truth for protected paths.
 - Do not auto-run the post-task agents for tasks that only modify `blog/` or
   `diary/`.
 
+# Git commit messages
+
+- Write git commit messages in English.
+- Use a clear prefix that matches the change type, such as:
+  - `feat`
+  - `fix`
+  - `docs`
+  - `style`
+  - `refactor`
+  - `perf`
+  - `test`
+  - `chore`
+- Prefer the subject format: `<type>: <reason or intent>, <change summary>`
+- When possible, include **why** the change was needed, not only **what** changed.
+- Avoid vague commit messages such as `fix`, `update`, or `change`.
+- Keep each commit focused enough that the prefix and reason still make sense as
+  one unit of work.
+
 # backend
 
 ### Directory Structure for Clean Architecture
