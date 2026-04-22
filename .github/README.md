@@ -83,7 +83,8 @@ Behavior:
 
 ### `@WorkSummaryAgent`
 
-Summarize what has been done so far in this repository or current session.
+Write a Japanese work diary entry for what has been done so far in this
+repository or current session.
 
 Example:
 
@@ -97,6 +98,12 @@ Other examples:
 @WorkSummaryAgent backend only
 @WorkSummaryAgent recent changes
 ```
+
+Behavior:
+
+- Writes the result to `diary\YYYYMMDD.md`
+- Appends to the same day's file when it already exists
+- Uses an article-like summary style instead of a plain bullet-only summary
 
 ### `@ReviewResponseAgent`
 
