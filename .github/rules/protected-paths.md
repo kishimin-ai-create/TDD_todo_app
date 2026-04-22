@@ -5,8 +5,11 @@ for changes to them.
 
 ## Protected files
 
-- `AGENTS.md`
 - `README.md`
+
+## Protected folders
+
+- `agents`
 
 ## Notes
 
