@@ -15,6 +15,7 @@
   },
   "dependencies": {
     "eslint-plugin-unused-imports": "^4.4.1",
+    "jotai": "^2.19.1",
     "react": "^19.2.4",
     "react-dom": "^19.2.4",
     "react-hook-form": "^7.73.1",
