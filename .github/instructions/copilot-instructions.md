@@ -26,6 +26,38 @@ source of truth for protected paths.
 - Use the review files as the primary source for reviewer feedback unless the
   user provides a different source.
 
+# Post-task automation
+
+- After fixing an error or resolving one error root cause, automatically invoke
+  `@ArticleWriterAgent` and create one error-focused article for that fix.
+- After completing an implementation, fix, review-response, refactor, or similar
+  repository task, automatically invoke post-task agents in this order:
+  1. `@ArticleWriterAgent`
+  2. `@WorkSummaryAgent`
+- Run the post-task agents only after the main task changes are finished.
+- Do not recursively re-invoke post-task agents when the current task is already
+  `@ArticleWriterAgent` or `@WorkSummaryAgent`.
+- Do not auto-run the post-task agents for tasks that only modify `blog/` or
+  `diary/`.
+
+# Git commit messages
+
+- Write git commit messages in English.
+- Use a clear prefix that matches the change type, such as:
+  - `feat`
+  - `fix`
+  - `docs`
+  - `style`
+  - `refactor`
+  - `perf`
+  - `test`
+  - `chore`
+- Prefer the subject format: `<type>: <reason or intent>, <change summary>`
+- When possible, include **why** the change was needed, not only **what** changed.
+- Avoid vague commit messages such as `fix`, `update`, or `change`.
+- Keep each commit focused enough that the prefix and reason still make sense as
+  one unit of work.
+
 # backend
 
 ### Directory Structure for Clean Architecture

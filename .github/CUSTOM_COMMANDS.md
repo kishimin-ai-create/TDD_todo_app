@@ -138,3 +138,15 @@ Behavior:
 - If you add a new prompt or agent, document the invocation example here.
 - When you add a custom command, always update this file in the same task with
   its usage, invocation example, and output behavior.
+
+## Automatic follow-up behavior
+
+- After fixing one error root cause, the repository instructions now tell Copilot
+  to automatically run `@ArticleWriterAgent`.
+- After completing a repository task, the repository instructions now tell
+  Copilot to automatically run:
+  1. `@ArticleWriterAgent`
+  2. `@WorkSummaryAgent`
+- To avoid loops, this automatic follow-up does not re-run when the current task
+  is already `@ArticleWriterAgent` or `@WorkSummaryAgent`.
+- It also does not auto-run for tasks that only update `blog/` or `diary/`.

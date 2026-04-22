@@ -73,7 +73,7 @@ backend には `hono-openapi` 依存があり、仕様書の出力先も `docs/s
 
 ### 3. CLI では `@AgentName` を優先
 
-`.github/README.md` にもある通り、Copilot CLI では prompt file が slash command として出ない場合があります。そのため、継続的に使う機能は `@ArticleWriterAgent` や `@WorkSummaryAgent` のように agent 呼び出しを中心に整理しました。
+`.github/CUSTOM_COMMANDS.md` にもある通り、Copilot CLI では prompt file が slash command として出ない場合があります。そのため、継続的に使う機能は `@ArticleWriterAgent` や `@WorkSummaryAgent` のように agent 呼び出しを中心に整理しました。
 
 ### 4. 参照先と保護対象をルール化
 
@@ -82,7 +82,7 @@ backend には `hono-openapi` 依存があり、仕様書の出力先も `docs/s
 ## 気をつけたいこと
 
 - prompt file を置いただけでは、CLI でそのまま slash command になるとは限りません
-- agent を増やしたら `.github/README.md` の呼び出し例も一緒に更新したほうが運用しやすくなります
+- agent を増やしたら `.github/CUSTOM_COMMANDS.md` の呼び出し例も一緒に更新したほうが運用しやすくなります
 - protected path の定義は `rules` と `instructions` の両方を見て、運用上の前提を揃える必要があります
 
 ## まとめ
