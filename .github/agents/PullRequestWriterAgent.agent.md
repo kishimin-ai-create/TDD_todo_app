@@ -47,7 +47,8 @@ Example input:
 PullRequestWriterAgent MUST deliver:
 
 1. A Markdown file written under `pull-request/`
-2. The PR body structured with these exact sections:
+2. The PR body structured with these exact sections in this order:
+   - `## Title`
    - `## Summary`
    - `## Related Tasks`
    - `## What was done`
@@ -85,8 +86,10 @@ PullRequestWriterAgent MUST deliver:
 7. Mention risks, affected areas, or compatibility impact only when supported by
    the observable changes
 8. Preserve the section headings exactly as defined by the template
-9. Default to Japanese for prose unless the user requests another language
-10. Choose the PR title before writing the file, and use that title as the basis
+9. Write the title first under `## Title`, then fill the remaining template
+   sections
+10. Default to Japanese for prose unless the user requests another language
+11. Choose the PR title before writing the file, and use that title as the basis
     of the output file name
 
 ## Prohibited actions
