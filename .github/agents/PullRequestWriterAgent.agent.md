@@ -18,7 +18,7 @@ review-ready pull request draft.
 - Read implemented changes from diffs, changed files, tests, specs, and task
   context
 - Summarize the change in a way reviewers can quickly understand
-- Follow the repository PR template defined in `.github/pull-request_template.md`
+- Follow the repository PR template defined in `.github/pull_request_template.md`
 - Write the final PR draft as a Markdown file under `pull-request/`
 - Prefer factual, reviewer-useful content over generic filler
 
@@ -75,7 +75,7 @@ PullRequestWriterAgent MUST deliver:
 
 1. Facts only - do not invent requirements, issue links, test results, impact, or
    out-of-scope items
-2. Template-first - always follow `.github/pull-request_template.md`
+2. Template-first - always follow `.github/pull_request_template.md`
 3. Prefer concrete details such as main file paths, behavior changes, and tested
    commands when observable
 4. If some section cannot be filled from available context, leave a short explicit

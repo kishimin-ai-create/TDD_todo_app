@@ -58,7 +58,7 @@
 - `## Testing`
 - `## Notes`
 
-実際に `.github/pull-request_template.md` にも同じ構成が置かれており、エージェント側の指示がテンプレート前提になっていることを確認できます。
+実際に `.github/pull_request_template.md` にも同じ構成が置かれており、エージェント側の指示がテンプレート前提になっていることを確認できます。
 
 これにより、PR 下書きの形式が毎回ぶれにくくなり、レビュー時にも読み方をそろえやすくなります。
 
@@ -89,9 +89,9 @@
 
 今回の更新後は、次のパスを参照するようになっています。
 
-- `.github/pull-request_template.md`
+- `.github/pull_request_template.md`
 
-実際にエージェント定義にも、`Follow the repository PR template defined in .github/pull-request_template.md` と記載されています。
+実際にエージェント定義にも、`Follow the repository PR template defined in .github/pull_request_template.md` と記載されています。
 
 テンプレートの参照先を実ファイルに合わせて整理したことで、エージェントのルールとリポジトリ上のテンプレート定義の対応関係が分かりやすくなりました。
 
@@ -114,7 +114,7 @@
 今回の主な対象ファイルは次のとおりです。
 
 - `.github/agents/PullRequestWriterAgent.agent.md`
-- `.github/pull-request_template.md`
+- `.github/pull_request_template.md`
 - `diary/20260423.md`
 
 ## まとめ
@@ -125,6 +125,6 @@
 
 - リポジトリの変更、仕様、テスト、タスク文脈をもとに PR 下書きを作るようにした
 - 出力を `pull-request/` 配下にそろえ、PR テンプレート準拠の構成にした
-- 出力ファイル名を PR タイトル基準にし、テンプレート参照先を `.github/pull-request_template.md` に移行した
+- 出力ファイル名を PR タイトル基準にし、テンプレート参照先を `.github/pull_request_template.md` に移行した
 
 これによって、**実際のリポジトリ文脈に基づいた一貫性のある PR 下書きを作るための基盤**が整えられた、と整理できます。

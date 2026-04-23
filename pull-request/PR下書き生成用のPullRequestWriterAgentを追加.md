@@ -1,6 +1,6 @@
 ## Summary
 
-リポジトリの変更内容をもとに PR 下書きを作成するカスタムエージェント `PullRequestWriterAgent` を追加しました。あわせて、出力ファイル名を PR タイトル由来にするルールと、参照テンプレートを `.github/pull-request_template.md` にそろえる調整を行い、`pull-request/` 配下で一貫した PR ドラフトを管理できるようにしています。
+リポジトリの変更内容をもとに PR 下書きを作成するカスタムエージェント `PullRequestWriterAgent` を追加しました。あわせて、出力ファイル名を PR タイトル由来にするルールと、参照テンプレートを `.github/pull_request_template.md` にそろえる調整を行い、`pull-request/` 配下で一貫した PR ドラフトを管理できるようにしています。
 
 ## Related Tasks
 
@@ -11,9 +11,9 @@ TBD
 - `.github/agents/PullRequestWriterAgent.agent.md` を追加し、PR 下書きを作成するカスタムエージェントを定義
 - 変更ファイル、diff、spec、tests、task context をもとに PR 本文を組み立てる方針を定義
 - 出力先を `pull-request/` 配下の Markdown に固定
-- `.github/pull-request_template.md` の見出し構成に合わせて、`Summary` / `Related Tasks` / `What was done` / `What is not included` / `Impact` / `Testing` / `Notes` を使うルールを定義
+- `.github/pull_request_template.md` の見出し構成に合わせて、`Summary` / `Related Tasks` / `What was done` / `What is not included` / `Impact` / `Testing` / `Notes` を使うルールを定義
 - 出力ファイル名を、実装内容を表す PR タイトルから生成するルールに更新
-- テンプレート参照先を `.github/rules/pull-request.rules.md` から `.github/pull-request_template.md` に変更
+- テンプレート参照先を `.github/rules/pull-request.rules.md` から `.github/pull_request_template.md` に変更
 - 関連する記録として `diary/20260423.md` と `blog/実装内容を反映したPR下書きを作るPullRequestWriterAgentを整備した.md` を追加
 
 ## What is not included
@@ -34,5 +34,5 @@ TBD
 
 ## Notes
 
-- PR テンプレートは `.github/pull-request_template.md` を基準にしています
-- 関連ファイルは `.github/agents/PullRequestWriterAgent.agent.md`、`.github/pull-request_template.md`、`diary/20260423.md`、`blog/実装内容を反映したPR下書きを作るPullRequestWriterAgentを整備した.md` です
+- PR テンプレートは `.github/pull_request_template.md` を基準にしています
+- 関連ファイルは `.github/agents/PullRequestWriterAgent.agent.md`、`.github/pull_request_template.md`、`diary/20260423.md`、`blog/実装内容を反映したPR下書きを作るPullRequestWriterAgentを整備した.md` です
