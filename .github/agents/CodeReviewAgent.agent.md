@@ -66,8 +66,10 @@ review/{作業内容}-{YYYYMMDD}.md
   description, or list of changed files provided by the caller.
   - Use the branch name if one is given (e.g., `feature/create-todo` →
     `create-todo`)
-  - Use the feature name from the spec if invoked by OrchestratorAgent (e.g.,
-    `Todoリスト取得`)
+  - Use a kebab-case slug derived from the feature name if invoked by
+    OrchestratorAgent (e.g., `Todoリスト取得` → `todo-list`, `create-todo`).
+    This must match the `{feature-slug}` that OrchestratorAgent passes in its
+    instruction so that the file-existence check in the Review phase succeeds.
   - Use a short summary of the changed files when no branch or spec is given
     (e.g., `CreateTodoInteractor修正`)
   - Do not use generic names like `review` or `changes`
@@ -79,7 +81,7 @@ Examples of valid filenames:
 
 ```
 review/create-todo-20260424.md
-review/Todoリスト取得-20260424.md
+review/todo-list-20260424.md
 review/CreateTodoInteractor修正-20260424.md
 review/feature-user-auth-20260424.md
 ```

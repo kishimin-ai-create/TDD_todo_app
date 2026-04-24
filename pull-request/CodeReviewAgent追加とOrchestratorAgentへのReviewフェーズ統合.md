@@ -13,8 +13,14 @@ CodeReviewAgent 追加と OrchestratorAgent への Review フェーズ統合
 となり、Refactor 完了後に必ずレビューファイルが `review/` に保存されてから
 完了とみなされるようになった。
 
-あわせて `OrchestratorAgent` に混入していた PowerShell ヒアドキュメント断片
-（`$content = @'` など）を除去し、YAML frontmatter を正常な形式に修正した。
+あわせて以下の 2 点を追加修正した。
+
+1. `OrchestratorAgent` に混入していた PowerShell ヒアドキュメント断片
+   （`$content = @'` など）を除去し、YAML frontmatter を正常な形式に修正した。
+2. `CodeReviewAgent` に対して、`OrchestratorAgent` から呼ばれた際は
+   `{feature-slug}` を kebab-case スラッグに統一するルールを追加した。
+   これによりレビューファイルのファイル名一貫性が保証され、
+   OrchestratorAgent 側のファイル存在チェックが確実に通るようになった。
 
 ## Related Tasks
 
@@ -32,7 +38,8 @@ TBD
   | P2 | yellow | アーキテクチャ違反・エラーハンドリング漏れ・テストカバレッジ不足 |
   | P3 | blue | 軽微なロジック改善・命名・ドキュメント不足 |
 - 出力ファイル名は `review/{作業内容}-{YYYYMMDD}.md` に固定し、命名ルールを厳格に定義した。
-  - 優先順: ① ブランチ名スラッグ → ② スペック名 → ③ 変更ファイル要約
+  - 優先順: ① ブランチ名スラッグ → ② スペック名（OrchestratorAgent 経由時は kebab-case スラッグ必須） → ③ 変更ファイル要約
+  - **OrchestratorAgent から呼ばれた場合**: `{feature-slug}` を kebab-case スラッグに統一する。これにより OrchestratorAgent 側のファイル存在チェックと名前が一致することを保証する（例: `Todoリスト取得` → `todo-list-20260424.md`）。
   - 汎用名（`review`、`changes` など）の使用を禁止
 - 日付取得コマンドを OS ごとに明記:
   - Windows: `Get-Date -Format "yyyyMMdd"`
@@ -49,7 +56,7 @@ TBD
   - レビューファイルの存在確認前に最終サマリーへ進むことを禁止。
 - **Prohibited Actions に追加**: 「レビューファイル保存前に完了とマークしない」を明記。
 - **Definition of Done に追加**: CodeReviewAgent のレビューファイルが `review/{feature-slug}-YYYYMMDD.md` に保存済みであることを完了条件に追加。
-- **バージョン更新**: 1.0.0 → 2.0.0。
+- **バージョン更新**: v1.0.0 → v2.0.0。
 
 ## What is not included
 
@@ -59,16 +66,19 @@ TBD
 
 ## Impact
 
-- **`OrchestratorAgent` 呼び出しフローへの影響**: Refactor 完了後に必ず `@CodeReviewAgent` が実行される。既存のワークフローに Phase 5 が追加されるため、1 サイクルあたりの所要ステップが増加する。
+- **`OrchestratorAgent` 呼び出しフローへの変化**: Refactor 完了後に必ず `@CodeReviewAgent` が実行される。既存のワークフローに Phase 5 が追加されるため、1 サイクルあたりの所要ステップが増加する。
 - **`review/` ディレクトリへの書き込み**: `OrchestratorAgent` 経由のフローで `review/` にファイルが生成されるようになる。
+- **ファイル名の一貫性強化**: OrchestratorAgent が期待する `{feature-slug}` と CodeReviewAgent が生成するファイル名が kebab-case ルールにより一致するようになり、ファイル存在チェックの信頼性が向上する。
 - **後方互換性**: `CodeReviewAgent` は新規追加のため、既存エージェントへの破壊的影響はない。`OrchestratorAgent` は Phase 5 追加によりフローが変化するが、既存のテスト・実装ファイル生成ロジックには手を加えていない。
 
 ## Testing
 
 - `CodeReviewAgent.agent.md` および `OrchestratorAgent.agent.md` の内容を目視確認し、YAML frontmatter・各セクション・Workflow 定義が意図通りに記述されていることを確認した。
+- kebab-case スラッグルールおよびファイル名命名ルールについては、ファイル内の記述レベルで整合性を確認済み。
 - 自動テスト（ユニットテスト / CI）はエージェント定義ファイル（Markdown）に対しては未実施。実際のエージェント動作検証は TBD。
 
 ## Notes
 
 - `OrchestratorAgent` に混入していた PowerShell 断片は過去の編集ミスと推定される。他エージェントファイルに同様の問題が潜んでいないか、後続で確認することを推奨する。
 - `CodeReviewAgent` はスタイル・フォーマット指摘を意図的に除外しているため、既存の linter/formatter 設定との役割分担を明確にしておくと運用が安定する。
+- OrchestratorAgent から呼ばれる場合と、ユーザーが直接呼び出す場合でファイル名ルールが異なる。直接呼び出しでは日本語ラベルも許容されるが、OrchestratorAgent 経由では kebab-case スラッグが必須である点に注意。
