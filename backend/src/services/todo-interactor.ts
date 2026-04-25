@@ -19,6 +19,9 @@ type TodoInteractorDependencies = {
   now?: () => string;
 };
 
+/**
+ * Creates the todo use case interactor and wires its dependencies.
+ */
 export function createTodoInteractor(
   dependencies: TodoInteractorDependencies,
 ): TodoUsecase {

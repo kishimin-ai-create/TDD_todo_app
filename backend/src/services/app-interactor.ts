@@ -17,6 +17,9 @@ type AppInteractorDependencies = {
   now?: () => string;
 };
 
+/**
+ * Creates the app use case interactor and wires its dependencies.
+ */
 export function createAppInteractor(
   dependencies: AppInteractorDependencies,
 ): AppUsecase {

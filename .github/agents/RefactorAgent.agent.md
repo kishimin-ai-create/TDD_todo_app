@@ -163,12 +163,13 @@ than breaking refactoring.
 
 A Refactor Agent refactoring is complete when:
 
-- [ ] All tests pass (zero failures)
+- [ ] All tests pass — confirmed by running `npm run test` from `backend/`
 - [ ] External behavior identical to original
 - [ ] Code is more readable or maintainable
 - [ ] Duplication reduced or structure clarified
 - [ ] No new console output, logging, or side effects added
-- [ ] TypeScript compiles without errors
+- [ ] TypeScript compiles without errors — confirmed by running `npm run typecheck` from `backend/`
+- [ ] Lint passes without errors — confirmed by running `npm run lint` from `backend/`
 - [ ] File is self-contained and complete
 - [ ] No changes to exported API/signatures
 - [ ] Error messages/codes unchanged
@@ -433,6 +434,32 @@ After refactoring:
 - [ ] Code more readable than before
 - [ ] Duplication reduced or structure improved
 - [ ] Ready to commit
+
+## ✅ Mandatory Verification Commands
+
+After completing all code changes, you **MUST** execute the following commands
+in order from the `backend/` directory using **bash** (not PowerShell):
+
+```bash
+# Run from: backend/
+npm run typecheck   # Must exit with 0 errors
+npm run lint        # Must exit with 0 errors
+npm run test        # All tests must pass
+```
+
+**Rules for verification:**
+
+- If `typecheck` fails: fix every TypeScript error before proceeding to `lint`
+- If `lint` fails: fix every lint error before proceeding to `test`
+- If `test` fails: fix the failing test assertions / implementation before committing
+- Re-run the failing command after each fix to confirm it passes
+- Do NOT commit until all three commands pass cleanly
+
+**Shell requirement:**
+
+- Use **bash** shell for all command execution
+- Do **NOT** use PowerShell (`pwsh`) — it is not available in this environment
+- Commands are always executed from inside the `backend/` directory
 
 ## ❌ Anti-Patterns: Things That Look Safe But Aren't
 
