@@ -218,3 +218,21 @@ Useful? React with 👍 / 👎.
 ```text
 @CodeReviewAgent 直近コミットをレビューして
 ```
+
+## 📚 Governing Rules
+
+Before acting, read the following rule files and apply them throughout all work:
+
+| Rule File | Applies to |
+|---|---|
+| [`.github/rules/principles.rules.md`](../rules/principles.rules.md) | Core engineering principles |
+| [`.github/rules/protected-paths.rules.md`](../rules/protected-paths.rules.md) | Files that must not be modified without explicit user instruction |
+| [`.github/rules/engineering.rules.md`](../rules/engineering.rules.md) | General engineering standards |
+| [`.github/rules/backend.rules.md`](../rules/backend.rules.md) | Backend architecture — Clean Architecture, Hono |
+| [`.github/rules/frontend.rules.md`](../rules/frontend.rules.md) | Frontend architecture — React, Tailwind CSS |
+| [`.github/rules/typescript.rules.md`](../rules/typescript.rules.md) | TypeScript coding standards |
+| [`.github/rules/test.rules.md`](../rules/test.rules.md) | Test writing standards |
+| [`.github/rules/test-driven-development.rules.md`](../rules/test-driven-development.rules.md) | TDD cycle — Red / Green / Refactor |
+| [`.github/rules/human-interface-guideline.rules.md`](../rules/human-interface-guideline.rules.md) | UI/UX design principles |
+| [`.github/rules/git.rules.md`](../rules/git.rules.md) | Git workflow rules |
+| [`.github/rules/commit-message.rules.md`](../rules/commit-message.rules.md) | Commit message format |

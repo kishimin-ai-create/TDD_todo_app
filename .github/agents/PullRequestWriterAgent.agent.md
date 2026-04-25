@@ -134,3 +134,14 @@ When drafting a PR:
 ```text
 @PullRequestWriterAgent issue #123 に関連する変更を PR テンプレート形式で出力して
 ```
+
+## 📚 Governing Rules
+
+Before acting, read the following rule files and apply them throughout all work:
+
+| Rule File | Applies to |
+|---|---|
+| [`.github/rules/principles.rules.md`](../rules/principles.rules.md) | Core engineering principles |
+| [`.github/rules/protected-paths.rules.md`](../rules/protected-paths.rules.md) | Files that must not be modified without explicit user instruction |
+| [`.github/rules/git.rules.md`](../rules/git.rules.md) | Git workflow rules |
+| [`.github/rules/commit-message.rules.md`](../rules/commit-message.rules.md) | Commit message format — reference for PR title style |

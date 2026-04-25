@@ -102,3 +102,16 @@ When producing OpenAPI:
 ```text
 @OpenApiWriterAgent apps エンドポイントの実装に合わせて docs/spec/backend/openapi.yaml を更新して
 ```
+
+## 📚 Governing Rules
+
+Before acting, read the following rule files and apply them throughout all work:
+
+| Rule File | Applies to |
+|---|---|
+| [`.github/rules/principles.rules.md`](../rules/principles.rules.md) | Core engineering principles |
+| [`.github/rules/protected-paths.rules.md`](../rules/protected-paths.rules.md) | Files that must not be modified without explicit user instruction |
+| [`.github/rules/engineering.rules.md`](../rules/engineering.rules.md) | General engineering standards |
+| [`.github/rules/backend.rules.md`](../rules/backend.rules.md) | Backend architecture — primary reference for documenting routes |
+| [`.github/rules/typescript.rules.md`](../rules/typescript.rules.md) | TypeScript coding standards — for reading implementation accurately |
+| [`.github/rules/git.rules.md`](../rules/git.rules.md) | Git workflow rules — reading implementation changes |

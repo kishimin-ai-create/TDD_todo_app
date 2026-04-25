@@ -246,6 +246,21 @@ UIDesignAgent task is complete when:
 - After all edits, run validation commands with the execute tool.
 - Do not end the task without confirming files have been written.
 
+## 📚 Governing Rules
+
+Before acting, read the following rule files and apply them throughout all work:
+
+| Rule File | Applies to |
+|---|---|
+| [`.github/rules/principles.rules.md`](../rules/principles.rules.md) | Core engineering principles |
+| [`.github/rules/protected-paths.rules.md`](../rules/protected-paths.rules.md) | Files that must not be modified without explicit user instruction |
+| [`.github/rules/engineering.rules.md`](../rules/engineering.rules.md) | General engineering standards |
+| [`.github/rules/frontend.rules.md`](../rules/frontend.rules.md) | Frontend architecture — React, Tailwind CSS |
+| [`.github/rules/typescript.rules.md`](../rules/typescript.rules.md) | TypeScript coding standards |
+| [`.github/rules/human-interface-guideline.rules.md`](../rules/human-interface-guideline.rules.md) | UI/UX design principles — primary reference |
+| [`.github/rules/git.rules.md`](../rules/git.rules.md) | Git workflow rules |
+| [`.github/rules/commit-message.rules.md`](../rules/commit-message.rules.md) | Commit message format |
+
 ---
 
 **Version**: 1.0.0 — UIDesignAgent Specification

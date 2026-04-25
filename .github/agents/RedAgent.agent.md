@@ -492,6 +492,23 @@ FAIL** because `CreateAppInteractor` doesn't exist yet.
 5. **Readable Tests**: Someone reading the test code should understand the
    feature without reading implementation.
 
+## 📚 Governing Rules
+
+Before acting, read the following rule files and apply them throughout all work:
+
+| Rule File | Applies to |
+|---|---|
+| [`.github/rules/principles.rules.md`](../rules/principles.rules.md) | Core engineering principles |
+| [`.github/rules/protected-paths.rules.md`](../rules/protected-paths.rules.md) | Files that must not be modified without explicit user instruction |
+| [`.github/rules/engineering.rules.md`](../rules/engineering.rules.md) | General engineering standards — code/test/commit responsibilities |
+| [`.github/rules/backend.rules.md`](../rules/backend.rules.md) | Backend architecture — Clean Architecture, Hono |
+| [`.github/rules/frontend.rules.md`](../rules/frontend.rules.md) | Frontend architecture — React, Tailwind CSS |
+| [`.github/rules/typescript.rules.md`](../rules/typescript.rules.md) | TypeScript coding standards |
+| [`.github/rules/test.rules.md`](../rules/test.rules.md) | Test writing standards |
+| [`.github/rules/test-driven-development.rules.md`](../rules/test-driven-development.rules.md) | TDD cycle — Red / Green / Refactor |
+| [`.github/rules/git.rules.md`](../rules/git.rules.md) | Git workflow rules |
+| [`.github/rules/commit-message.rules.md`](../rules/commit-message.rules.md) | Commit message format |
+
 ---
 
 **Last Updated**: 2026年4月12日 **Version**: 1.0.0 Red Agent Specification
