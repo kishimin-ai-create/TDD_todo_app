@@ -111,13 +111,20 @@ npm run test
 ### Testing Approach
 
 * Combine automated testing with exploratory testing
-* Use "Explore → Learn → Experiment" cycle
+* Use "Arrange → Act → Assert" cycle
 
 ### Test Structure
 
-* Tests: Define scenarios
-* Requests: Execute API calls
-* Payloads: Define request/response data
+- Place unit tests next to the source code
+- Use `.test.ts` suffix
+
+- Integration tests should be placed under `tests/integration`
+
+### Test Types
+
+- Unit tests (Small): no external dependencies
+- Integration tests (Medium): may use database or filesystem
+- E2E tests (Large): minimal usage only
 
 ### Strategy
 
