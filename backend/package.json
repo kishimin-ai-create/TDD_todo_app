@@ -4,6 +4,8 @@
     "dev": "bun run --hot src/index.ts",
     "lint": "eslint .",
     "test": "vitest run --reporter=default --reporter=json --outputFile=test-result.json",
+    "test:unit": "vitest run --config vitest.unit.config.ts --reporter=default",
+    "test:integration": "vitest run --config vitest.integration.config.ts --reporter=default",
     "typecheck": "tsc --noEmit"
   },
   "dependencies": {
