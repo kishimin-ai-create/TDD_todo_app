@@ -40,6 +40,9 @@ the source of truth for protected paths.
 
 - After fixing an error or resolving one error root cause, automatically invoke
   `@ArticleWriterAgent` and create one error-focused article for that fix.
+- After `@CodeReviewAgent` completes and saves its review file, automatically
+  invoke `@ReviewResponseAgent` with the newly created review file as context
+  before proceeding to any other post-task step.
 - After completing an implementation, fix, review-response, refactor, or similar
   repository task, automatically invoke post-task agents in this order:
   1. `@ArticleWriterAgent`

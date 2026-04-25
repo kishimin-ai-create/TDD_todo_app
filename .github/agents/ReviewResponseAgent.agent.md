@@ -47,14 +47,33 @@ Example input:
 ReviewResponseAgent MUST deliver:
 
 1. Code changes for comments that should be fixed in the repository
-2. A concise per-comment disposition:
+2. **Replies written directly into the review file** — append each reply text
+   immediately after the corresponding `Useful? React with 👍 / 👎.` line in the
+   review file itself. Do NOT produce replies as agent output text only.
+3. A concise per-comment disposition written into the review file:
    - fixed
    - reply only
    - needs clarification
-3. Draft reply text in Japanese for each handled comment
 4. Main file paths affected by each resolution
-5. The reply text must appear directly under the corresponding fix or disposition
-   item, not in a separate replies-only section
+5. The reply text must appear directly under the `Useful? React with 👍 / 👎.`
+   line it responds to, inline in the review file — not in a separate
+   replies-only section and not only in the agent response text
+
+### Reply format in the review file
+
+After each `Useful? React with 👍 / 👎.` line, append the reply with a blank
+line separator. Example:
+
+```markdown
+Useful? React with 👍 / 👎.
+
+ご指摘ありがとうございます。{何をしたか、またはなぜ変更不要かを具体的に}
+
+---
+```
+
+When the section separator `---` already follows the `Useful?` line, insert the
+reply between the `Useful?` line and the `---`.
 
 ## Writing and resolution rules
 
@@ -98,7 +117,9 @@ When processing review comments:
 
 - Each review comment in the requested scope has a disposition
 - Fixable issues are reflected in repository changes
-- Reply drafts are ready to paste into a review thread
+- **Reply text is written directly into the review file** below each
+  `Useful? React with 👍 / 👎.` line — the review file is the single source of
+  truth for both findings and replies
 - No unsupported claims are included
 
 ## Suggested invocation
