@@ -20,6 +20,7 @@
     "@eslint/js": "^10.0.1",
     "@stylistic/eslint-plugin": "^5.10.0",
     "@types/bun": "latest",
+    "@vitest/coverage-v8": "^4.1.4",
     "@vitest/eslint-plugin": "^1.6.16",
     "eslint": "^10.2.1",
     "eslint-plugin-jsdoc": "^62.9.0",
