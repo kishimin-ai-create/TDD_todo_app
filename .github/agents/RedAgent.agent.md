@@ -97,6 +97,7 @@ describe("CreateApp Usecase", () => {
    specification document.
 7. **Consistent Imports**: Use the same import style across all tests (vitest,
    Testing Library patterns).
+8. **Proceed Autonomously**: Do not ask the user for permission or confirmation before writing test files. Receive the instruction and act immediately.
 
 ## ✅ Definition of Done
 

@@ -61,6 +61,7 @@ WorkSummaryAgent MUST deliver:
 7. When appending to an existing same-day file, add a clearly separated new
    section instead of rewriting previous entries
 8. Keep the summary readable and practical rather than overly formal
+9. Proceed autonomously — do not ask the user for permission or confirmation before writing. Receive the instruction and act immediately.
 
 ## Definition of done
 

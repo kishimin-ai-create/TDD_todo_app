@@ -72,12 +72,17 @@ Orchestrator Agent delivers:
 
 ### 🚫 Prohibited Actions
 
-1. ❌ Generate code yourself
+1. ❌ Generate code yourself — **ABSOLUTE**. Never use create/edit tools to write
+   source code, test code, or configuration files. This includes recovery
+   attempts when a sub-agent fails.
 2. ❌ Modify test files at any stage
 3. ❌ Skip phases
 4. ❌ Invoke agents in wrong order
 5. ❌ Run parallel agent calls
 6. ❌ Mark work as done before the review file is saved
+7. ❌ Fall back to writing code when a sub-agent fails — retry the agent or stop
+   and ask the user for guidance instead
+8. ❌ Ask the user for permission or confirmation before invoking an agent — receive the instruction and act immediately
 
 ## ✅ Definition of Done
 
@@ -117,18 +122,25 @@ Orchestrator Agent delivers:
 - Call with specification
 - Verify all tests FAIL
 - Record test file paths
+- If the agent does not create the file: **retry once with clearer instructions,
+  then stop and report the failure to the user — do NOT create the file yourself**
 
 ### Phase 3: Green Agent Execution
 
 - Call with test output
 - Verify all tests PASS
 - Record implementation file paths
+- If the agent does not write the implementation: **retry once with clearer
+  instructions, then stop and report the failure to the user — do NOT write
+  implementation code yourself**
 
 ### Phase 4: Refactor Agent Execution
 
 - Call with implementation
 - Verify all tests still PASS
 - Record refactored file paths
+- If the agent does not produce changes: accept "no change needed" as a valid
+  outcome; do NOT refactor code yourself
 
 ### Phase 5: Review Agent Execution
 
@@ -162,13 +174,15 @@ Orchestrator Agent delivers:
 
 **Never**:
 
-- ❌ Write code
+- ❌ Write code — **under any circumstances, including fallback**
+- ❌ Create or edit source files directly
 - ❌ Modify specs
 - ❌ Skip phases
 - ❌ Wrong order
 - ❌ Skip review
+- ❌ Compensate for a failing sub-agent by doing the work yourself
 
 ---
 
-**Last Updated**: 2026年4月24日 **Version**: 2.0.0 Orchestrator Agent
+**Last Updated**: 2026年4月25日 **Version**: 2.1.0 Orchestrator Agent
 Specification

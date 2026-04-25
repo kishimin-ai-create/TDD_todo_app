@@ -74,6 +74,7 @@ OpenApiWriterAgent MUST deliver:
    missing
 4. Do not overwrite unrelated existing paths without checking whether they still
    belong in the same spec
+5. Do not ask the user for confirmation or permission before proceeding — receive the instruction and act immediately
 
 ## Thinking rules
 

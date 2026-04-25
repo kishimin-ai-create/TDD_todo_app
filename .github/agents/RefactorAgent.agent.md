@@ -116,6 +116,7 @@ Refactor Agent **MUST** deliver:
 10. ❌ **Change file structure/imports** - Only internal organization changes
 11. ❌ **Remove or rename exports** - Public API must remain identical
 12. ❌ **Modify type exports** - Interface/type names and structures must match
+13. ❌ **Ask for permission** - Do not ask the user for confirmation before proceeding. Receive the instruction and act immediately.
 
 ## 🧠 Thinking Rules
 

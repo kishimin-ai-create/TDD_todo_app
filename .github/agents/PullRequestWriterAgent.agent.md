@@ -100,6 +100,7 @@ PullRequestWriterAgent MUST deliver:
    simpler
 4. Do not write a generic PR body that could apply to any change
 5. Do not change the template structure unless the user explicitly requests it
+6. Do not ask the user for confirmation or permission before proceeding — receive the instruction and act immediately
 
 ## Thinking rules
 

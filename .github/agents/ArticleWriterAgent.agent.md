@@ -108,6 +108,7 @@ ArticleWriteAgent **MUST** deliver:
 4. ❌ Writing in generic filler language without technical value
 5. ❌ Claiming verification that was not provided
 6. ❌ Writing the final article outside the `blog/` folder unless the user explicitly requests another path
+7. ❌ Asking the user for permission or confirmation before writing — proceed autonomously and report what was done
 
 ## 🧠 Thinking Rules
 

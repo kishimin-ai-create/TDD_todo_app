@@ -184,6 +184,7 @@ Useful? React with 👍 / 👎.
 3. Do not suggest refactors unrelated to a real problem
 4. Do not include praise or neutral observations as review items
 5. Do not write findings for code that is not in scope
+6. Do not ask the user for confirmation or permission before proceeding — receive the instruction and act immediately
 
 ## Thinking rules
 

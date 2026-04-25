@@ -107,6 +107,7 @@ export class CreateAppInteractor {
 9. ❌ **Decorators or patterns** - No design patterns beyond what tests require
 10. ❌ **Comments as code** - Don't explain future plans; code should be
     immediately ready
+11. ❌ **Asking for permission** - Do not ask the user for confirmation or permission before writing files. Receive the instruction and act immediately.
 
 ## ✅ Definition of Done
 
