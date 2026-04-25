@@ -1,121 +1,126 @@
-# Backend rules
+# Backend Rules
 
-### Directory Structure for Clean Architecture
+## Directory Structure (DDD + Clean Architecture with Controller/Service Style)
 
 ```text
 src/
-├── domain/                # Domain Layer
-│   ├── entities/          # Business Entities
-│   └── repositories/      # Repository Interfaces
-├── usecase/               # Usecase Layer
-│   ├── interactors/       # Business Logic Implementation
-│   ├── input_ports/       # Input Boundaries
-│   └── output_ports/      # Output Boundaries
-├── interface/             # Interface Adapters Layer
-│   ├── controllers/       # Controllers
-│   ├── presenters/        # Presenters
-│   └── gateways/          # Repository Implementations
-└── infrastructure/        # Infrastructure Layer
-    ├── database/          # Database Configurations
-    ├── external_api/      # External API Clients
-    └── framework/         # Framework Specific Settings
+├── models/                # Domain Model (Entities / Value Objects)
+├── services/              # Application Service (Usecase / Business Logic)
+├── repositories/           # Repository Interfaces (Domain) & Implementations
+├── controllers/           # Entry Point (HTTP Layer)
+└── infrastructures/       # External Systems (DB, APIs, Framework)
+````
+
+
+## Layer Descriptions
+
+| Layer              | Description                                                                                     |
+| ------------------ | ----------------------------------------------------------------------------------------------- |
+| **Model**          | Domain layer. Defines entities and business rules. No dependencies on other layers.             |
+| **Service**        | Application layer. Executes business logic and orchestrates use cases.                          |
+| **Repository**     | Handles data persistence. Interfaces belong to Model, implementations belong to Infrastructure. |
+| **Controller**     | Entry point. Handles HTTP requests/responses and calls Services.                                |
+| **Infrastructure** | External concerns such as DB, frameworks, and APIs.                                             |
+
+
+## Strict Rules to Follow
+
+### Model Layer
+
+* Must not depend on any other layer
+* No frameworks, no database access, no HTTP
+
+### Service Layer
+
+* Contains business logic and usecase orchestration
+* Must not include infrastructure details (DB, HTTP, etc.)
+
+### Repository Layer
+
+* Interfaces belong to the Model layer
+* Implementations belong to the Infrastructure layer
+* Must not leak infrastructure-specific errors
+
+### Controller Layer
+
+* Must be thin
+* Only handles request/response mapping
+* Calls Service layer only
+
+### Infrastructure Layer
+
+* Handles all external systems (DB, APIs, frameworks)
+* Must not contain business logic
+
+
+## Dependency Rule
+
+* Dependencies must always point inward (toward Model)
+
+```text
+Controller → Service → Model
+           ↓
+      Repository (interface)
+           ↓
+    Infrastructure (implementation)
 ```
 
-#### Layer Descriptions
+* Outer layers must not be referenced from inner layers
 
-| Layer              | Description                                                                                                                                                                             |
-| :----------------- | :-------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
-| **Domain**         | The innermost circle. Defines business rules and entities. It is the core of the application and has no dependencies on other layers.                                                   |
-| **Usecase**        | Contains application-specific business logic. It orchestrates the flow of data to and from the entities and directs those entities to use their critical business rules.                |
-| **Interface**      | A set of adapters that convert data from the format most convenient for the use cases and entities to the format most convenient for external agencies such as the Database or the Web. |
-| **Infrastructure** | The outermost layer. It is where all the details go: the framework, the database, the UI, etc. It communicates with the Interface layer to receive and send data.                       |
 
-### Strict Rules to Follow
+## Error Handling
 
-- **Domain Layer:** Never import frameworks or infrastructure-specific SDKs
-  (e.g., SQLx, Axum). It must contain only business entities, rules, and Ports
-  (interfaces/traits).
-- **Usecase Layer:** Dedicated to orchestration and transaction boundary
-  management. Implementation of SQL or HTTP calls is strictly prohibited; it
-  must interact with the outside world only through Ports.
-- **Handler Layer:** Keep it "thin." Its responsibility is limited to
-  parsing/validating input, calling the Usecase, and mapping internal errors to
-  HTTP responses or DTOs.
-- **Error Handling:** Never leak raw infrastructure errors (like DB errors)
-  outside the infrastructure layer. They must be mapped into domain-specific
-  error types (e.g., `AppError` or `RepoError`).
+* Do not expose raw infrastructure errors outside Infrastructure layer
+* Map errors to domain-specific types (e.g., AppError, RepoError)
 
-### Command Execution Rules
 
-- Use the **bash shell** for command execution.
-- Run commands in the **current working directory** unless a different location is
-  explicitly required.
-- When backend validation is needed, run the commands **inside the `backend`
-  directory**.
-- Execute the following commands when needed:
-  - `npm run lint`
-  - `npm run typecheck`
-  - `npm run test`
+## Command Execution Rules
 
-### Implementation Steps (Thinking Process)
+* Use the **bash shell**
+* Do not use PowerShell (pwsh)
+* Run commands in the current working directory unless specified
+* When working on backend, execute commands inside the `backend` directory
 
-To avoid getting lost during development, the following implementation order is
-recommended:
+### Commands
 
-1.  **Domain:** Implement the core models and business logic first.
-2.  **Port:** Define the interfaces (Traits) required for I/O.
-3.  **Usecase:** Define the flow of the process (orchestration) using the Ports.
-4.  **Adapter:** Implement the infrastructure details (e.g., DB queries,
-    external API clients).
-5.  **Registry:** Wire everything together using Dependency Injection.
-6.  **Handler:** Create the entry point, such as an HTTP endpoint.
-7.  **Test:** Conduct tests from the inside out (Domain → Usecase →
-    Infrastructure → Interface).
+```bash
+npm run lint
+npm run typecheck
+npm run test
+```
 
-### Article Summary: Testing Web APIs (from Money Forward Developers Blog)
 
-This article summarizes the key takeaways from the book _Testing Web APIs_ by
-Mark Winteringham. It emphasizes that API testing is not just a technical
-collection of scripts, but a **"comprehensive approach to understanding the
-product and improving quality strategically."**
+## Implementation Steps (Thinking Process)
 
----
+1. Model: Define domain models and business rules
+2. Repository: Define interfaces (ports)
+3. Service: Implement usecases using repositories
+4. Infrastructure: Implement repository details (DB, API)
+5. Controller: Handle HTTP and call services
+6. Test: Test from inside out (Model → Service → Infrastructure → Controller)
 
-### Key Points
 
-**1. Importance of Product Understanding (Chapter 2)**
+## Testing Strategy (Summary)
 
-- Before starting any tests, you must deeply understand how the system works by
-  watching demos, reading documentation, analyzing source code, and observing
-  actual traffic using DevTools.
-- This helps identify risks and bottlenecks at the network communication level.
+### Principles
 
-**2. Defining Quality and Risk (Chapter 3)**
+* Understand the system before testing
+* Define quality based on user value
+* Prioritize based on risk (impact × probability)
 
-- Consider what "value" means to the users and prioritize testing accordingly.
-- Create a risk matrix based on "impact" and "probability" to clarify which
-  risks must be addressed first.
+### Testing Approach
 
-**3. Utilizing Exploratory Testing (Chapter 5)**
+* Combine automated testing with exploratory testing
+* Use "Explore → Learn → Experiment" cycle
 
-- Incorporate exploratory testing into your API strategy—moving beyond
-  predefined checks with a "What if?" mindset.
-- Follow a cycle of "Explore → Learn → Experiment" to discover unknown issues.
+### Test Structure
 
-**4. Valuable Test Automation (Chapter 6)**
+* Tests: Define scenarios
+* Requests: Execute API calls
+* Payloads: Define request/response data
 
-- The goal of automation should be to enhance the value of regression testing.
-  To maintain high code quality, the author recommends organizing test code into
-  three layers:
-  - **Tests:** Definition of test scenarios.
-  - **Requests:** Execution of API requests.
-  - **Payloads:** Definition of data sent and received.
+### Strategy
 
-**5. Testability and Strategy (Chapter 7)**
-
-- Assess and improve "Testability" by considering the team's skill set and
-  existing processes through the "9 Ps" (People, Pipeline, Process, etc.).
-- Create a simple, one-page test plan that is easy to understand and keep
-  updated.
-
+* Improve testability continuously
+* Keep test plans simple and maintainable
 
