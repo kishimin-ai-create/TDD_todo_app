@@ -2,6 +2,7 @@
   "name": "backend",
   "scripts": {
     "dev": "bun run --hot src/index.ts",
+    "migrate": "bun run src/infrastructure/migrate.ts",
     "lint": "eslint .",
     "test": "vitest run --reporter=default --reporter=json --outputFile=test-result.json",
     "test:unit": "vitest run --config vitest.unit.config.ts --reporter=default",
@@ -13,6 +14,7 @@
     "eslint-plugin-unused-imports": "^4.4.1",
     "hono": "^4.12.14",
     "hono-openapi": "^1.3.0",
+    "mysql2": "^3.22.2",
     "type-check": "^0.4.0",
     "zod": "^4.3.6"
   },
