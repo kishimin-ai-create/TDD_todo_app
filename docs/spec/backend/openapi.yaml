@@ -209,6 +209,7 @@ components:
       properties:
         name:
           type: string
+          minLength: 1
           maxLength: 100
           description: >
             Name for the new App. Must be a non-empty string after whitespace
@@ -224,6 +225,7 @@ components:
       properties:
         name:
           type: string
+          minLength: 1
           maxLength: 100
           description: >
             New name for the App. Must be a non-empty string after whitespace
@@ -237,6 +239,7 @@ components:
       properties:
         title:
           type: string
+          minLength: 1
           maxLength: 200
           description: >
             Title for the new Todo. Must be a non-empty string after whitespace
@@ -252,6 +255,7 @@ components:
       properties:
         title:
           type: string
+          minLength: 1
           maxLength: 200
           description: >
             New title for the Todo. Must be a non-empty string after whitespace
