@@ -4,6 +4,7 @@ import { AppError } from '../models/app-error';
 import type { AppEntity } from '../models/app';
 import type { TodoEntity } from '../models/todo';
 import {
+  handleControllerError,
   presentApp,
   presentError,
   presentSuccess,
@@ -151,5 +152,22 @@ describe('presentError', () => {
       code: 'CONFLICT',
       message: 'Name already taken',
     });
+  });
+});
+
+// ─── handleControllerError ───────────────────────────────────────────────────
+
+describe('handleControllerError', () => {
+  it('returns a JSON response for a known AppError', () => {
+    const error = new AppError('NOT_FOUND', 'resource missing');
+    const result = handleControllerError(error);
+    expect(result.status).toBe(404);
+    expect(result.body.success).toBe(false);
+    expect(result.body.error?.code).toBe('NOT_FOUND');
+  });
+
+  it('re-throws unknown errors', () => {
+    const unknown = new Error('unexpected');
+    expect(() => handleControllerError(unknown)).toThrow('unexpected');
   });
 });
