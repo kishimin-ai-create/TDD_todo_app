@@ -8,6 +8,8 @@ Useful? React with 👍 / 👎.
 
 MySQL 8.0 は `DROP INDEX IF EXISTS` をサポートしないため、`information_schema.STATISTICS` でインデックスの存在を確認してから動的に `ALTER TABLE App DROP INDEX idx_app_name` を実行するパターンに変更しました。インデックスが存在しない新規環境では `SELECT 1` が実行されるのでマイグレーションがブロックされなくなります。マイグレーションファイルは `multipleStatements: true` で実行されているため、複数ステートメントの記述も問題ありません。
 
+Disposition: verified fixed — `backend/migrations/003_drop_app_name_unique_index.sql` queries `information_schema.STATISTICS` and only executes `ALTER TABLE App DROP INDEX idx_app_name` when the index exists; safe for fresh databases that never had the index.
+
 ---
 
 **<sub><sub>![P1 Badge](https://img.shields.io/badge/P1-orange?style=flat)</sub></sub>  Enforce app-name uniqueness atomically**
@@ -24,6 +26,8 @@ Useful? React with 👍 / 👎.
 
 これらはドメイン層のインターフェース設計変更を伴う大きな変更となるため、本 PR のスコープ外として既知の制限事項（known limitation）とします。低〜中トラフィック環境では実用上の問題は限定的ですが、高並行環境での本番利用前には別 Issue として対応することを推奨します。
 
+Disposition: reply only — acknowledged as a known limitation requiring a `UnitOfWork` interface addition to the domain layer; tracked for a future dedicated issue. Low-to-medium traffic environments are not materially impacted.
+
 **<sub><sub>![P1 Badge](https://img.shields.io/badge/P1-orange?style=flat)</sub></sub>  Enforce app-name uniqueness atomically**
 
 `createAppInteractor.create()` checks `existsActiveByName()` and then writes in a separate call, so concurrent requests with the same name can both pass the pre-check and persist successfully. Because this change set removes DB-level name uniqueness (see `001_create_app_table.sql` / migration 003), the `409` contract is now race-prone under parallel traffic and multiple active apps can end up sharing one name. Please make the check+write atomic (for example with a transaction/lock or equivalent DB constraint).
@@ -31,6 +35,8 @@ Useful? React with 👍 / 👎.
 Useful? React with 👍 / 👎.
 
 > **返信 (Copilot):** ご指摘ありがとうございます。上の同名コメントと同一の root cause です。`existsActiveByName()` → `save()` の分離による race condition を解消するには `AppRepository` インターフェースにトランザクション境界（例: `UnitOfWork`）を追加する必要があり、ドメイン層の設計変更を伴う大きな変更となるため本 PR のスコープ外とします。既知の制限事項として記録し、高並行環境での本番利用前に別 Issue で対応することを推奨します。
+
+Disposition: reply only — same root cause as the finding above; requires `UnitOfWork` interface in the domain layer; tracked for a future dedicated issue.
 
 ---
 
@@ -41,3 +47,5 @@ Useful? React with 👍 / 👎.
 Useful? React with 👍 / 👎.
 
 > **返信 (Copilot):** ご指摘ありがとうございます。`createAppInteractor.remove()` では app のソフトデリート後に todo のカスケード削除を行っていますが、これらの書き込みをまたぐトランザクション境界がありません。途中で失敗した場合、app が削除済みのまま一部の todo がアクティブに残るという不整合が生じます。アトミックに解決するには `AppRepository` / `TodoRepository` インターフェースに共通のトランザクション境界（例: `UnitOfWork`）を追加し、`remove()` 全体を単一トランザクションでラップする必要があります。これはドメイン層のインターフェース設計変更を伴う大きな変更となるため、本 PR のスコープ外として既知の制限事項（known limitation）とします。別 Issue として対応することを推奨します。
+
+Disposition: reply only — acknowledged as a known limitation; wrapping app soft-delete and todo cascade in a single transaction requires a `UnitOfWork` abstraction across `AppRepository` and `TodoRepository`; tracked for a future dedicated issue.

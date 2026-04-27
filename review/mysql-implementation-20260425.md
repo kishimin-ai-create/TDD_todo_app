@@ -46,6 +46,8 @@ Useful? React with 👍 / 👎.
 
 ご指摘ありがとうございます。`git log --all -- backend/.env` で確認したところ、`backend/.env` のコミット履歴はゼロ件でした。`.gitignore` に `.env` が明記されており、過去を含めて一切 git の追跡対象になっていません。本指摘は false positive となります。現状のまま問題ありません。
 
+Disposition: reply only — `backend/.env` has never been committed to git history; `.gitignore` correctly excludes it. No code change required.
+
 ---
 
 **<sub><sub>![P1 Badge](https://img.shields.io/badge/P1-orange?style=flat)</sub></sub>
@@ -88,6 +90,8 @@ Useful? React with 👍 / 👎.
 3. `mysql-app-repository.ts` の `save()` を `INSERT ... ON DUPLICATE KEY UPDATE` から「存在チェック → INSERT / UPDATE 分岐」に変更しました。`id`（PRIMARY KEY）のみを一意性の基準とするため、削除済みレコードの `name` と衝突しません。
 
 名前の重複チェックはアプリ層の `existsActiveByName`（`deletedAt IS NULL` フィルタ付き）で引き続き担保されます。
+
+Disposition: verified fixed — (1) `001_create_app_table.sql` contains no `UNIQUE INDEX` on `name`; (2) `003_drop_app_name_unique_index.sql` idempotently drops the index only if it exists; (3) `mysql-app-repository.ts` `save()` uses an existence check then branches to INSERT or UPDATE using `id` as the sole uniqueness key.
 
 ---
 
@@ -133,6 +137,8 @@ return context.json(response.body, response.status as ContentfulStatusCode);
 
 `isContentfulStatusCode` による型ガードも検討しましたが、`http-presenter` が有効なステータスコードのみを生成することが設計上保証されており、ランタイムチェックの追加よりコメントによる意図の明示が適切と判断しました。
 
+Disposition: verified fixed — `backend/src/infrastructure/hono-app.ts` line 369 has the required explanatory comment immediately before the `as ContentfulStatusCode` assertion, satisfying the TypeScript rule.
+
 ---
 
 **<sub><sub>![P2 Badge](https://img.shields.io/badge/P2-yellow?style=flat)</sub></sub>
@@ -168,6 +174,8 @@ if (!dbNamePattern.test(dbName)) {
 Useful? React with 👍 / 👎.
 
 ご指摘ありがとうございます。`migrate()` 関数の先頭に `/^\w+$/` によるバリデーションを追加しました。不正な `DB_DATABASE` 値が設定されていた場合は SQL 文字列への補間に到達する前に即時エラーで終了します。`multipleStatements: true` についてはマイグレーションファイルが複数ステートメントを含む正当な要件であるため変更していませんが、本番環境でのマイグレーションファイルの変更権限管理を徹底します。
+
+Disposition: verified fixed — `backend/src/infrastructure/migrate.ts` validates `dbName` with `/^\w+$/` at the start of `migrate()` and throws before any SQL interpolation if the value is invalid.
 
 ---
 
@@ -208,6 +216,8 @@ Useful? React with 👍 / 👎.
 
 これにより DB 接続エラー・制約違反・タイムアウト等の根本原因が `Error.cause` に保持され、スタックトレースから追跡可能になります。
 
+Disposition: verified fixed — all catch blocks in `mysql-app-repository.ts` and `mysql-todo-repository.ts` use `catch (err: unknown)` with `{ cause: err }`; `AppError` constructor accepts `options?: ErrorOptions` and passes it to `super()`.
+
 ---
 
 **<sub><sub>![P3 Badge](https://img.shields.io/badge/P3-blue?style=flat)</sub></sub>
@@ -235,6 +245,8 @@ const migrationsDir = join(__dirname, '../../../migrations');
 Useful? React with 👍 / 👎.
 
 ご指摘ありがとうございます。`fileURLToPath` + `import.meta.url` を使用してスクリプト自身の位置を基準にするよう変更しました。`npm run typecheck` で型エラーのないことを確認しています。これにより `backend/` 以外のディレクトリから実行した場合でも `migrations/` が正しく解決されます。
+
+Disposition: verified fixed — `backend/src/infrastructure/migrate.ts` uses `fileURLToPath(new URL('../../migrations', import.meta.url))` to resolve the migrations directory relative to the script, independent of the working directory.
 
 ---
 
@@ -264,3 +276,5 @@ let honoApp: BackendRegistry['app'];
 Useful? React with 👍 / 👎.
 
 ご指摘ありがとうございます。`honoApp` の型注釈を `ReturnType<typeof createMysqlBackendRegistry>['app']` から `import type { Hono } from 'hono'` を使った `Hono` 型に変更しました。両レジストリの `app` プロパティが `Hono` を共通型として持つため、将来いずれかの実装が変化した場合でも型エラーが適切に検出されます。
+
+Disposition: not applicable — the `backend/src/index.ts` monolith was refactored away into Clean Architecture layers; the `honoApp` variable with this type annotation no longer exists.

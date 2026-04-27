@@ -5,3 +5,5 @@
 Useful? React with 👍 / 👎.
 
 ご指摘ありがとうございます。OrchestratorAgent 経由の呼び出し時は feature 名から kebab-case の slug を使うよう、CodeReviewAgent のファイル命名ルールを更新しました。これで Review フェーズの存在確認と同じ命名規則に揃えています。
+
+Disposition: verified fixed — `.github/agents/CodeReviewAgent.agent.md` now specifies that when invoked by OrchestratorAgent the filename must use the kebab-case `{feature-slug}` passed by the orchestrator, matching the Review phase file-existence check.
