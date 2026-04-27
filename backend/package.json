@@ -1,7 +1,7 @@
 {
   "name": "backend",
   "scripts": {
-    "dev": "tsx --watch src/server.ts",
+    "dev": "tsx --env-file-if-exists=.env --watch src/server.ts",
     "migrate": "tsx --env-file-if-exists=.env src/infrastructure/migrate.ts",
     "lint": "eslint .",
     "test": "vitest run --reporter=default --reporter=json --outputFile=test-result.json",
