@@ -16,7 +16,7 @@ import { configs } from "typescript-eslint";
 import { jsdoc } from "eslint-plugin-jsdoc";
 
 export default defineConfig([
-  globalIgnores(["dist"]),
+  globalIgnores(["dist", "src/api/generated/**"]),
   jsdoc({
     config: "flat/recommended",
     rules: {
