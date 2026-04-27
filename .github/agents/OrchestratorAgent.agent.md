@@ -45,7 +45,9 @@ Orchestrator Agent delivers:
 2. 🟢 Green Phase - Implementation file
 3. 🔵 Refactor Phase - Refactored implementation
 4. 🔍 Review Phase - `review/{feature-slug}-YYYYMMDD.md`
-5. 📋 Summary - Deliverables ready to commit
+5. 📝 Article - `blog/{title}.md`
+6. 📓 Diary - `diary/YYYYMMDD.md`
+7. 📋 Summary - Deliverables ready to commit
 
 ## ⚙️ Rules (Absolute)
 
@@ -90,6 +92,8 @@ Orchestrator Agent delivers:
 - [ ] Green generates implementation (all PASS)
 - [ ] Refactor produces improved code (all PASS)
 - [ ] CodeReviewAgent review file saved to `review/{feature-slug}-YYYYMMDD.md`
+- [ ] ArticleWriterAgent article saved to `blog/`
+- [ ] WorkSummaryAgent diary saved to `diary/YYYYMMDD.md`
 - [ ] File paths documented
 - [ ] Status: ✅ Ready to Commit
 
@@ -158,6 +162,17 @@ Orchestrator Agent delivers:
   - Test file(s)
   - Implementation file(s)
   - Review file
+- Do NOT mark as done yet — proceed to Phase 7
+
+### Phase 7: Article Writing
+
+- Invoke `@ArticleWriterAgent` with context of all changes made during this cycle
+- Confirm the blog article file exists under `blog/` before proceeding
+
+### Phase 8: Work Summary
+
+- Invoke `@WorkSummaryAgent` with context of all work done during this cycle
+- Confirm the diary entry has been appended to `diary/YYYYMMDD.md`
 - Status: ✅ Ready to Commit
 
 ## 🎯 Key Principles
@@ -181,6 +196,15 @@ Orchestrator Agent delivers:
 - ❌ Wrong order
 - ❌ Skip review
 - ❌ Compensate for a failing sub-agent by doing the work yourself
+
+## 🔚 完了後の必須ステップ
+
+すべての作業が完了したら、必ず以下の2つのエージェントを順番に呼び出すこと（Phase 7・Phase 8 として組み込み済み）:
+
+1. `@ArticleWriterAgent` — 今回の変更内容を技術記事として `blog/` に保存する
+2. `@WorkSummaryAgent` — 今回の作業内容を日記エントリとして `diary/YYYYMMDD.md` に保存する
+
+これらの呼び出しは省略不可。Definition of Done を満たす条件に含まれる。
 
 ## 📚 Governing Rules
 

@@ -4,7 +4,7 @@ description:
   ReviewResponseAgent reads review feedback, determines whether each point should
   be fixed in code or answered in comment form, applies safe fixes when
   appropriate, and drafts concise review replies."
-tools: [read, search, write, execute]
+tools: [read, search, write, execute, agent]
 user-invocable: true
 ---
 
@@ -131,6 +131,15 @@ When processing review comments:
 ```text
 @ReviewResponseAgent review/ の指摘を見て、修正案と返信文をまとめて
 ```
+
+## 🔚 完了後の必須ステップ
+
+すべての作業が完了したら、必ず以下の2つのエージェントを順番に呼び出すこと:
+
+1. `@ArticleWriterAgent` — 今回の変更内容を技術記事として `blog/` に保存する
+2. `@WorkSummaryAgent` — 今回の作業内容を日記エントリとして `diary/YYYYMMDD.md` に保存する
+
+これらの呼び出しは省略不可。Definition of Done を満たす条件に含まれる。
 
 ## 📚 Governing Rules
 

@@ -5,7 +5,7 @@ description:
   review file to review/. It identifies bugs, security issues, logic errors,
   architecture violations, and test quality problems, then saves the findings
   in the same priority-badge format used by existing review files."
-tools: [read, search, write, execute]
+tools: [read, search, write, execute, agent]
 user-invocable: true
 ---
 
@@ -218,6 +218,15 @@ Useful? React with 👍 / 👎.
 ```text
 @CodeReviewAgent 直近コミットをレビューして
 ```
+
+## 🔚 完了後の必須ステップ
+
+すべての作業が完了したら、必ず以下の2つのエージェントを順番に呼び出すこと:
+
+1. `@ArticleWriterAgent` — 今回の変更内容を技術記事として `blog/` に保存する
+2. `@WorkSummaryAgent` — 今回の作業内容を日記エントリとして `diary/YYYYMMDD.md` に保存する
+
+これらの呼び出しは省略不可。Definition of Done を満たす条件に含まれる。
 
 ## 📚 Governing Rules
 
