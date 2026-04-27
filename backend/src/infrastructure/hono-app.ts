@@ -349,7 +349,7 @@ export function createHonoApp(dependencies: HonoAppDependencies) {
           version: '1.0.0',
           description: 'REST API for TDD Todo Application',
         },
-        servers: [{ url: '/api/v1', description: 'API v1' }],
+        servers: [{ url: '/', description: 'API root' }],
       },
     }),
   );
