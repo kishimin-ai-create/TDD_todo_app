@@ -25,8 +25,9 @@ export default defineConfig({
   reporter: 'html',
   /* Shared settings for all the projects below. See https://playwright.dev/docs/api/class-testoptions. */
   use: {
-    /* Base URL to use in actions like `await page.goto('')`. */
-    // baseURL: 'http://localhost:3000',
+    /* Base URL to use in actions like `await page.goto('')`.
+     * Overridden by PLAYWRIGHT_BASE_URL in CI (set by ci-nightly.yml). */
+    baseURL: process.env['PLAYWRIGHT_BASE_URL'] ?? 'http://localhost:4173',
 
     /* Collect trace when retrying the failed test. See https://playwright.dev/docs/trace-viewer */
     trace: 'on-first-retry',
@@ -70,10 +71,12 @@ export default defineConfig({
     // },
   ],
 
-  /* Run your local dev server before starting the tests */
+  /* Run your local dev server before starting the tests.
+   * In CI, the server is started by the workflow before Playwright runs.
+   * Uncomment below if you prefer Playwright to manage the server lifecycle locally. */
   // webServer: {
-  //   command: 'npm run start',
-  //   url: 'http://localhost:3000',
+  //   command: 'npm run preview',
+  //   url: 'http://localhost:4173',
   //   reuseExistingServer: !process.env.CI,
   // },
 });
