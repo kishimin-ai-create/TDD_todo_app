@@ -1,8 +1,8 @@
 {
   "name": "backend",
   "scripts": {
-    "dev": "bun run --hot src/index.ts",
-    "migrate": "bun run src/infrastructure/migrate.ts",
+    "dev": "tsx --watch src/server.ts",
+    "migrate": "tsx src/infrastructure/migrate.ts",
     "lint": "eslint .",
     "test": "vitest run --reporter=default --reporter=json --outputFile=test-result.json",
     "test:unit": "vitest run --config vitest.unit.config.ts --reporter=default",
@@ -12,6 +12,7 @@
   "dependencies": {
     "eslint-plugin-unused-imports": "^4.4.1",
     "hono": "^4.12.14",
+    "@hono/node-server": "^1.14.3",
     "hono-openapi": "^1.3.0",
     "mysql2": "^3.22.2",
     "type-check": "^0.4.0",
@@ -20,7 +21,7 @@
   "devDependencies": {
     "@eslint/js": "^10.0.1",
     "@stylistic/eslint-plugin": "^5.10.0",
-    "@types/bun": "latest",
+    "tsx": "^4.19.4",
     "@vitest/coverage-v8": "^4.1.4",
     "@vitest/eslint-plugin": "^1.6.16",
     "eslint": "^10.2.1",
