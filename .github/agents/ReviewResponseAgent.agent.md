@@ -134,10 +134,11 @@ When processing review comments:
 
 ## 🔚 完了後の必須ステップ
 
-すべての作業が完了したら、必ず以下の2つのエージェントを順番に呼び出すこと:
+すべての作業が完了したら、必ず以下のエージェントを順番に呼び出すこと:
 
-1. `@ArticleWriterAgent` — 今回の変更内容を技術記事として `blog/` に保存する
-2. `@WorkSummaryAgent` — 今回の作業内容を日記エントリとして `diary/YYYYMMDD.md` に保存する
+1. `@FixAgent` — 返答を行った指摘のうち、コード修正が必要な箇所の実装を依頼する
+2. `@ArticleWriterAgent` — 今回の変更内容を技術記事として `blog/` に保存する
+3. `@WorkSummaryAgent` — 今回の作業内容を日記エントリとして `diary/YYYYMMDD.md` に保存する
 
 これらの呼び出しは省略不可。Definition of Done を満たす条件に含まれる。
 
