@@ -13,12 +13,12 @@ Prompt files are stored in `.github/prompts/`.
 
 ### `/write-article`
 
-Generate a Japanese technical article from repository changes.
+Generate a technical article from repository changes.
 
 Example:
 
 ```text
-/write-article Zenn 向けに、直近の frontend の変更を初心者向けに記事化して
+/write-article summarize the recent frontend changes for beginners as a Zenn article
 ```
 
 Behavior:
@@ -46,7 +46,7 @@ Other examples:
 
 Behavior:
 
-- Summarizes work in Japanese
+- Summarizes work in English
 - Prioritizes current conversation context
 - Also checks the current working tree and changed files when needed
 
@@ -57,13 +57,13 @@ with `@AgentName`.
 
 ### `@ArticleWriterAgent`
 
-Create a Japanese technical article from completed work and save it under
+Create a technical article from completed work and save it under
 `blog/`.
 
 Example:
 
 ```text
-@ArticleWriterAgent 直近の変更を blog フォルダに記事として出力して
+@ArticleWriterAgent output the recent changes as an article in the blog folder
 ```
 
 ### `@OpenApiWriterAgent`
@@ -73,7 +73,7 @@ Create or update an OpenAPI document for implemented backend APIs.
 Example:
 
 ```text
-@OpenApiWriterAgent 直近の backend API 変更から OpenAPI を作成して
+@OpenApiWriterAgent create an OpenAPI document from the recent backend API changes
 ```
 
 Behavior:
@@ -83,7 +83,7 @@ Behavior:
 
 ### `@WorkSummaryAgent`
 
-Write a Japanese work diary entry for what has been done so far in this
+Write a work diary entry for what has been done so far in this
 repository or current session.
 
 Example:
@@ -108,26 +108,26 @@ Behavior:
 ### `@ReviewResponseAgent`
 
 Read review comments from `review/`, fix what should be fixed, and draft review
-replies in Japanese.
+replies.
 
 Example:
 
 ```text
-@ReviewResponseAgent review/Master-20260421.md の指摘に対応して
+@ReviewResponseAgent respond to the findings in review/Master-20260421.md
 ```
 
 Other examples:
 
 ```text
-@ReviewResponseAgent review/ の指摘を見て、修正案と返信文をまとめて
-@ReviewResponseAgent backend 関連のレビューコメントだけ対応して
+@ReviewResponseAgent review the findings under review/, fix what you can, and draft reply text
+@ReviewResponseAgent respond only to backend-related review comments
 ```
 
 Behavior:
 
 - Uses files under `review/` as the main review input
 - Applies safe repository fixes when the review point is valid
-- Produces concise Japanese reply drafts for each handled comment
+- Produces concise reply drafts for each handled comment
 - Writes each reply draft directly under the corresponding fix/disposition item
 
 ## Notes

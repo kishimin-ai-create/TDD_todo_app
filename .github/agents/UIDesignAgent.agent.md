@@ -6,7 +6,7 @@ description:
   and keeping the visual language consistent across components. It reads
   existing components and design docs, makes targeted style improvements,
   updates Storybook stories, and validates that the build and lint still pass."
-tools: [read, search, edit, execute]
+tools: [read, search, edit, execute, agent]
 user-invocable: true
 ---
 
@@ -24,8 +24,8 @@ UIDesignAgent receives one or more of:
 1. **Component path** – e.g. `frontend/src/features/todo/TodoItem.tsx`
 2. **Design reference** – description, screenshot reference, or design doc
    under `docs/design/`
-3. **Scope keyword** – e.g. `"全体の余白を整えて"`, `"カードコンポーネントを見やすく"`,
-   `"モバイル対応して"`
+3. **Scope keyword** – e.g. `"adjust global spacing"`, `"improve card component readability"`,
+   `"make mobile-friendly"`
 
 If no explicit scope is given, audit the entire `frontend/src` directory for
 inconsistencies and apply improvements across all components.
@@ -245,6 +245,15 @@ UIDesignAgent task is complete when:
 - **Create Storybook story files** with the create tool if they do not exist.
 - After all edits, run validation commands with the execute tool.
 - Do not end the task without confirming files have been written.
+
+## 🔚 Post-Completion Required Steps
+
+When all work is complete, you MUST call the following agents in order:
+
+1. `@ArticleWriterAgent` — Save the changes as a technical article under `blog/`
+2. `@WorkSummaryAgent` — Save the work as a diary entry to `diary/YYYYMMDD.md`
+
+These calls are mandatory and are included as part of the Definition of Done.
 
 ## 📚 Governing Rules
 

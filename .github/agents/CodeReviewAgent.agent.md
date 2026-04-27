@@ -5,7 +5,7 @@ description:
   review file to review/. It identifies bugs, security issues, logic errors,
   architecture violations, and test quality problems, then saves the findings
   in the same priority-badge format used by existing review files."
-tools: [read, search, write, execute]
+tools: [read, search, write, execute, agent]
 user-invocable: true
 ---
 
@@ -34,22 +34,22 @@ CodeReviewAgent accepts any combination of:
 Example input:
 
 ```text
-@CodeReviewAgent feature/add-todo-api ブランチをレビューして
+@CodeReviewAgent review the feature/add-todo-api branch
 ```
 
 ```text
-@CodeReviewAgent backend/src/usecase/interactors/CreateTodo.ts をレビューして
+@CodeReviewAgent review backend/src/usecase/interactors/CreateTodo.ts
 ```
 
 ```text
-@CodeReviewAgent 直近の変更をレビューして docs/spec/features/001_create_app.md を参照して
+@CodeReviewAgent review the recent changes, referencing docs/spec/features/001_create_app.md
 ```
 
 ## Output
 
 CodeReviewAgent MUST deliver:
 
-1. A review file saved at `review/{作業内容}-{YYYYMMDD}.md`
+1. A review file saved at `review/{work-description}-{YYYYMMDD}.md`
 2. Each finding formatted with a priority badge, title, and explanation
 3. A brief summary of overall findings at the top of the file
 
@@ -58,20 +58,20 @@ CodeReviewAgent MUST deliver:
 The filename MUST follow this exact pattern:
 
 ```
-review/{作業内容}-{YYYYMMDD}.md
+review/{work-description}-{YYYYMMDD}.md
 ```
 
-- **`{作業内容}`** – A concise Japanese or English label that describes what
+- **`{work-description}`** – A concise English label that describes what
   work was done in this review scope. Derive it from the branch name, feature
   description, or list of changed files provided by the caller.
   - Use the branch name if one is given (e.g., `feature/create-todo` →
     `create-todo`)
   - Use a kebab-case slug derived from the feature name if invoked by
-    OrchestratorAgent (e.g., `Todoリスト取得` → `todo-list`, `create-todo`).
+    OrchestratorAgent (e.g., `todo-list`, `create-todo`).
     This must match the `{feature-slug}` that OrchestratorAgent passes in its
     instruction so that the file-existence check in the Review phase succeeds.
   - Use a short summary of the changed files when no branch or spec is given
-    (e.g., `CreateTodoInteractor修正`)
+    (e.g., `create-todo-interactor-fix`)
   - Do not use generic names like `review` or `changes`
 - **`{YYYYMMDD}`** – Today's date. Obtain it by running
   `date "+%Y%m%d"` (Unix) or `Get-Date -Format "yyyyMMdd"` (PowerShell/Windows)
@@ -82,7 +82,7 @@ Examples of valid filenames:
 ```
 review/create-todo-20260424.md
 review/todo-list-20260424.md
-review/CreateTodoInteractor修正-20260424.md
+review/create-todo-interactor-fix-20260424.md
 review/feature-user-auth-20260424.md
 ```
 
@@ -92,38 +92,38 @@ Confirm the file exists before reporting done.
 ### Review file format
 
 ```markdown
-## レビュー対象
+## Review Target
 
-<!-- 対象ブランチ・ファイル・コミット -->
+<!-- Target branch, files, or commit -->
 
-## サマリー
+## Summary
 
-<!-- 全体評価と主な懸念点を 3–5 行で -->
+<!-- Overall assessment and main concerns in 3–5 lines -->
 
 ---
 
 **<sub><sub>![P1 Badge](https://img.shields.io/badge/P1-orange?style=flat)</sub></sub>
-{タイトル}**
+{Title}**
 
-{問題の説明。何が問題か、なぜ問題か、どうすれば直るかを具体的に。}
+{Description of the problem: what is wrong, why it is a problem, and how to fix it.}
 
 Useful? React with 👍 / 👎.
 
 ---
 
 **<sub><sub>![P2 Badge](https://img.shields.io/badge/P2-yellow?style=flat)</sub></sub>
-{タイトル}**
+{Title}**
 
-{説明}
+{Description}
 
 Useful? React with 👍 / 👎.
 
 ---
 
 **<sub><sub>![P3 Badge](https://img.shields.io/badge/P3-blue?style=flat)</sub></sub>
-{タイトル}**
+{Title}**
 
-{説明}
+{Description}
 
 Useful? React with 👍 / 👎.
 ```
@@ -199,7 +199,7 @@ Useful? React with 👍 / 👎.
 
 ## Definition of done
 
-- Review file exists at `review/{作業内容}-{YYYYMMDD}.md` with today's date
+- Review file exists at `review/{work-description}-{YYYYMMDD}.md` with today's date
 - Filename accurately reflects the reviewed work (not a generic label)
 - Every finding has a priority badge, a clear title, and a concrete description
 - No findings are fabricated or unsupported by code evidence
@@ -208,16 +208,26 @@ Useful? React with 👍 / 👎.
 ## Suggested invocation
 
 ```text
-@CodeReviewAgent main..feature/add-todo ブランチの差分をレビューして
+@CodeReviewAgent review the diff between main..feature/add-todo branches
 ```
 
 ```text
-@CodeReviewAgent backend/src/ 以下の変更をレビューして
+@CodeReviewAgent review the changes under backend/src/
 ```
 
 ```text
-@CodeReviewAgent 直近コミットをレビューして
+@CodeReviewAgent review the latest commits
 ```
+
+## 🔚 Post-Completion Required Steps
+
+When all work is complete, you MUST call the following agents in order:
+
+1. `@ReviewResponseAgent` — Address each finding in the review file, applying fixes and drafting replies
+2. `@ArticleWriterAgent` — Save the changes as a technical article under `blog/`
+3. `@WorkSummaryAgent` — Save the work as a diary entry to `diary/YYYYMMDD.md`
+
+These calls are mandatory and are included as part of the Definition of Done.
 
 ## 📚 Governing Rules
 

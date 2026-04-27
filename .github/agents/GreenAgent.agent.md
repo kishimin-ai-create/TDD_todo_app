@@ -586,4 +586,4 @@ Before acting, read the following rule files and apply them throughout all work:
 
 ---
 
-**Last Updated**: 2026年4月12日 **Version**: 1.0.0 Green Agent Specification
+**Last Updated**: April 12, 2026 **Version**: 1.0.0 Green Agent Specification

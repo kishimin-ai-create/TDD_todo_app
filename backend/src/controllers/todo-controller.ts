@@ -1,9 +1,8 @@
-import { isAppError } from '../models/app-error';
 import type { TodoUsecase } from '../services/todo-usecase';
 import {
-  presentError,
   presentSuccess,
   presentTodo,
+  handleControllerError,
   type JsonHttpResponse,
 } from './http-presenter';
 import {
@@ -102,12 +101,4 @@ export function createTodoController(todoUsecase: TodoUsecase): TodoController {
     update,
     delete: remove,
   };
-}
-
-function handleControllerError(error: unknown): JsonHttpResponse {
-  if (isAppError(error)) {
-    return presentError(error);
-  }
-
-  throw error;
 }

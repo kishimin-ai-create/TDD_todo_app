@@ -45,7 +45,9 @@ Orchestrator Agent delivers:
 2. 🟢 Green Phase - Implementation file
 3. 🔵 Refactor Phase - Refactored implementation
 4. 🔍 Review Phase - `review/{feature-slug}-YYYYMMDD.md`
-5. 📋 Summary - Deliverables ready to commit
+5. 📝 Article - `blog/{title}.md`
+6. 📓 Diary - `diary/YYYYMMDD.md`
+7. 📋 Summary - Deliverables ready to commit
 
 ## ⚙️ Rules (Absolute)
 
@@ -90,6 +92,8 @@ Orchestrator Agent delivers:
 - [ ] Green generates implementation (all PASS)
 - [ ] Refactor produces improved code (all PASS)
 - [ ] CodeReviewAgent review file saved to `review/{feature-slug}-YYYYMMDD.md`
+- [ ] ArticleWriterAgent article saved to `blog/`
+- [ ] WorkSummaryAgent diary saved to `diary/YYYYMMDD.md`
 - [ ] File paths documented
 - [ ] Status: ✅ Ready to Commit
 
@@ -158,6 +162,17 @@ Orchestrator Agent delivers:
   - Test file(s)
   - Implementation file(s)
   - Review file
+- Do NOT mark as done yet — proceed to Phase 7
+
+### Phase 7: Article Writing
+
+- Invoke `@ArticleWriterAgent` with context of all changes made during this cycle
+- Confirm the blog article file exists under `blog/` before proceeding
+
+### Phase 8: Work Summary
+
+- Invoke `@WorkSummaryAgent` with context of all work done during this cycle
+- Confirm the diary entry has been appended to `diary/YYYYMMDD.md`
 - Status: ✅ Ready to Commit
 
 ## 🎯 Key Principles
@@ -182,6 +197,15 @@ Orchestrator Agent delivers:
 - ❌ Skip review
 - ❌ Compensate for a failing sub-agent by doing the work yourself
 
+## 🔚 Post-Completion Required Steps
+
+These are already built into Phase 7 and Phase 8 of the workflow:
+
+1. `@ArticleWriterAgent` — Save the changes as a technical article under `blog/`
+2. `@WorkSummaryAgent` — Save the work as a diary entry to `diary/YYYYMMDD.md`
+
+These calls are mandatory and are included as part of the Definition of Done.
+
 ## 📚 Governing Rules
 
 Before acting, read the following rule files and apply them throughout all work:
@@ -202,5 +226,5 @@ Before acting, read the following rule files and apply them throughout all work:
 
 ---
 
-**Last Updated**: 2026年4月25日 **Version**: 2.1.0 Orchestrator Agent
+**Last Updated**: April 25, 2026 **Version**: 2.1.0 Orchestrator Agent
 Specification

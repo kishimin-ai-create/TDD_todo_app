@@ -117,6 +117,7 @@ Refactor Agent **MUST** deliver:
 11. ❌ **Remove or rename exports** - Public API must remain identical
 12. ❌ **Modify type exports** - Interface/type names and structures must match
 13. ❌ **Ask for permission** - Do not ask the user for confirmation before proceeding. Receive the instruction and act immediately.
+14. ❌ **Batch multiple fixes in one commit** - Each individual refactoring change must be committed separately after its own verification cycle.
 
 ## 🧠 Thinking Rules
 
@@ -130,17 +131,20 @@ When refactoring code:
    worse than ugly.
 4. **One small change at a time** - Refactor incrementally using the "Strangler
    Fig" pattern.
-5. **The "test lens"** - Before every change, ask: "Will this change cause any
+5. **Commit per fix** - After each individual refactoring change passes all
+   verification commands, commit immediately. Never accumulate multiple changes
+   into one commit.
+6. **The "test lens"** - Before every change, ask: "Will this change cause any
    test to fail?"
-6. **Preserve side effects** - If code calls external APIs, databases, or has
+7. **Preserve side effects** - If code calls external APIs, databases, or has
    console output, preserve it.
-7. **Type safety first** - Use TypeScript's type system to verify refactored
+8. **Type safety first** - Use TypeScript's type system to verify refactored
    code is compatible.
-8. **Behavior equivalence** - If you can't trace through both code paths and
+9. **Behavior equivalence** - If you can't trace through both code paths and
    confirm identical result, don't refactor.
-9. **Express intent clearly** - Refactoring should make code intent more obvious
-   (not less).
-10. **Minimalist philosophy** - Refactor only what needs improvement. Not all
+10. **Express intent clearly** - Refactoring should make code intent more obvious
+    (not less).
+11. **Minimalist philosophy** - Refactor only what needs improvement. Not all
     code needs refactoring.
 
 ## 🚫 Decision Framework: When to Doubt Yourself
@@ -174,6 +178,7 @@ A Refactor Agent refactoring is complete when:
 - [ ] No changes to exported API/signatures
 - [ ] Error messages/codes unchanged
 - [ ] Ready to merge without review questions about behavior changes
+- [ ] Each refactoring change committed individually after verification
 
 ## 🎯 Common Refactoring Patterns
 
@@ -433,7 +438,7 @@ After refactoring:
 - [ ] No new side effects introduced
 - [ ] Code more readable than before
 - [ ] Duplication reduced or structure improved
-- [ ] Ready to commit
+- [ ] Verified and committed
 
 ## ✅ Mandatory Verification Commands
 
@@ -454,6 +459,18 @@ npm run test        # All tests must pass
 - If `test` fails: fix the failing test assertions / implementation before committing
 - Re-run the failing command after each fix to confirm it passes
 - Do NOT commit until all three commands pass cleanly
+
+**Commit after each fix:**
+
+Once all three commands pass, immediately commit that single change:
+
+```bash
+git add -A
+git commit -m "refactor: <short description of this specific change>"
+```
+
+- One refactoring change = one commit. Never bundle multiple fixes into one commit.
+- Then start the next refactoring change and repeat the verify → commit cycle.
 
 **Shell requirement:**
 
@@ -734,4 +751,4 @@ Before acting, read the following rule files and apply them throughout all work:
 
 ---
 
-**Last Updated**: 2026年4月12日 **Version**: 1.0.0 Refactor Agent Specification
+**Last Updated**: April 12, 2026 **Version**: 1.0.0 Refactor Agent Specification

@@ -1,4 +1,4 @@
-import { AppError } from '../models/app-error';
+import { AppError, isAppError } from '../models/app-error';
 import type { AppEntity } from '../models/app';
 import type { TodoEntity } from '../models/todo';
 
@@ -93,4 +93,16 @@ function statusForErrorCode(code: AppError['code']): number {
     default:
       return 500;
   }
+}
+
+/**
+ * Handles a caught error from a controller action.
+ * Returns a JSON HTTP response for known AppErrors; re-throws unknown errors.
+ */
+export function handleControllerError(error: unknown): JsonHttpResponse {
+  if (isAppError(error)) {
+    return presentError(error);
+  }
+
+  throw error;
 }

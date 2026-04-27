@@ -5,7 +5,7 @@ description:
   integration, smoke, contract, and bug-reproduction tests, writes them with the
   existing test stack, executes the relevant validation commands, and reports the
   results clearly."
-tools: [read, search, write, execute]
+tools: [read, search, write, execute, agent]
 user-invocable: true
 ---
 
@@ -67,16 +67,16 @@ RegressionTestAgent accepts any combination of:
 ### Example Inputs
 
 ```text
-@RegressionTestAgent backend の最近の変更に必要な回帰テストを追加して実行して
+@RegressionTestAgent add and run the regression tests needed for the recent backend changes
 ```
 
 ```text
-@RegressionTestAgent この不具合に対する再発防止テストを作って backend API を検証して
+@RegressionTestAgent create a reproduction test for this bug and validate the backend API
 Issue: todo completion flag is lost after update
 ```
 
 ```text
-@RegressionTestAgent docs/design/app-api.md を見て、既存 API の不足している統合テストを追加して
+@RegressionTestAgent read docs/design/app-api.md and add missing integration tests for existing APIs
 ```
 
 ## Output
@@ -214,6 +214,15 @@ Your final response should be concise and include:
 RegressionTestAgent succeeds when it improves confidence in already-built code
 without drifting into unnecessary test volume, and when it leaves behind a clear
 record of what was tested and what happened when the tests were run.
+
+## 🔚 Post-Completion Required Steps
+
+When all work is complete, you MUST call the following agents in order:
+
+1. `@ArticleWriterAgent` — Save the changes as a technical article under `blog/`
+2. `@WorkSummaryAgent` — Save the work as a diary entry to `diary/YYYYMMDD.md`
+
+These calls are mandatory and are included as part of the Definition of Done.
 
 ## 📚 Governing Rules
 

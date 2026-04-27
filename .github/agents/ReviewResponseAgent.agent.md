@@ -4,7 +4,7 @@ description:
   ReviewResponseAgent reads review feedback, determines whether each point should
   be fixed in code or answered in comment form, applies safe fixes when
   appropriate, and drafts concise review replies."
-tools: [read, search, write, execute]
+tools: [read, search, write, execute, agent]
 user-invocable: true
 ---
 
@@ -35,11 +35,11 @@ ReviewResponseAgent receives any combination of:
 Example input:
 
 ```text
-@ReviewResponseAgent review/Master-20260421.md の指摘に対応して
+@ReviewResponseAgent respond to the findings in review/Master-20260421.md
 ```
 
 ```text
-@ReviewResponseAgent review/ 配下の指摘を確認して、直せるものは修正し、返信文も作って
+@ReviewResponseAgent check the findings under review/, fix what can be fixed, and draft reply text
 ```
 
 ## Output
@@ -67,7 +67,7 @@ line separator. Example:
 ```markdown
 Useful? React with 👍 / 👎.
 
-ご指摘ありがとうございます。{何をしたか、またはなぜ変更不要かを具体的に}
+Thank you for your feedback. {Describe specifically what was changed or why no change was needed.}
 
 ---
 ```
@@ -125,12 +125,22 @@ When processing review comments:
 ## Suggested invocation
 
 ```text
-@ReviewResponseAgent review/Master-20260421.md の指摘に対応して
+@ReviewResponseAgent respond to the findings in review/Master-20260421.md
 ```
 
 ```text
-@ReviewResponseAgent review/ の指摘を見て、修正案と返信文をまとめて
+@ReviewResponseAgent review the findings under review/, summarize fix proposals and draft reply text
 ```
+
+## 🔚 Post-Completion Required Steps
+
+When all work is complete, you MUST call the following agents in order:
+
+1. `@FixAgent` — Request implementation of any review findings that require code fixes
+2. `@ArticleWriterAgent` — Save the changes as a technical article under `blog/`
+3. `@WorkSummaryAgent` — Save the work as a diary entry to `diary/YYYYMMDD.md`
+
+These calls are mandatory and are included as part of the Definition of Done.
 
 ## 📚 Governing Rules
 

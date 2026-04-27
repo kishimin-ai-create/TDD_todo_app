@@ -1,6 +1,6 @@
 ---
 description:
-  "Use when: turning completed development work into a Japanese technical article,
+  "Use when: turning completed development work into an English technical article,
   devlog, or release note. The ArticleWriteAgent reads diffs, changed files,
   specs, PR context, and notes, then produces a factual write-up that explains
   what changed, why it mattered, how it was implemented, and saves the article
@@ -291,19 +291,19 @@ another format.
 Use this agent with prompts like:
 
 ```
-@ArticleWriteAgent 直近の変更を Zenn 向けの記事にまとめて
+@ArticleWriteAgent summarize the recent changes as a Zenn article
 ```
 
 ```
-@ArticleWriteAgent この PR の内容を社内向け開発ログとして日本語で要約して
+@ArticleWriteAgent summarize this PR's content as an internal dev log
 ```
 
 ```
-@ArticleWriteAgent backend と frontend の CI 修正を、原因→対応→学びの流れで記事化して
+@ArticleWriteAgent write an article about the CI fixes in backend and frontend, structured as cause → response → lessons learned
 ```
 
 ```
-@ArticleWriteAgent 直近の変更を blog フォルダに記事として出力して
+@ArticleWriteAgent output the recent changes as an article in the blog folder
 ```
 
 ## 📚 Governing Rules

@@ -2,34 +2,34 @@
 
 ## Type Assertions (`as`)
 
-- `as` による型アサーションは**禁止**
-- どうしても使う必要がある場合は、**直前の行に理由を説明するコメントを必ず付ける**
+- Type assertions using `as` are **prohibited**
+- If an assertion is absolutely necessary, **you must add an explanatory comment on the line immediately before it**
 
 ```ts
 // NG
 const el = document.getElementById("app") as HTMLDivElement;
 
-// OK — getElementById は null を返す可能性があるが、index.html で必ず存在することが保証されている
+// OK — getElementById can return null, but the element is guaranteed to exist in index.html
 const el = document.getElementById("app") as HTMLDivElement;
 ```
 
-## `any` 型
+## `any` Type
 
-- `any` 型の使用は**禁止**
-- どうしても使う必要がある場合は、**直前の行に理由を説明するコメントを必ず付ける**
+- Use of the `any` type is **prohibited**
+- If `any` is absolutely necessary, **you must add an explanatory comment on the line immediately before it**
 
 ```ts
 // NG
 function parse(raw: any) { ... }
 
-// OK — 外部ライブラリの型定義が存在しないため一時的に any を使用している。型定義が追加され次第 unknown へ変更する
+// OK — Using any temporarily because type definitions for this external library do not exist; will replace with unknown once type definitions are added
 function parse(raw: any) { ... }
 ```
 
-## 代替手段
+## Alternatives
 
-`as` や `any` を使う前に以下を検討すること：
+Before reaching for `as` or `any`, consider the following:
 
-- `as` の代わりに型ガード関数（`instanceof`, `typeof`, カスタム type predicate）を使う
-- `any` の代わりに `unknown` を使い、型ガードで絞り込む
-- 型が本当に不明な場合は `unknown` → ガード → 具体型の流れで型安全に扱う
+- Use type guard functions (`instanceof`, `typeof`, custom type predicates) instead of `as`
+- Use `unknown` instead of `any`, and narrow the type with guards
+- If a type is truly unknown, handle it safely via the `unknown` → guard → concrete type flow

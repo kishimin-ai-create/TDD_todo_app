@@ -4,7 +4,7 @@ description:
   The OpenApiWriterAgent reads route implementations, validators, specs, and
   related backend files, then creates or updates a factual OpenAPI document for
   the current API."
-tools: [read, search, write, execute]
+tools: [read, search, write, execute, agent]
 user-invocable: true
 ---
 
@@ -96,12 +96,21 @@ When producing OpenAPI:
 ## Suggested invocation
 
 ```text
-@OpenApiWriterAgent 直近の backend API 変更から OpenAPI を作成して
+@OpenApiWriterAgent create an OpenAPI document from the recent backend API changes
 ```
 
 ```text
-@OpenApiWriterAgent apps エンドポイントの実装に合わせて docs/spec/backend/openapi.yaml を更新して
+@OpenApiWriterAgent update docs/spec/backend/openapi.yaml to match the apps endpoint implementation
 ```
+
+## 🔚 Post-Completion Required Steps
+
+When all work is complete, you MUST call the following agents in order:
+
+1. `@ArticleWriterAgent` — Save the changes as a technical article under `blog/`
+2. `@WorkSummaryAgent` — Save the work as a diary entry to `diary/YYYYMMDD.md`
+
+These calls are mandatory and are included as part of the Definition of Done.
 
 ## 📚 Governing Rules
 

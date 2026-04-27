@@ -1,9 +1,8 @@
-import { isAppError } from '../models/app-error';
 import type { AppUsecase } from '../services/app-usecase';
 import {
   presentApp,
-  presentError,
   presentSuccess,
+  handleControllerError,
   type JsonHttpResponse,
 } from './http-presenter';
 import { parseCreateAppInput, parseUpdateAppInput } from './request-validation';
@@ -90,12 +89,4 @@ export function createAppController(appUsecase: AppUsecase): AppController {
     update,
     delete: remove,
   };
-}
-
-function handleControllerError(error: unknown): JsonHttpResponse {
-  if (isAppError(error)) {
-    return presentError(error);
-  }
-
-  throw error;
 }
