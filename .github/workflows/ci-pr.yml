@@ -39,6 +39,10 @@ jobs:
       - name: Build Storybook
         run: npm run build-storybook -- --quiet
 
+      # Vite build (dist/ must exist before vite preview can serve)
+      - name: Build frontend
+        run: npm run build
+
       # Playwright（@smoke タグのみ・Chromium のみ）
       - name: Install Playwright Browsers
         run: npx playwright install --with-deps chromium

@@ -25,15 +25,9 @@ jobs:
       - name: Install dependencies
         run: npm ci
 
-      # 本番ビルド → vite preview で静的サーバー起動（ポート 4173）
+      # 本番ビルド → Playwright webServer が vite preview を管理する
       - name: Build app
         run: npm run build
-
-      - name: Start preview server
-        run: npm run preview &
-
-      - name: Wait for preview server
-        run: npx --yes wait-on http://localhost:4173 --timeout 30000
 
       # Playwright フル（全ブラウザ・全テスト）
       - name: Install Playwright Browsers
