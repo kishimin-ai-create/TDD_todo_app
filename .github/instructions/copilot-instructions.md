@@ -12,14 +12,20 @@ the source of truth for protected paths.
 
 # Autonomy
 
-- Do not ask the user for permission or confirmation before starting requested
-  repository work. Receive the instruction and act immediately.
-- Do not pause to ask approval-style questions such as whether to proceed, edit,
-  apply, update, or fix something when the requested change is already clear.
-- If a small assumption is needed, choose a reasonable default and continue.
-- Only ask a question when a missing requirement makes safe or correct
-  implementation impossible; in that case, ask for the missing fact itself, not
-  for permission to proceed.
+- **Never ask for confirmation or permission for any operation** — this includes
+  git commits, file edits, file creation, deletions, running commands, applying
+  fixes, or any other repository action. Receive the instruction and act immediately.
+- Do not pause mid-task to ask approval-style questions such as whether to
+  proceed, edit, apply, update, commit, or fix something when the requested
+  change is already clear.
+- If a small assumption is needed, choose a reasonable default and continue
+  without stopping to ask.
+- Only ask a question when a fact is genuinely missing and makes correct
+  implementation impossible (e.g., an unknown API key or an ambiguous spec with
+  two incompatible interpretations). Ask for the missing fact only — never for
+  permission to proceed.
+- **Git operations** (commit, push, branch, rebase, etc.) require no
+  confirmation. Execute them directly as part of the task.
 
 # Design documents
 

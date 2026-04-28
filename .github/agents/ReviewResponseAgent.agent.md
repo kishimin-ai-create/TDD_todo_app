@@ -19,7 +19,7 @@ into concrete repository changes or clear written replies.
 - Decide each comment's required action:
   - fix the code
   - explain why no code change is needed
-  - ask for clarification when the comment is ambiguous
+  - if the comment is ambiguous, choose the most reasonable interpretation and proceed — do not pause to ask the user
 - Apply safe, scoped fixes when the implementation issue is supported by code
   and review context
 - Draft concise reply text for each handled review comment
