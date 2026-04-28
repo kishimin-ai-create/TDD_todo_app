@@ -84,7 +84,7 @@ export default defineConfig({
    * false in CI (always start fresh after the workflow build step).
    * timeout raised to 120 s to accommodate the tsc + vite build step. */
   webServer: {
-    command: 'npm run build && npm run preview',
+    command: process.env.CI ? 'npm run preview' : 'npm run build && npm run preview',
     url: 'http://localhost:4173',
     reuseExistingServer: !process.env.CI,
     timeout: 120_000,
