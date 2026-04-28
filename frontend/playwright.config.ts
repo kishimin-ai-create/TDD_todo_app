@@ -81,10 +81,12 @@ export default defineConfig({
   /* Run your local dev server before starting the tests.
    * Always builds first so vite preview has a dist/ to serve.
    * reuseExistingServer: true locally (reuse running dev server if already up),
-   * false in CI (always start fresh after the workflow build step). */
+   * false in CI (always start fresh after the workflow build step).
+   * timeout raised to 120 s to accommodate the tsc + vite build step. */
   webServer: {
     command: 'npm run build && npm run preview',
     url: 'http://localhost:4173',
     reuseExistingServer: !process.env.CI,
+    timeout: 120_000,
   },
 });
