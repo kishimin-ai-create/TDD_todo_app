@@ -1,4 +1,4 @@
-**<sub><sub>![P1 Badge](https://img.shields.io/badge/P1-orange?style=flat)</sub></sub>
+﻿**<sub><sub>![P1 Badge](https://img.shields.io/badge/P1-orange?style=flat)</sub></sub>
 Return HTTP envelope from customFetch**
 
 The generated Orval client functions are typed to return an HTTP envelope
@@ -64,6 +64,12 @@ and Playwright fails before any `@smoke` test executes.
 
 Useful? React with 👍 / 👎.
 
+**Disposition:** Fixed — `.github/workflows/ci-pr.yml`
+
+A `Build frontend` step (`npm run build`) was inserted immediately before the `Install Playwright Browsers` step. Without it, `dist/` is absent on a clean CI runner and Playwright’s `webServer` (`npm run preview`) has nothing to serve, causing all tests to fail before executing. Frontend typecheck and ESLint pass. Committed in `5f2f75f`.
+
+---
+
 **<sub><sub>![P1 Badge](https://img.shields.io/badge/P1-orange?style=flat)</sub></sub>
 Avoid starting preview server twice in nightly workflow**
 
@@ -75,6 +81,12 @@ documented behavior is to throw when the target URL is already occupied and
 steps fail before tests run.
 
 Useful? React with 👍 / 👎.
+
+**Disposition:** Fixed — `.github/workflows/ci-nightly.yml`
+
+The `Start preview server` (`npm run preview &`) and `Wait for preview server` (`wait-on`) steps were removed from `ci-nightly.yml`. `playwright.config.ts` sets `reuseExistingServer: !process.env.CI`, which evaluates to `false` in CI — Playwright throws when the target URL is already occupied. Removing the manual server start means Playwright’s `webServer` is the sole manager of the preview process. The `Build app` step is retained so `dist/` exists before `vite preview` starts. Committed in `5f2f75f`.
+
+---
 
 **<sub><sub>![P1 Badge](https://img.shields.io/badge/P1-orange?style=flat)</sub></sub>
 Commit a baseline for the new visual screenshot assertion**
@@ -88,6 +100,12 @@ consistently.
 
 Useful? React with 👍 / 👎.
 
+**Disposition:** Reply only — `frontend/e2e/visual.spec.ts` + `.github/workflows/ci-nightly.yml`
+
+This is a duplicate of finding 2 (lines 27–52), which was already processed. The same root cause, explanation, and required action apply: generate the baseline snapshot on ubuntu-latest (or a matching Docker image) and commit the resulting `frontend/e2e/__snapshots__/` files before the nightly run is expected to pass. No additional code change is needed here.
+
+---
+
 **<sub><sub>![P2 Badge](https://img.shields.io/badge/P2-yellow?style=flat)</sub></sub>
 Return HTTP metadata in customFetch to match generated types**
 
@@ -98,3 +116,9 @@ of generated hooks can read `result.status`/`result.headers` as typed fields but
 will receive `undefined`, making response-branching logic unreliable.
 
 Useful? React with 👍 / 👎.
+
+**Disposition:** Reply only / already fixed — `frontend/src/api/client.ts`
+
+This is a duplicate of finding 1 (lines 1–24). `customFetch` was already fixed in commit `fd613a6`: it now returns `{ data, status, headers }` matching the orval-generated envelope types. No further action needed.
+
+---
