@@ -6,11 +6,16 @@ import { createMysqlPool } from './mysql-client';
 import { createAppInteractor } from '../services/app-interactor';
 import { createTodoInteractor } from '../services/todo-interactor';
 import { createHonoApp } from './hono-app';
+import type { Hono } from 'hono';
+
+type MysqlBackendRegistry = {
+  app: Hono;
+};
 
 /**
  * Creates the backend registry wired to MySQL repositories.
  */
-export function createMysqlBackendRegistry() {
+export function createMysqlBackendRegistry(): MysqlBackendRegistry {
   const pool = createMysqlPool();
   const appRepository = createMysqlAppRepository(pool);
   const todoRepository = createMysqlTodoRepository(pool);

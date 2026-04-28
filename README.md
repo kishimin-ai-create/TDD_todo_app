@@ -1,18 +1,21 @@
 # What does this project do?
 
-This project is a todo list application for developers practicing Test-Driven Development (TDD), where development tasks are managed and completed as part of a TDD workflow.
+This project is a todo list application for developers practicing Test-Driven
+Development (TDD), where development tasks are managed and completed as part of
+a TDD workflow.
 
 # Why is this project useful?
 
-It helps developers clearly organize tasks when developing with Test-Driven Development (TDD).
+It helps developers clearly organize tasks when developing with Test-Driven
+Development (TDD).
 
 # How to get started?
 
 ## Setup
 
 ```bash
-git clone <your-repository-url>
-cd <your-project-name>
+git clone git@github.com:Kazuma-Ishimine/TDD_todo_app.git
+cd TDDTodoApp
 
 # Backend
 cd backend

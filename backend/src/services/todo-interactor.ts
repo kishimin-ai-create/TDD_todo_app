@@ -87,7 +87,8 @@ export function createTodoInteractor(
   async function remove(input: DeleteTodoInput): Promise<TodoEntity> {
     await ensureAppExists(input.appId);
     const todo = await findExistingTodo(input.appId, input.todoId);
-    const deletedTodo: TodoEntity = { ...todo, deletedAt: now() };
+    const deletedAt = now();
+    const deletedTodo: TodoEntity = { ...todo, updatedAt: deletedAt, deletedAt };
     await todoRepository.save(deletedTodo);
     return deletedTodo;
   }

@@ -11,10 +11,12 @@
     "test": "vitest run --reporter=default --reporter=json --outputFile=test-result.json",
     "typecheck": "tsc -b",
     "storybook": "storybook dev -p 6006",
-    "build-storybook": "storybook build"
+    "build-storybook": "storybook build",
+    "generate": "orval"
   },
   "dependencies": {
     "@tailwindcss/vite": "^4.2.4",
+    "@tanstack/react-query": "^5.100.5",
     "eslint-plugin-unused-imports": "^4.4.1",
     "jotai": "^2.19.1",
     "react": "^19.2.4",
@@ -26,6 +28,7 @@
   "devDependencies": {
     "@chromatic-com/storybook": "^5.1.2",
     "@eslint/js": "^9.39.4",
+    "@faker-js/faker": "^10.4.0",
     "@playwright/test": "^1.59.1",
     "@storybook/addon-a11y": "^10.3.5",
     "@storybook/addon-docs": "^10.3.5",
@@ -33,6 +36,8 @@
     "@storybook/addon-vitest": "^10.3.5",
     "@storybook/react-vite": "^10.3.5",
     "@stylistic/eslint-plugin": "^5.10.0",
+    "@testing-library/jest-dom": "^6.9.1",
+    "@testing-library/react": "^16.3.2",
     "@types/node": "^24.12.0",
     "@types/react": "^19.2.14",
     "@types/react-dom": "^19.2.3",
@@ -50,6 +55,7 @@
     "eslint-plugin-storybook": "^10.3.5",
     "eslint-plugin-testing-library": "^7.16.2",
     "globals": "^17.4.0",
+    "jsdom": "^29.1.0",
     "msw": "^2.13.4",
     "orval": "^8.8.1",
     "playwright": "^1.59.1",

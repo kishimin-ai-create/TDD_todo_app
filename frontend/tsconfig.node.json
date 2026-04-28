@@ -24,6 +24,7 @@
   },
   "include": [
     "vite.config.ts",
+    "orval.config.ts",
     "playwright.config.ts",
     "vitest.shims.d.ts",
     ".storybook/**/*.ts",

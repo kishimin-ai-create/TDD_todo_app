@@ -16,6 +16,8 @@ type ExistsRow = RowDataPacket & {
   exists: number;
 };
 
+// ExistsRow is used by existsActiveByName below; save() uses ON DUPLICATE KEY UPDATE instead.
+
 function rowToApp(row: AppRow): AppEntity {
   return {
     id: row.id,
@@ -32,21 +34,15 @@ function rowToApp(row: AppRow): AppEntity {
 export function createMysqlAppRepository(pool: MysqlPool): AppRepository {
   async function save(app: AppEntity): Promise<void> {
     try {
-      const [rows] = await pool.execute<ExistsRow[]>(
-        'SELECT EXISTS(SELECT 1 FROM App WHERE id = ?) AS `exists`',
-        [app.id],
+      await pool.execute(
+        `INSERT INTO App (id, name, createdAt, updatedAt, deletedAt)
+         VALUES (?, ?, ?, ?, ?)
+         ON DUPLICATE KEY UPDATE
+           name      = VALUES(name),
+           updatedAt = VALUES(updatedAt),
+           deletedAt = VALUES(deletedAt)`,
+        [app.id, app.name, app.createdAt, app.updatedAt, app.deletedAt],
       );
-      if (rows[0].exists === 1) {
-        await pool.execute(
-          'UPDATE App SET name = ?, updatedAt = ?, deletedAt = ? WHERE id = ?',
-          [app.name, app.updatedAt, app.deletedAt, app.id],
-        );
-      } else {
-        await pool.execute(
-          'INSERT INTO App (id, name, createdAt, updatedAt, deletedAt) VALUES (?, ?, ?, ?, ?)',
-          [app.id, app.name, app.createdAt, app.updatedAt, app.deletedAt],
-        );
-      }
     } catch (err: unknown) {
       throw new AppError('REPOSITORY_ERROR', 'Repository operation failed', { cause: err });
     }

@@ -23,10 +23,18 @@ export default defineConfig({
   workers: process.env.CI ? 1 : undefined,
   /* Reporter to use. See https://playwright.dev/docs/test-reporters */
   reporter: 'html',
+  /* Visual comparison settings for toHaveScreenshot() */
+  expect: {
+    toHaveScreenshot: {
+      maxDiffPixelRatio: 0.01,
+      animations: 'disabled',
+    },
+  },
   /* Shared settings for all the projects below. See https://playwright.dev/docs/api/class-testoptions. */
   use: {
-    /* Base URL to use in actions like `await page.goto('')`. */
-    // baseURL: 'http://localhost:3000',
+    /* Base URL to use in actions like `await page.goto('')`.
+     * Overridden by PLAYWRIGHT_BASE_URL in CI (set by ci-nightly.yml). */
+    baseURL: process.env['PLAYWRIGHT_BASE_URL'] ?? 'http://localhost:4173',
 
     /* Collect trace when retrying the failed test. See https://playwright.dev/docs/trace-viewer */
     trace: 'on-first-retry',
@@ -70,10 +78,15 @@ export default defineConfig({
     // },
   ],
 
-  /* Run your local dev server before starting the tests */
-  // webServer: {
-  //   command: 'npm run start',
-  //   url: 'http://localhost:3000',
-  //   reuseExistingServer: !process.env.CI,
-  // },
+  /* Run your local dev server before starting the tests.
+   * Always builds first so vite preview has a dist/ to serve.
+   * reuseExistingServer: true locally (reuse running dev server if already up),
+   * false in CI (always start fresh after the workflow build step).
+   * timeout raised to 120 s to accommodate the tsc + vite build step. */
+  webServer: {
+    command: process.env.CI ? 'npm run preview' : 'npm run build && npm run preview',
+    url: 'http://localhost:4173',
+    reuseExistingServer: !process.env.CI,
+    timeout: 120_000,
+  },
 });

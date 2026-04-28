@@ -44,7 +44,7 @@ type HonoAppDependencies = {
 /**
  * Creates the Hono application and binds thin HTTP handlers to controllers.
  */
-export function createHonoApp(dependencies: HonoAppDependencies) {
+export function createHonoApp(dependencies: HonoAppDependencies): Hono {
   const app = new Hono();
 
   app.get('/', c => c.text('Hello Hono!'));
@@ -349,7 +349,7 @@ export function createHonoApp(dependencies: HonoAppDependencies) {
           version: '1.0.0',
           description: 'REST API for TDD Todo Application',
         },
-        servers: [{ url: '/api/v1', description: 'API v1' }],
+        servers: [{ url: '/', description: 'API root' }],
       },
     }),
   );

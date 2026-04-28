@@ -221,13 +221,11 @@ Useful? React with 👍 / 👎.
 
 ## 🔚 Post-Completion Required Steps
 
-When all work is complete, you MUST call the following agents in order:
+When all work is complete, you MUST call the following agent:
 
 1. `@ReviewResponseAgent` — Address each finding in the review file, applying fixes and drafting replies
-2. `@ArticleWriterAgent` — Save the changes as a technical article under `blog/`
-3. `@WorkSummaryAgent` — Save the work as a diary entry to `diary/YYYYMMDD.md`
 
-These calls are mandatory and are included as part of the Definition of Done.
+This call is mandatory and is included as part of the Definition of Done.
 
 ## 📚 Governing Rules
 

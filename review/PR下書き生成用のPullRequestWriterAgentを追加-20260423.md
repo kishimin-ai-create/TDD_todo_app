@@ -11,3 +11,5 @@ invoke your custom agent.
 Useful? React with 👍 / 👎.
 
 ご指摘ありがとうございます。GitHub が認識する PR テンプレート名に合わせて、.github/pull_request_template.md へリネームしました。あわせて関連する参照先も更新し、テンプレート運用とドキュメントの整合をそろえています。
+
+Disposition: verified fixed — `.github/pull_request_template.md` (with underscore) exists at the GitHub-recognized path and will be auto-populated in new PRs.
