@@ -132,6 +132,12 @@ Each group becomes a section in the diary entry. Do not list raw file changes �
 
 If git commands fail or return no results, use the current session context, changed files list, and any notes provided as the evidence base. State which fallback was used.
 
+## Prohibited Actions
+
+1. ❌ Running `git commit`, `git push`, or any command that writes to git history — WorkSummaryAgent has **read-only** git access. File creation/editing is allowed; committing is not.
+2. ❌ Inventing work that is not supported by observable context
+3. ❌ Overwriting prior diary entries instead of appending
+
 ## Definition of done
 
 - A diary entry is written in Japanese
@@ -140,6 +146,7 @@ If git commands fail or return no results, use the current session context, chan
 - Completed and incomplete items are distinguished when possible
 - No unsupported claims are included
 - The file edit has actually been attempted
+- **No git commit has been made**
 
 ## Suggested invocation
 

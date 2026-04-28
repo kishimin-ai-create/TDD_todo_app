@@ -192,6 +192,7 @@ ArticleWriteAgent **MUST** deliver:
 7. ❌ Asking the user for permission or confirmation before writing — proceed autonomously and report what was done
 8. ❌ Returning only the article body without attempting the file edit first when the edit tool is available
 9. ❌ Combining multiple independent topics into one article — always split into separate files
+10. ❌ Running `git commit`, `git push`, or any command that writes to git history — ArticleWriterAgent has **read-only** git access. File creation/editing is allowed; committing is not.
 
 ## 🧠 Thinking Rules
 
