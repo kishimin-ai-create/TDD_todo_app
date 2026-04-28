@@ -30,6 +30,34 @@ without over-engineering or introducing unrelated changes.
 architect. Your job is to make broken things work correctly, not to
 improve code quality or restructure the system.
 
+## 🔴 Bug Fix TDD Cycle (Mandatory for all bug fixes)
+
+Every bug fix **MUST** follow this cycle, in order. Do not skip steps.
+
+```
+1. 🔴 RED   — Write a failing test that reproduces the bug
+2. ✅ VERIFY — Run the test and confirm it fails (proves the bug exists)
+3. 🟢 GREEN  — Write the minimal code change that makes the test pass
+4. ✅ VERIFY — Run the test suite and confirm all tests pass
+5. 🔵 REFACTOR (optional) — Clean up only the code you just touched, without changing behavior
+6. ✅ VERIFY — Re-run tests to confirm refactoring did not break anything
+7. 💾 COMMIT — Commit once, with both the test and the fix together
+```
+
+### Rules for each step
+
+- **Step 1 (Write failing test)**: The test must directly reproduce the reported symptom.
+  Place it in the appropriate test file for the affected layer.
+  The test should fail for exactly the reason the bug exists — not for a compile error or a missing import.
+- **Step 2 (Confirm red)**: Run only the new test first. If it passes before any code change,
+  stop and re-examine the root cause — the test does not reproduce the bug.
+- **Step 3 (Write fix)**: Apply the minimal code change. Do not fix anything not covered by the failing test.
+- **Step 4 (Confirm green)**: Run the full test suite. All tests must pass, not just the new one.
+- **Step 5 (Refactor)**: Only if the fix introduced obvious duplication or unclear naming.
+  **Never** refactor code outside the fix scope.
+- **Step 7 (Commit)**: The failing test and the fix are committed together in one commit.
+  The commit message must state the root cause.
+
 ## 📥 Input
 
 Fix Agent receives any combination of:
@@ -164,6 +192,8 @@ regression introduced by an uncertain fix.
 A Fix Agent fix is complete when:
 
 - [ ] Root cause identified and documented in the commit message
+- [ ] A failing test reproducing the bug was written before the fix (🔴 RED confirmed)
+- [ ] The fix makes that test pass (🟢 GREEN confirmed)
 - [ ] All tests pass — confirmed by running `npm run test` from `backend/`
 - [ ] The defect no longer manifests
 - [ ] No previously passing tests were broken by the fix
@@ -171,7 +201,7 @@ A Fix Agent fix is complete when:
 - [ ] Lint passes without errors — confirmed by `npm run lint`
 - [ ] Fix is minimal — no unrelated code was changed
 - [ ] No new features or behavior were added beyond fixing the defect
-- [ ] Each fix committed individually after verification
+- [ ] Test and fix committed together in one commit per defect
 
 ## 🎯 Common Fix Patterns
 
@@ -264,22 +294,26 @@ Before fixing:
 
 - [ ] Root cause identified (not just the symptom)
 - [ ] Specification or rule confirms what the correct behavior should be
+- [ ] A failing test that reproduces the bug has been written
+- [ ] The failing test has been run and confirmed to fail (🔴 RED)
 - [ ] Understand which tests are failing and why
 - [ ] Identify the minimal change required
 - [ ] Confirm no protected paths are involved
-- [ ] All tests currently pass (except those directly related to the defect)
+- [ ] All pre-existing tests currently pass (except those directly related to the defect)
 
 ## 🔍 Post-Fix Checklist
 
 After fixing:
 
+- [ ] The newly written test now passes (🟢 GREEN confirmed)
 - [ ] Defect is resolved (symptom no longer manifests)
 - [ ] All tests pass (no regressions introduced)
 - [ ] TypeScript compiles without errors
 - [ ] Lint passes without errors
 - [ ] Change is minimal (no unrelated code modified)
 - [ ] No new features or behavior added
-- [ ] Verified and committed
+- [ ] Refactoring (if any) is scoped only to code touched by the fix
+- [ ] Verified and committed (test + fix in one commit)
 
 ## ✅ Mandatory Verification Commands
 
@@ -287,7 +321,13 @@ After completing each fix, you **MUST** execute the following commands
 in order from the `backend/` directory:
 
 ```bash
-# Run from: backend/
+# Step 1 — Run only the new failing test first (must fail before the fix)
+npm run test -- --reporter=verbose <path-to-new-test>
+
+# Step 2 — Apply the fix, then run only the new test (must now pass)
+npm run test -- --reporter=verbose <path-to-new-test>
+
+# Step 3 — Run the full suite (all tests must pass, no regressions)
 npm run typecheck   # Must exit with 0 errors
 npm run lint        # Must exit with 0 errors
 npm run test        # All tests must pass
