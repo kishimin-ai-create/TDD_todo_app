@@ -25,9 +25,31 @@ export type JsonHttpResponse = {
 };
 
 /**
+ * DTO for an App resource returned in API responses.
+ */
+export type AppDto = {
+  id: string;
+  name: string;
+  createdAt: string;
+  updatedAt: string;
+};
+
+/**
+ * DTO for a Todo resource returned in API responses.
+ */
+export type TodoDto = {
+  id: string;
+  appId: string;
+  title: string;
+  completed: boolean;
+  createdAt: string;
+  updatedAt: string;
+};
+
+/**
  * Converts an app entity into the API response DTO.
  */
-export function presentApp(app: AppEntity) {
+export function presentApp(app: AppEntity): AppDto {
   return {
     id: app.id,
     name: app.name,
@@ -39,7 +61,7 @@ export function presentApp(app: AppEntity) {
 /**
  * Converts a todo entity into the API response DTO.
  */
-export function presentTodo(todo: TodoEntity) {
+export function presentTodo(todo: TodoEntity): TodoDto {
   return {
     id: todo.id,
     appId: todo.appId,

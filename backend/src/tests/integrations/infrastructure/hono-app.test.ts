@@ -92,7 +92,7 @@ describe('HonoApp integration', () => {
       expect(res.status).toBe(422);
     });
 
-    it('PUT with no body falls back to empty body (returns 422 for missing name)', async () => {
+    it('PUT with no body is accepted as no-op update (200)', async () => {
       const { app } = buildApp();
       const createRes = await req(app, 'POST', '/api/v1/apps', { name: 'App' });
       const { data } = await createRes.json() as { data: { id: string } };

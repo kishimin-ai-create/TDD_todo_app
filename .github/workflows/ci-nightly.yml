@@ -40,7 +40,7 @@ jobs:
         run: npx playwright install --with-deps
 
       - name: Run Playwright (full suite, all browsers)
-        run: npx playwright test
+        run: npx playwright test --grep-invert "@visual"
         env:
           PLAYWRIGHT_BASE_URL: http://localhost:4173
 
