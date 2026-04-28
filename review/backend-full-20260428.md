@@ -33,6 +33,15 @@ If the MySQL server returns an error (or the process crashes) between step 1 and
 
 Useful? React with 👍 / 👎.
 
+**Disposition:** reply-only
+
+The cascade delete non-atomicity is a genuine correctness risk. However, adding a transaction port to the repository interface is a meaningful architectural change that touches the repository abstraction, both MySQL implementations, and the use-case layer. Fixing it safely requires either:
+
+1. A `withTransaction(callback)` port on the repository interface — significant API surface change.
+2. A single bulk `UPDATE Todo SET deletedAt = ?, updatedAt = ? WHERE appId = ? AND deletedAt IS NULL` inside the same transaction as the App update — requires exposing a raw-query escape hatch or restructuring the repository.
+
+Both options go beyond a targeted fix and risk breaking the clean-architecture boundary. This is tracked as a follow-up: introduce a transaction abstraction in the repository port so the cascade delete in `app-interactor.ts` can be made atomic. Until then, the in-memory implementation (used in all tests) is unaffected, and the MySQL path is protected by the existing `REPOSITORY_ERROR` handler which will surface partial failures.
+
 ---
 
 **<sub><sub>![P2 Badge](https://img.shields.io/badge/P2-yellow?style=flat)</sub></sub>
@@ -57,6 +66,10 @@ if (!user || password === undefined) {
 ```
 
 Useful? React with 👍 / 👎.
+
+**Disposition:** fixed — `backend/src/infrastructure/mysql-client.ts`
+
+`createMysqlPool` now reads `DB_USERNAME` and `DB_PASSWORD` into local variables and throws `'DB_USERNAME and DB_PASSWORD environment variables are required'` before creating the pool if either is absent. The insecure `'root'` / `''` defaults have been removed. All 387 tests pass.
 
 ---
 
@@ -88,6 +101,10 @@ Two concrete problems:
 
 Useful? React with 👍 / 👎.
 
+**Disposition:** reply-only
+
+Moving the `NODE_ENV` branch and `clearStorage` out of `index.ts` into `server.ts` (the composition root) is the correct architectural direction, but it is a meaningful structural change: it requires eliminating or repurposing `index.ts`, updating the test helper layer so `clearStorage` no longer leaks through the module boundary, and verifying that no other import site relies on the current shape of `index.ts`. The risk of inadvertently breaking test wiring during this refactor is non-trivial. This is tracked as a follow-up composition-root cleanup task. In the interim, the `NODE_ENV === 'test'` guard does prevent MySQL connections from being established during test runs, which limits the immediate production blast radius.
+
 ---
 
 **<sub><sub>![P2 Badge](https://img.shields.io/badge/P2-yellow?style=flat)</sub></sub>
@@ -116,6 +133,15 @@ export function createBackendRegistry(): BackendRegistry { ... }
 
 Useful? React with 👍 / 👎.
 
+**Disposition:** fixed — `backend/src/infrastructure/hono-app.ts`, `backend/src/infrastructure/registry.ts`, `backend/src/infrastructure/mysql-registry.ts`
+
+Explicit return types have been added to all three exported factory functions:
+- `createHonoApp` → `: Hono`
+- `createBackendRegistry` → `: BackendRegistry` (new local type `{ app: Hono; clearStorage: () => void }`)
+- `createMysqlBackendRegistry` → `: MysqlBackendRegistry` (new local type `{ app: Hono }`)
+
+TypeScript typecheck and all 387 tests pass.
+
 ---
 
 **<sub><sub>![P2 Badge](https://img.shields.io/badge/P2-yellow?style=flat)</sub></sub>
@@ -131,6 +157,10 @@ If a product requirement changes (e.g., max title length changes from 200 to 255
 **How to fix:** Drive runtime validation from the same Zod schema used for documentation. Replace the manual validators in `request-validation.ts` with `schema.safeParse(body)` calls using the schemas already defined in `schemas.ts`. This eliminates the duplication and makes the OpenAPI spec the single source of truth.
 
 Useful? React with 👍 / 👎.
+
+**Disposition:** reply-only
+
+The dual-validation divergence risk is valid and already tracked from a prior review session as a deferred refactor. Replacing `request-validation.ts` with Zod `safeParse` calls requires mapping Zod error shapes to the existing `AppError` codes, updating the error-presenter layer, and verifying that all 30+ validation test cases still produce the same HTTP responses. This is a non-trivial change that deserves its own PR. No code change is applied here.
 
 ---
 
@@ -151,6 +181,15 @@ This pattern appears across `app.test.ts`, `todo.test.ts`, `helpers.ts`, `app-co
 **How to fix:** Either add a one-line comment explaining why the cast is safe (e.g., `// Response shape is guaranteed by the contract test above; casting for readable property access`), or introduce a typed response-parsing helper (e.g., using Zod's `parse`/`safeParse` with `SuccessResponseSchema`/`ErrorResponseSchema` from `schemas.ts`) to remove the need for `as` entirely.
 
 Useful? React with 👍 / 👎.
+
+**Disposition:** reply-only
+
+The concern is valid: dozens of `as` casts in test files violate the TypeScript rules (no `as` without an explanatory comment). However, no typed response-parsing helper currently exists in the test helpers layer. Adding one cleanly would mean either:
+
+1. Introducing a Zod `safeParse` helper using `SuccessResponseSchema` / `ErrorResponseSchema` from `schemas.ts` — eliminates `as` entirely but is a non-trivial change to the test infrastructure.
+2. Adding a one-line explanatory comment above every occurrence — dozens of mechanical edits across 7+ test files.
+
+Both approaches are low-risk but high-volume. Option 1 is the preferred long-term direction (ties into the dual-validation consolidation tracked above). This is deferred and tracked as a follow-up.
 
 ---
 
@@ -179,3 +218,12 @@ const deletedApp: AppEntity = { ...app, updatedAt: deletedAt, deletedAt };
 ```
 
 Useful? React with 👍 / 👎.
+
+**Disposition:** fixed — `backend/src/services/app-interactor.ts`, `backend/src/services/todo-interactor.ts`
+
+All three soft-delete paths now set `updatedAt` to the same timestamp as `deletedAt`:
+- `app-interactor.ts` direct delete: `{ ...app, updatedAt: deletedAt, deletedAt }`
+- `app-interactor.ts` cascade delete: `{ ...todo, updatedAt: deletedAt, deletedAt }`
+- `todo-interactor.ts` direct delete: `const deletedAt = now(); { ...todo, updatedAt: deletedAt, deletedAt }`
+
+TypeScript typecheck and all 387 tests pass.
