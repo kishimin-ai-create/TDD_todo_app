@@ -11,7 +11,13 @@ export const customFetch = async <T>(
   const response = await fetch(`${BASE_URL}${url}`, options);
 
   if (!response.ok) {
-    throw (await response.json()) as unknown;
+    let body: unknown;
+    try {
+      body = await response.json();
+    } catch {
+      body = await response.text();
+    }
+    throw Object.assign(new Error(`HTTP ${response.status}`), { status: response.status, body });
   }
 
   return response.json() as Promise<T>;

@@ -80,10 +80,11 @@ export default defineConfig({
 
   /* Run your local dev server before starting the tests.
    * In CI, the server is started by the workflow before Playwright runs.
-   * Uncomment below if you prefer Playwright to manage the server lifecycle locally. */
-  // webServer: {
-  //   command: 'npm run preview',
-  //   url: 'http://localhost:4173',
-  //   reuseExistingServer: !process.env.CI,
-  // },
+   * reuseExistingServer: true locally (reuse running dev server),
+   * false in CI (always start fresh). */
+  webServer: {
+    command: 'npm run preview',
+    url: 'http://localhost:4173',
+    reuseExistingServer: !process.env.CI,
+  },
 });
