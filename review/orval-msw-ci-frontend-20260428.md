@@ -45,6 +45,10 @@ if (!response.ok) {
 
 Useful? React with 👍 / 👎.
 
+**Disposition:** Fixed — `frontend/src/api/client.ts`
+
+The error-path in `customFetch` now wraps `response.json()` in a `try/catch`. If parsing fails, `response.text()` is used as fallback. Either way the thrown error is an `Error` with the HTTP status code attached via `Object.assign`, so callers always receive the status alongside the body, even for HTML/plain-text responses.
+
 ---
 
 **<sub><sub>![P1 Badge](https://img.shields.io/badge/P1-orange?style=flat)</sub></sub>
@@ -67,6 +71,10 @@ Fix: either (a) commit the initial baseline snapshots to git alongside the test,
 
 Useful? React with 👍 / 👎.
 
+**Disposition:** Reply-only — architectural decision required
+
+This is a valid finding. Automating `--update-snapshots` + auto-commit in CI carries risk: any rendering regression would update the baselines silently rather than alerting the team. The correct resolution is to generate the initial baselines manually on the same Linux CI environment (to avoid OS-level font rendering differences), commit them under `frontend/e2e/snapshots/`, and then let the nightly step compare against those committed files. Until that one-time commit is made, the visual step should remain disabled or the nightly run should use `--update-snapshots` on first run only. No code change is applied here — this requires a deliberate team decision and a snapshot-generation run on the CI OS.
+
 ---
 
 **<sub><sub>![P2 Badge](https://img.shields.io/badge/P2-yellow?style=flat)</sub></sub>
@@ -79,6 +87,10 @@ This means: if `docs/spec/backend/openapi-generated-pretty.json` is updated with
 Fix: add a `npm run generate` step to CI (before `typecheck`) and verify that the working tree is clean afterwards. Then add `src/api/generated/` to `.gitignore` so generated code is never committed — it is an artifact of the build, not source.
 
 Useful? React with 👍 / 👎.
+
+**Disposition:** Reply-only — architecture decision, large scope change
+
+Committing generated files is a deliberate tradeoff that avoids requiring orval (and a running OpenAPI spec) as a mandatory build step in CI. Removing 75 tracked files and adding them to `.gitignore` is a meaningful migration that could break existing checkouts and CI if not coordinated carefully. The recommended path forward is: (1) add `npm run generate && git diff --exit-code frontend/src/api/generated/` as a CI check to detect drift early, and (2) document in the README that `npm run generate` must be re-run after spec changes. The full gitignore migration can be done as a dedicated PR once the CI check is in place and the team agrees on the workflow.
 
 ---
 
@@ -95,6 +107,10 @@ The only e2e test file is `frontend/e2e/visual.spec.ts`, which is tagged `@visua
 Fix: either add `@smoke` tags to appropriate e2e tests, or change the grep to a tag that actually exists (e.g., remove the `--grep` filter until smoke tests are defined). Passing a CI step that runs nothing gives false confidence.
 
 Useful? React with 👍 / 👎.
+
+**Disposition:** Reply-only — already resolved in prior work
+
+`frontend/e2e/example.spec.ts` contains a test titled `'has title @smoke'`. Playwright's `--grep "@smoke"` matches against test titles, so this test IS matched by the current CI grep filter. The finding was valid at the time of review but was resolved by the addition of `example.spec.ts`. No further code change is needed.
 
 ---
 
@@ -117,6 +133,10 @@ server.listen({ onUnhandledRequest: 'error' });
 
 Useful? React with 👍 / 👎.
 
+**Disposition:** Fixed — `frontend/src/test/setup.ts`
+
+`onUnhandledRequest` has been changed from `'warn'` to `'error'`. Any test that triggers an API call without a matching MSW handler will now fail immediately with a hard error, making missing handler coverage visible in CI output.
+
 ---
 
 **<sub><sub>![P3 Badge](https://img.shields.io/badge/P3-blue?style=flat)</sub></sub>
@@ -138,6 +158,10 @@ npm install -D @testing-library/jest-dom
 
 Useful? React with 👍 / 👎.
 
+**Disposition:** Fixed — `frontend/package.json`
+
+`@testing-library/jest-dom@^6.9.1` has been added to `devDependencies` via `npm install -D @testing-library/jest-dom`. The package is now an explicit dependency and will be installed reliably on all future `npm ci` runs.
+
 ---
 
 **<sub><sub>![P3 Badge](https://img.shields.io/badge/P3-blue?style=flat)</sub></sub>
@@ -156,3 +180,7 @@ Without this, running `npx playwright test` locally requires the developer to ma
 The commented-out config is correct. Uncommenting it (with `reuseExistingServer: !process.env.CI`) would make local runs self-contained and match the CI setup where the server is explicitly started before Playwright runs.
 
 Useful? React with 👍 / 👎.
+
+**Disposition:** Fixed — `frontend/playwright.config.ts`
+
+The `webServer` block has been uncommented. Local `npx playwright test` runs will now automatically start `npm run preview` (port 4173) if no server is already running (`reuseExistingServer: !process.env.CI`). CI workflows are unaffected — they set `CI=true` so `reuseExistingServer` is `false` and the explicitly started server is used.
