@@ -8,11 +8,17 @@ import { createInMemoryStorage } from './in-memory-storage';
 import { createAppInteractor } from '../services/app-interactor';
 import { createTodoInteractor } from '../services/todo-interactor';
 import { createHonoApp } from './hono-app';
+import type { Hono } from 'hono';
+
+type BackendRegistry = {
+  app: Hono;
+  clearStorage: () => void;
+};
 
 /**
  * Creates the backend registry and wires every layer together.
  */
-export function createBackendRegistry() {
+export function createBackendRegistry(): BackendRegistry {
   const storage = createInMemoryStorage();
   const appRepository = createInMemoryAppRepository(storage);
   const todoRepository = createInMemoryTodoRepository(storage);

@@ -78,11 +78,11 @@ export function createAppInteractor(
   async function remove(input: DeleteAppInput): Promise<AppEntity> {
     const app = await findExistingApp(input.appId);
     const deletedAt = now();
-    const deletedApp: AppEntity = { ...app, deletedAt };
+    const deletedApp: AppEntity = { ...app, updatedAt: deletedAt, deletedAt };
     await appRepository.save(deletedApp);
     const todos = await todoRepository.listActiveByAppId(app.id);
     for (const todo of todos) {
-      await todoRepository.save({ ...todo, deletedAt });
+      await todoRepository.save({ ...todo, updatedAt: deletedAt, deletedAt });
     }
     return deletedApp;
   }
