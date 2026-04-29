@@ -202,6 +202,115 @@ describe('AppDetailPage', () => {
         expect(store.get(currentPageAtom)).toEqual({ name: 'app-list' })
       })
     })
+
+    it('when DELETE returns 422 (validation error), then onSuccess is NOT called and success message NOT shown', async () => {
+      // Arrange
+      const user = userEvent.setup()
+      server.use(
+        http.delete('/api/v1/apps/app-1', () =>
+          HttpResponse.json(
+            {
+              success: false,
+              data: null,
+              error: { code: 'VALIDATION_ERROR' },
+            },
+            { status: 422 },
+          ),
+        ),
+      )
+      renderWithProviders(<AppDetailPage appId="app-1" />)
+      await screen.findByText('My App')
+
+      // Act
+      await user.click(screen.getAllByRole('button', { name: /delete/i })[0])
+      await user.click(screen.getByRole('button', { name: /confirm/i }))
+
+      // Assert
+      await new Promise(resolve => setTimeout(resolve, 100))
+      expect(screen.queryByText(/app deleted successfully/i)).not.toBeInTheDocument()
+      expect(screen.getByText('My App')).toBeInTheDocument()
+    })
+
+    it('when DELETE returns 409 (conflict), then success message is NOT shown', async () => {
+      // Arrange
+      const user = userEvent.setup()
+      server.use(
+        http.delete('/api/v1/apps/app-1', () =>
+          HttpResponse.json(
+            {
+              success: false,
+              data: null,
+              error: { code: 'CONFLICT' },
+            },
+            { status: 409 },
+          ),
+        ),
+      )
+      renderWithProviders(<AppDetailPage appId="app-1" />)
+      await screen.findByText('My App')
+
+      // Act
+      await user.click(screen.getAllByRole('button', { name: /delete/i })[0])
+      await user.click(screen.getByRole('button', { name: /confirm/i }))
+
+      // Assert
+      await new Promise(resolve => setTimeout(resolve, 100))
+      expect(screen.queryByText(/app deleted successfully/i)).not.toBeInTheDocument()
+    })
+
+    it('when DELETE returns 500 (server error), then success message is NOT shown', async () => {
+      // Arrange
+      const user = userEvent.setup()
+      server.use(
+        http.delete('/api/v1/apps/app-1', () =>
+          HttpResponse.json(
+            {
+              success: false,
+              data: null,
+              error: { code: 'SERVER_ERROR' },
+            },
+            { status: 500 },
+          ),
+        ),
+      )
+      renderWithProviders(<AppDetailPage appId="app-1" />)
+      await screen.findByText('My App')
+
+      // Act
+      await user.click(screen.getAllByRole('button', { name: /delete/i })[0])
+      await user.click(screen.getByRole('button', { name: /confirm/i }))
+
+      // Assert
+      await new Promise(resolve => setTimeout(resolve, 100))
+      expect(screen.queryByText(/app deleted successfully/i)).not.toBeInTheDocument()
+    })
+
+    it('when DELETE returns 404 (not found), then success message is NOT shown', async () => {
+      // Arrange
+      const user = userEvent.setup()
+      server.use(
+        http.delete('/api/v1/apps/app-1', () =>
+          HttpResponse.json(
+            {
+              success: false,
+              data: null,
+              error: { code: 'NOT_FOUND' },
+            },
+            { status: 404 },
+          ),
+        ),
+      )
+      renderWithProviders(<AppDetailPage appId="app-1" />)
+      await screen.findByText('My App')
+
+      // Act
+      await user.click(screen.getAllByRole('button', { name: /delete/i })[0])
+      await user.click(screen.getByRole('button', { name: /confirm/i }))
+
+      // Assert
+      await new Promise(resolve => setTimeout(resolve, 100))
+      expect(screen.queryByText(/app deleted successfully/i)).not.toBeInTheDocument()
+    })
   })
 
   describe('Interaction - Edit App Navigation', () => {

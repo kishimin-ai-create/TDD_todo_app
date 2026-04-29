@@ -37,10 +37,13 @@ export function AppDetailPage({ appId }: Props) {
   const todos = todosData?.data?.data ?? []
 
   const handleDeleteApp = async () => {
-    await deleteMutation.mutateAsync({ appId })
-    setSuccessMsg('App deleted successfully')
-    setIsHidden(true)
-    goToAppList()
+    const response = await deleteMutation.mutateAsync({ appId })
+    const typedResponse = response as unknown as { status?: number }
+    if (typedResponse?.status && typedResponse.status >= 200 && typedResponse.status < 300) {
+      setSuccessMsg('App deleted successfully')
+      setIsHidden(true)
+      goToAppList()
+    }
   }
 
   const handleEdit = () => {
