@@ -44,3 +44,27 @@ Restructured loading and error state logic (lines 18-30). Now destructures `isLo
 | Tests regression | 0 regressions | ✅ |
 
 All business logic issues have been resolved. Frontend is production-ready. ✨
+
+**<sub><sub>![P1 Badge](https://img.shields.io/badge/P1-orange?style=flat)</sub></sub>  削除成功表示の前にHTTPステータスを検証する**
+
+`deleteMutation.mutateAsync` の結果をステータス確認せずに常に成功扱いしているため、API が `404/500` を返しても「App deleted successfully」を表示して一覧へ遷移してしまいます。`customFetch` は非2xxでも例外を投げず `{ status, data }` を返す実装なので、この分岐だと削除失敗時に誤った成功UXになります。
+
+Useful? React with 👍 / 👎.
+
+✅ **Fixed**
+
+Added status code validation in `handleDeleteApp()` before showing success message (lines 39-48). The function now checks if `response.status >= 200 && response.status < 300` before executing `setSuccessMsg()`, `setIsHidden()`, and `goToAppList()`. Four new test cases verify: no success message on 422, 409, 500, or 404 responses. Commit: `ff84d10`
+
+---
+
+**<sub><sub>![P2 Badge](https://img.shields.io/badge/P2-yellow?style=flat)</sub></sub>  一覧取得でReact Queryのエラー状態を反映する**
+
+エラー判定をレスポンス本文の `success` フラグだけで行っており、`useGetApiV1Apps` がネットワーク断・CORS失敗などで reject した場合の `isError` を見ていません。このケースでは `data` が未定義のまま `isError` が false になり、実際は取得失敗なのに「No apps yet」が表示されてしまいます。
+
+Useful? React with 👍 / 👎.
+
+✅ **Fixed**
+
+Added `isError` check from React Query hook to error detection (lines 11-19). The hook now destructures both `isError` and checks both React Query error state AND response body success flag. Show error alert when either condition is true. Three new test cases verify: error alert shown on network failures, timeouts, or CORS blocks. Commit: `73e5c2a`
+
+---
