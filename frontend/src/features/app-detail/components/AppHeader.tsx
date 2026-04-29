@@ -12,6 +12,9 @@ type Props = {
   onBack?: () => void
 }
 
+/**
+ * Header component displaying app info and actions.
+ */
 export function AppHeader({ app, onEdit, onDelete, onBack }: Props) {
   return (
     <div className="flex justify-between items-center mb-6">

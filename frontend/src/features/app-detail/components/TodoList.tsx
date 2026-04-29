@@ -15,6 +15,9 @@ type Props = {
   onRefresh: () => void
 }
 
+/**
+ * Renders a list of todo items.
+ */
 export function TodoList({ todos, appId, onRefresh }: Props) {
   if (todos.length === 0) {
     return <p className="text-gray-500 text-center py-4">No todos yet. Create your first todo!</p>

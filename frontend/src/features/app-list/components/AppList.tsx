@@ -5,6 +5,9 @@ type Props = {
   apps: GetApiV1Apps200DataItem[]
 }
 
+/**
+ * Renders a list of app cards.
+ */
 export function AppList({ apps }: Props) {
   if (apps.length === 0) {
     return <p className="text-gray-500 text-center py-8">No apps yet. Create your first app!</p>

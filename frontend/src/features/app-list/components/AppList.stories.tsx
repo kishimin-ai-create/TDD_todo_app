@@ -1,5 +1,6 @@
-import type { Meta, StoryObj } from '@storybook/react'
+import type { Meta, StoryObj } from '@storybook/react-vite'
 import type { GetApiV1Apps200DataItem } from '../../../api/generated/models'
+
 import { AppList } from './AppList'
 
 type Story = StoryObj<typeof AppList>

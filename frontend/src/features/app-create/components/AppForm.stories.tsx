@@ -1,4 +1,5 @@
-import type { Meta, StoryObj } from '@storybook/react'
+import type { Meta, StoryObj } from '@storybook/react-vite'
+
 import { AppForm } from './AppForm'
 
 type Story = StoryObj<typeof AppForm>
@@ -33,7 +34,7 @@ export default meta
 
 export const Default: Story = {
   args: {
-    onSubmit: () => {},
+    onSubmit: async () => {},
     onCancel: () => {},
     isLoading: false,
     submitLabel: 'Create',
@@ -42,7 +43,7 @@ export const Default: Story = {
 
 export const CreateMode: Story = {
   args: {
-    onSubmit: () => {},
+    onSubmit: async () => {},
     onCancel: () => {},
     isLoading: false,
     submitLabel: 'Create',
@@ -51,7 +52,7 @@ export const CreateMode: Story = {
 
 export const EditMode: Story = {
   args: {
-    onSubmit: () => {},
+    onSubmit: async () => {},
     onCancel: () => {},
     isLoading: false,
     submitLabel: 'Update',
@@ -61,7 +62,7 @@ export const EditMode: Story = {
 
 export const LoadingState: Story = {
   args: {
-    onSubmit: () => {},
+    onSubmit: async () => {},
     onCancel: () => {},
     isLoading: true,
     submitLabel: 'Create',
@@ -70,7 +71,7 @@ export const LoadingState: Story = {
 
 export const WithServerError: Story = {
   args: {
-    onSubmit: () => {},
+    onSubmit: async () => {},
     onCancel: () => {},
     isLoading: false,
     submitLabel: 'Create',
@@ -80,7 +81,7 @@ export const WithServerError: Story = {
 
 export const WithConflictError: Story = {
   args: {
-    onSubmit: () => {},
+    onSubmit: async () => {},
     onCancel: () => {},
     isLoading: false,
     submitLabel: 'Create',
@@ -90,7 +91,7 @@ export const WithConflictError: Story = {
 
 export const WithValidationError: Story = {
   args: {
-    onSubmit: () => {},
+    onSubmit: async () => {},
     onCancel: () => {},
     isLoading: false,
     submitLabel: 'Create',
@@ -100,7 +101,7 @@ export const WithValidationError: Story = {
 
 export const WithGenericError: Story = {
   args: {
-    onSubmit: () => {},
+    onSubmit: async () => {},
     onCancel: () => {},
     isLoading: false,
     submitLabel: 'Create',
@@ -110,7 +111,7 @@ export const WithGenericError: Story = {
 
 export const PreFilledForm: Story = {
   args: {
-    onSubmit: () => {},
+    onSubmit: async () => {},
     onCancel: () => {},
     isLoading: false,
     submitLabel: 'Update',
@@ -120,7 +121,7 @@ export const PreFilledForm: Story = {
 
 export const LongPrefilledValue: Story = {
   args: {
-    onSubmit: () => {},
+    onSubmit: async () => {},
     onCancel: () => {},
     isLoading: false,
     submitLabel: 'Update',
@@ -130,7 +131,7 @@ export const LongPrefilledValue: Story = {
 
 export const WithUpdateLabel: Story = {
   args: {
-    onSubmit: () => {},
+    onSubmit: async () => {},
     onCancel: () => {},
     isLoading: false,
     submitLabel: 'Update',

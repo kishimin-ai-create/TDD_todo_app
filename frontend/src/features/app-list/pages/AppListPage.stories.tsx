@@ -1,7 +1,8 @@
-import type { Meta, StoryObj } from '@storybook/react'
-import { http, HttpResponse } from 'msw'
+import type { Meta, StoryObj } from '@storybook/react-vite'
 import { QueryClient, QueryClientProvider } from '@tanstack/react-query'
 import { createStore, Provider as JotaiProvider } from 'jotai'
+import { http, HttpResponse } from 'msw'
+
 import { AppListPage } from './AppListPage'
 
 type Story = StoryObj<typeof AppListPage>

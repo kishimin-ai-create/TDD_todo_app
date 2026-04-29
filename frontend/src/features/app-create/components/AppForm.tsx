@@ -10,21 +10,28 @@ type FormValues = z.infer<typeof schema>
 
 type Props = {
   defaultValue?: string
-  onSubmit: (values: FormValues) => void
+  onSubmit: (values: FormValues) => Promise<void>
   onCancel: () => void
   isLoading: boolean
   submitLabel?: string
   serverError?: string
 }
 
+/**
+ * Form component for creating or editing an app.
+ */
 export function AppForm({ defaultValue, onSubmit, onCancel, isLoading, submitLabel = 'Create', serverError }: Props) {
   const { register, handleSubmit, formState: { errors } } = useForm<FormValues>({
     resolver: zodResolver(schema),
     defaultValues: { name: defaultValue ?? '' },
   })
 
+  const handleFormSubmit = (values: FormValues) => {
+    void onSubmit(values).catch(() => {})
+  }
+
   return (
-    <form onSubmit={handleSubmit(onSubmit)} className="space-y-4">
+    <form onSubmit={(e) => { handleSubmit(handleFormSubmit)(e).catch(() => {}) }} className="space-y-4">
       <div>
         <label htmlFor="app-name" className="block text-sm font-medium mb-1">App Name *</label>
         <input

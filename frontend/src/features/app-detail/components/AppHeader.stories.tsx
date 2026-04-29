@@ -1,4 +1,5 @@
-import type { Meta, StoryObj } from '@storybook/react'
+import type { Meta, StoryObj } from '@storybook/react-vite'
+
 import { AppHeader } from './AppHeader'
 
 type Story = StoryObj<typeof AppHeader>

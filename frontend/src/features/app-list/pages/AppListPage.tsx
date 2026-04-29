@@ -1,17 +1,22 @@
 import { useGetApiV1Apps } from '../../../api/generated'
+import { type GetApiV1Apps200DataItem } from '../../../api/generated/models'
+
 import { useNavigation } from '../../../shared/navigation'
 import { AppList } from '../components/AppList'
 
+/**
+ * Page displaying all apps.
+ */
 export function AppListPage() {
   const { data, isLoading } = useGetApiV1Apps()
   const { currentPage, goToAppCreate } = useNavigation()
 
   if (currentPage.name !== 'app-list') return null
 
-  // eslint-disable-next-line @typescript-eslint/no-explicit-any
-  const responseData = data as any
-  const apps = responseData?.data?.data ?? []
-  const isError = responseData?.data?.success === false
+  const responseData = data as unknown
+  const typedData = responseData as { data?: { data?: unknown; success?: boolean } } | null
+  const apps = typedData?.data?.data ?? []
+  const isError = typedData?.data?.success === false
 
   return (
     <div className="max-w-2xl mx-auto p-6">
@@ -37,7 +42,7 @@ export function AppListPage() {
         </div>
       )}
 
-      {!isLoading && !isError && <AppList apps={apps} />}
+      {!isLoading && !isError && <AppList apps={(apps ?? []) as GetApiV1Apps200DataItem[]} />}
     </div>
   )
 }

@@ -1,8 +1,12 @@
 import { useState } from 'react'
+
 import { usePostApiV1Apps } from '../../../api/generated'
 import { useNavigation } from '../../../shared/navigation'
 import { AppForm } from '../components/AppForm'
 
+/**
+ * Page for creating a new app.
+ */
 export function AppCreatePage() {
   const [serverError, setServerError] = useState<string>()
   const [isHidden, setIsHidden] = useState(false)
@@ -14,14 +18,14 @@ export function AppCreatePage() {
   const handleSubmit = async (values: { name: string }) => {
     setServerError(undefined)
     try {
-      // eslint-disable-next-line @typescript-eslint/no-explicit-any
-      const result = await mutation.mutateAsync({ data: { name: values.name } }) as any
-      if (result?.status === 201) {
+      const result = await mutation.mutateAsync({ data: { name: values.name } }) as unknown
+      const typedResult = result as { status?: number }
+      if (typedResult?.status === 201) {
         setIsHidden(true)
         goToAppList()
-      } else if (result?.status === 409) {
+      } else if (typedResult?.status === 409) {
         setServerError('App name already exists')
-      } else if (result?.status === 422) {
+      } else if (typedResult?.status === 422) {
         setServerError('Validation error: please check your input')
       }
     } catch {

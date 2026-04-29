@@ -1,4 +1,5 @@
 import { useState } from 'react'
+
 import {
   useDeleteApiV1AppsByAppId,
   useGetApiV1AppsByAppId,
@@ -13,6 +14,9 @@ type Props = {
   appId: string
 }
 
+/**
+ * Page displaying app details and todos.
+ */
 export function AppDetailPage({ appId }: Props) {
   const [showDeleteConfirm, setShowDeleteConfirm] = useState(false)
   const [showCreateTodo, setShowCreateTodo] = useState(false)
@@ -23,8 +27,7 @@ export function AppDetailPage({ appId }: Props) {
 
   const { data: appData, isLoading: isAppLoading } = useGetApiV1AppsByAppId(appId)
   
-  // eslint-disable-next-line @typescript-eslint/no-explicit-any
-  const app = (appData as any)?.data?.data
+  const app = (appData as unknown as { data?: { data?: unknown } } | null)?.data?.data
   
   const { data: todosData, refetch: refetchTodos } = useGetApiV1AppsByAppIdTodos(appId, {
     query: { enabled: !!app },
@@ -72,7 +75,7 @@ export function AppDetailPage({ appId }: Props) {
   return (
     <div className="max-w-2xl mx-auto p-6">
       <AppHeader
-        app={app}
+        app={app as { id: string; name: string; createdAt: string; updatedAt: string }}
         onEdit={handleEdit}
         onDelete={() => setShowDeleteConfirm(true)}
         onBack={goToAppList}
@@ -83,7 +86,7 @@ export function AppDetailPage({ appId }: Props) {
           <p className="mb-2">Delete this app and all its todos?</p>
           <div className="flex gap-2">
             <button
-              onClick={handleDeleteApp}
+              onClick={() => { void handleDeleteApp().catch(() => {}) }}
               className="px-4 py-2 bg-red-500 text-white rounded"
               disabled={deleteMutation.isPending}
             >

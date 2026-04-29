@@ -6,6 +6,9 @@ type Props = {
   onView?: (appId: string) => void
 }
 
+/**
+ * Card component displaying app summary and view button.
+ */
 export function AppCard({ app, onView }: Props) {
   const { goToAppDetail } = useNavigation()
 

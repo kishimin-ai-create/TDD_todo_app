@@ -1,7 +1,7 @@
 import { screen, waitFor } from '@testing-library/react'
 import userEvent from '@testing-library/user-event'
-import { describe, expect, it } from 'vitest'
 import { http, HttpResponse } from 'msw'
+import { describe, expect, it } from 'vitest'
 
 import { renderWithProviders } from '../../../test/renderWithProviders'
 import { server } from '../../../test/server'

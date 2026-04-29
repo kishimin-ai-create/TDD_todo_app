@@ -1,10 +1,14 @@
 import { useAtom } from 'jotai'
-import { currentPageAtom } from './shared/navigation'
-import { AppListPage } from './features/app-list/pages/AppListPage'
-import { AppDetailPage } from './features/app-detail/pages/AppDetailPage'
-import { AppCreatePage } from './features/app-create/pages/AppCreatePage'
-import { AppEditPage } from './features/app-edit/pages/AppEditPage'
 
+import { AppCreatePage } from './features/app-create/pages/AppCreatePage'
+import { AppDetailPage } from './features/app-detail/pages/AppDetailPage'
+import { AppEditPage } from './features/app-edit/pages/AppEditPage'
+import { AppListPage } from './features/app-list/pages/AppListPage'
+import { currentPageAtom } from './shared/navigation'
+
+/**
+ * Main app component that manages page routing state.
+ */
 function App() {
   const [currentPage] = useAtom(currentPageAtom)
 

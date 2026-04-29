@@ -1,4 +1,5 @@
-import type { Meta, StoryObj } from '@storybook/react'
+import type { Meta, StoryObj } from '@storybook/react-vite'
+
 import { TodoList } from './TodoList'
 
 type Story = StoryObj<typeof TodoList>

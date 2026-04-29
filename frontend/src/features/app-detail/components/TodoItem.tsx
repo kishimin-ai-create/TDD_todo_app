@@ -20,6 +20,9 @@ type Props = {
   onRefresh: () => void
 }
 
+/**
+ * Renders a single todo item with edit and delete actions.
+ */
 export function TodoItem({ todo, appId, onRefresh }: Props) {
   const [isEditing, setIsEditing] = useState(false)
   const [showConfirm, setShowConfirm] = useState(false)
@@ -65,7 +68,7 @@ export function TodoItem({ todo, appId, onRefresh }: Props) {
         <input
           type="checkbox"
           checked={todo.completed}
-          onChange={handleCheckboxChange}
+          onChange={() => { void handleCheckboxChange().catch(() => {}) }}
           className="cursor-pointer"
         />
         <span className={todo.completed ? 'line-through text-gray-500' : ''}>{todo.title}</span>
@@ -90,7 +93,7 @@ export function TodoItem({ todo, appId, onRefresh }: Props) {
           <p className="text-sm mb-2">Delete this todo?</p>
           <div className="flex gap-2">
             <button
-              onClick={handleDelete}
+              onClick={() => { void handleDelete().catch(() => {}) }}
               className="px-3 py-1 text-sm bg-red-500 text-white rounded"
               disabled={deleteMutation.isPending}
             >

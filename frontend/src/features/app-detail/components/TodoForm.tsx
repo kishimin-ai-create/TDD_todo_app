@@ -1,6 +1,7 @@
 import { zodResolver } from '@hookform/resolvers/zod'
 import { useForm } from 'react-hook-form'
 import { z } from 'zod'
+
 import { usePostApiV1AppsByAppIdTodos, usePutApiV1AppsByAppIdTodosByTodoId } from '../../../api/generated'
 
 const schema = z.object({
@@ -22,6 +23,9 @@ type Props =
   | { mode: 'edit'; todo: Todo; appId: string; onCancel: () => void; onSuccess: () => void }
   | { mode: 'create'; todo?: undefined; appId: string; onCancel: () => void; onSuccess: () => void }
 
+/**
+ * Form for creating or editing a todo.
+ */
 export function TodoForm({ mode, todo, appId, onCancel, onSuccess }: Props) {
   const { register, handleSubmit, formState: { errors } } = useForm<FormValues>({
     resolver: zodResolver(schema),
@@ -42,8 +46,12 @@ export function TodoForm({ mode, todo, appId, onCancel, onSuccess }: Props) {
     onSuccess()
   }
 
+  const handleFormSubmit = (values: FormValues) => {
+    void onSubmit(values)
+  }
+
   return (
-    <form onSubmit={handleSubmit(onSubmit)} className="p-3 border rounded bg-gray-50">
+    <form onSubmit={(e) => { handleSubmit(handleFormSubmit)(e).catch(() => {}) }} className="p-3 border rounded bg-gray-50">
       <div className="mb-2">
         <label htmlFor="todo-title" className="block text-sm font-medium mb-1">Title</label>
         <input

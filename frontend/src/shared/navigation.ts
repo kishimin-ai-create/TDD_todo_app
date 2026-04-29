@@ -8,6 +8,9 @@ export type Page =
 
 export const currentPageAtom = atom<Page>({ name: 'app-list' })
 
+/**
+ * Hook providing navigation functionality for app routing.
+ */
 export function useNavigation() {
   const [currentPage, setPage] = useAtom(currentPageAtom)
 

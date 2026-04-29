@@ -1,4 +1,5 @@
 import { useState } from 'react'
+
 import { useGetApiV1AppsByAppId, usePutApiV1AppsByAppId } from '../../../api/generated'
 import { useNavigation } from '../../../shared/navigation'
 import { AppForm } from '../components/AppForm'
@@ -7,6 +8,9 @@ type Props = {
   appId: string
 }
 
+/**
+ * Page for editing an app.
+ */
 export function AppEditPage({ appId }: Props) {
   const [serverError, setServerError] = useState<string>()
   const [isHidden, setIsHidden] = useState(false)
@@ -14,8 +18,7 @@ export function AppEditPage({ appId }: Props) {
   const { data } = useGetApiV1AppsByAppId(appId)
   const mutation = usePutApiV1AppsByAppId()
 
-  // eslint-disable-next-line @typescript-eslint/no-explicit-any
-  const app = (data as any)?.data?.data
+  const app = (data as unknown as { data?: { data?: unknown } } | null)?.data?.data
 
   if (isHidden) return null
 
@@ -26,14 +29,14 @@ export function AppEditPage({ appId }: Props) {
   const handleSubmit = async (values: { name: string }) => {
     setServerError(undefined)
     try {
-      // eslint-disable-next-line @typescript-eslint/no-explicit-any
-      const result = await mutation.mutateAsync({ appId, data: { name: values.name } }) as any
-      if (result?.status === 200) {
+      const result = await mutation.mutateAsync({ appId, data: { name: values.name } }) as unknown
+      const typedResult = result as { status?: number }
+      if (typedResult?.status === 200) {
         setIsHidden(true)
         goToAppDetail(appId)
-      } else if (result?.status === 409) {
+      } else if (typedResult?.status === 409) {
         setServerError('App name already exists')
-      } else if (result?.status === 422) {
+      } else if (typedResult?.status === 422) {
         setServerError('Validation error: please check your input')
       }
     } catch {
@@ -50,7 +53,7 @@ export function AppEditPage({ appId }: Props) {
     <div className="max-w-md mx-auto p-6">
       <h1 className="text-2xl font-bold mb-6">Edit App</h1>
       <AppForm
-        defaultValue={app.name}
+        defaultValue={(app as { name: string }).name}
         onSubmit={handleSubmit}
         onCancel={handleCancel}
         isLoading={mutation.isPending}

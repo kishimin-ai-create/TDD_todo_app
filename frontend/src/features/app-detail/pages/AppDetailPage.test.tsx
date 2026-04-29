@@ -1,11 +1,11 @@
 import { screen, waitFor } from '@testing-library/react'
 import userEvent from '@testing-library/user-event'
-import { beforeEach, describe, expect, it } from 'vitest'
 import { http, HttpResponse } from 'msw'
+import { beforeEach, describe, expect, it } from 'vitest'
 
+import { currentPageAtom } from '../../../shared/navigation'
 import { renderWithProviders } from '../../../test/renderWithProviders'
 import { server } from '../../../test/server'
-import { currentPageAtom } from '../../../shared/navigation'
 import { AppDetailPage } from './AppDetailPage'
 
 const mockApp = {
