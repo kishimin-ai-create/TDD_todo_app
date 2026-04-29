@@ -51,6 +51,8 @@ ON DUPLICATE KEY UPDATE title = VALUES(title), ...
 
 Useful? React with 👍 / 👎.
 
+**Disposition:** Fixed — `backend/src/infrastructure/mysql-app-repository.ts`
+
 Fixed. Replaced the two-step SELECT + INSERT/UPDATE pattern in `save()` with a single atomic `INSERT INTO App (...) VALUES (?) ON DUPLICATE KEY UPDATE name = VALUES(name), updatedAt = VALUES(updatedAt), deletedAt = VALUES(deletedAt)`, matching the pattern already used in `mysql-todo-repository.ts`. The `ExistsRow` type is retained as it is still referenced by `existsActiveByName`. All 387 backend tests pass.
 
 ---
@@ -73,6 +75,8 @@ This wastes CI time and doubles screenshot comparisons on each nightly run. It c
 
 Useful? React with 👍 / 👎.
 
+**Disposition:** Fixed — `.github/workflows/ci-nightly.yml`
+
 Fixed. Added `--grep-invert "@visual"` to the full Playwright run step in `ci-nightly.yml` so it now reads `npx playwright test --grep-invert "@visual"`. The dedicated `@visual` step remains unchanged, ensuring visual regression tests still run exactly once per nightly with the correct Chromium-only configuration.
 
 ---
@@ -85,7 +89,9 @@ Both define the same constraints (`name`: 1–100 chars, `title`: 1–200 chars)
 
 Useful? React with 👍 / 👎.
 
-Reply-only. The concern is valid — `schemas.ts` (Zod, used for OpenAPI/documentation) and `request-validation.ts` (hand-written guards, used at runtime) currently duplicate the same constraints. Merging them via `schema.parse()` in `request-validation.ts` is the correct long-term direction, but it would require threading the Zod dependency into the controller validation layer, updating every parse function, and verifying that Zod's error shape maps correctly to `AppError('VALIDATION_ERROR', ...)` for all callers. This is a meaningful refactor that touches both layers and carries risk of changing error message text visible in API responses. It will be tracked as a separate task to ensure proper test coverage of the new error mapping before merging.
+**Disposition:** Reply-only — architectural decision, planned refactor
+
+The concern is valid — `schemas.ts` (Zod, used for OpenAPI/documentation) and `request-validation.ts` (hand-written guards, used at runtime) currently duplicate the same constraints. Merging them via `schema.parse()` in `request-validation.ts` is the correct long-term direction, but it would require threading the Zod dependency into the controller validation layer, updating every parse function, and verifying that Zod's error shape maps correctly to `AppError('VALIDATION_ERROR', ...)` for all callers. This is a meaningful refactor that touches both layers and carries risk of changing error message text visible in API responses. It will be tracked as a separate task to ensure proper test coverage of the new error mapping before merging.
 
 ---
 
@@ -102,6 +108,8 @@ The test description promises a `422` but the assertion expects `200`. This is c
 **Fix:** Rename the test to something like `'PUT with no body is accepted as no-op update (200)'`.
 
 Useful? React with 👍 / 👎.
+
+**Disposition:** Fixed — `backend/src/tests/integrations/infrastructure/hono-app.test.ts`
 
 Fixed. Renamed the test at line 95 of `hono-app.test.ts` from `'PUT with no body falls back to empty body (returns 422 for missing name)'` to `'PUT with no body is accepted as no-op update (200)'`. The title now accurately reflects that `name` is optional on updates and the expected status is 200. All 387 backend tests pass.
 
@@ -125,6 +133,8 @@ export function presentApp(app: AppEntity): AppDto { ... }
 
 Useful? React with 👍 / 👎.
 
+**Disposition:** Fixed — `backend/src/controllers/http-presenter.ts`
+
 Fixed. Added exported `AppDto` and `TodoDto` types to `http-presenter.ts` and annotated `presentApp(app: AppEntity): AppDto` and `presentTodo(todo: TodoEntity): TodoDto` with explicit return types. TypeScript typecheck and all 387 backend tests pass.
 
 ---
@@ -138,6 +148,8 @@ If all `@smoke` tags are accidentally removed from test files (or the tag is ren
 **Fix:** Remove `--pass-with-no-tests`. Add at least one `@smoke`-tagged test (e.g. in `frontend/e2e/example.spec.ts`) so the flag is no longer needed. If the intent is to make smoke tests optional, document that decision explicitly in a comment.
 
 Useful? React with 👍 / 👎.
+
+**Disposition:** Fixed — `.github/workflows/ci-pr.yml` and `frontend/e2e/example.spec.ts`
 
 Fixed. Removed `--pass-with-no-tests` from the smoke test step in `ci-pr.yml`. Added `@smoke` to the title of the `'has title'` test in `frontend/e2e/example.spec.ts` so at least one smoke-tagged test is always present. The PR CI will now fail explicitly if all `@smoke` tags are inadvertently removed. Frontend typecheck and lint pass.
 
