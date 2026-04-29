@@ -32,10 +32,13 @@ export function TodoItem({ todo, appId, onRefresh }: Props) {
   const toggleMutation = usePutApiV1AppsByAppIdTodosByTodoId()
 
   const handleDelete = async () => {
-    await deleteMutation.mutateAsync({ appId, todoId: todo.id })
-    setSuccessMsg('Todo deleted successfully')
-    setShowConfirm(false)
-    onRefresh()
+    const result = await deleteMutation.mutateAsync({ appId, todoId: todo.id }) as unknown
+    const typedResult = result as { status?: number }
+    if (typedResult?.status && typedResult.status >= 200 && typedResult.status < 300) {
+      setSuccessMsg('Todo deleted successfully')
+      setShowConfirm(false)
+      onRefresh()
+    }
   }
 
   const handleCheckboxChange = async () => {

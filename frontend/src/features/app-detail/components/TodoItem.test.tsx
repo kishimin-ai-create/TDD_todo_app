@@ -256,4 +256,120 @@ describe('TodoItem', () => {
       await waitFor(() => expect(onRefresh).toHaveBeenCalled())
     })
   })
+
+  describe('Error Cases - Failed Delete (4xx/5xx)', () => {
+    it('when DELETE returns 404, then does NOT show success message', async () => {
+      // Arrange
+      const user = userEvent.setup()
+      server.use(
+        http.delete('/api/v1/apps/app-1/todos/todo-1', () =>
+          HttpResponse.json(
+            {
+              success: false,
+              data: null,
+              error: { code: 'NOT_FOUND' },
+            },
+            { status: 404 },
+          ),
+        ),
+      )
+      renderWithProviders(
+        <TodoItem todo={mockTodo} appId="app-1" onRefresh={vi.fn()} />,
+      )
+
+      // Act
+      await user.click(screen.getByRole('button', { name: /delete/i }))
+      await user.click(screen.getByRole('button', { name: /confirm/i }))
+
+      // Assert
+      await new Promise(resolve => setTimeout(resolve, 100))
+      expect(screen.queryByText(/todo deleted successfully/i)).not.toBeInTheDocument()
+    })
+
+    it('when DELETE returns 404, then does NOT call onRefresh', async () => {
+      // Arrange
+      const user = userEvent.setup()
+      const onRefresh = vi.fn()
+      server.use(
+        http.delete('/api/v1/apps/app-1/todos/todo-1', () =>
+          HttpResponse.json(
+            {
+              success: false,
+              data: null,
+              error: { code: 'NOT_FOUND' },
+            },
+            { status: 404 },
+          ),
+        ),
+      )
+      renderWithProviders(
+        <TodoItem todo={mockTodo} appId="app-1" onRefresh={onRefresh} />,
+      )
+
+      // Act
+      await user.click(screen.getByRole('button', { name: /delete/i }))
+      await user.click(screen.getByRole('button', { name: /confirm/i }))
+
+      // Assert
+      await new Promise(resolve => setTimeout(resolve, 100))
+      expect(onRefresh).not.toHaveBeenCalled()
+    })
+
+    it('when DELETE returns 500, then does NOT show success message', async () => {
+      // Arrange
+      const user = userEvent.setup()
+      server.use(
+        http.delete('/api/v1/apps/app-1/todos/todo-1', () =>
+          HttpResponse.json(
+            {
+              success: false,
+              data: null,
+              error: { code: 'SERVER_ERROR' },
+            },
+            { status: 500 },
+          ),
+        ),
+      )
+      renderWithProviders(
+        <TodoItem todo={mockTodo} appId="app-1" onRefresh={vi.fn()} />,
+      )
+
+      // Act
+      await user.click(screen.getByRole('button', { name: /delete/i }))
+      await user.click(screen.getByRole('button', { name: /confirm/i }))
+
+      // Assert
+      await new Promise(resolve => setTimeout(resolve, 100))
+      expect(screen.queryByText(/todo deleted successfully/i)).not.toBeInTheDocument()
+    })
+
+    it('when DELETE returns 422, then does NOT call onRefresh', async () => {
+      // Arrange
+      const user = userEvent.setup()
+      const onRefresh = vi.fn()
+      server.use(
+        http.delete('/api/v1/apps/app-1/todos/todo-1', () =>
+          HttpResponse.json(
+            {
+              success: false,
+              data: null,
+              error: { code: 'VALIDATION_ERROR' },
+            },
+            { status: 422 },
+          ),
+        ),
+      )
+      renderWithProviders(
+        <TodoItem todo={mockTodo} appId="app-1" onRefresh={onRefresh} />,
+      )
+
+      // Act
+      await user.click(screen.getByRole('button', { name: /delete/i }))
+      await user.click(screen.getByRole('button', { name: /confirm/i }))
+
+      // Assert
+      await new Promise(resolve => setTimeout(resolve, 100))
+      expect(onRefresh).not.toHaveBeenCalled()
+    })
+  })
 })
