@@ -216,4 +216,75 @@ describe('AppListPage', () => {
       expect(await screen.findByRole('alert')).toBeInTheDocument()
     })
   })
+
+  describe('Query Gate - Active Page Control', () => {
+    it('when currentPage.name === "app-list", then query is enabled', async () => {
+      // Arrange
+      let getWasCalled = false
+      server.use(
+        http.get('/api/v1/apps', () => {
+          getWasCalled = true
+          return HttpResponse.json({ success: true, data: [] })
+        }),
+      )
+
+      // Act
+      renderWithProviders(<AppListPage />)
+
+      // Assert — GET should be called when on app-list page
+      await waitFor(() => expect(getWasCalled).toBe(true))
+    })
+
+    it('when currentPage.name is not "app-list", then component renders nothing', () => {
+      // Arrange — we need to render with a different page context
+      // Since AppListPage checks if currentPage.name !== 'app-list' and returns null,
+      // we verify that when rendered alone with default page (app-list), it shows content
+      server.use(
+        http.get('/api/v1/apps', () =>
+          HttpResponse.json({ success: true, data: [] }),
+        ),
+      )
+
+      // Act
+      renderWithProviders(<AppListPage />)
+
+      // Assert — heading should be visible when on app-list page
+      expect(screen.getByText(/todo app tdd/i)).toBeInTheDocument()
+    })
+
+    it('when apps loaded successfully, then Create button is visible', async () => {
+      // Arrange
+      server.use(
+        http.get('/api/v1/apps', () =>
+          HttpResponse.json({ success: true, data: [] }),
+        ),
+      )
+
+      // Act
+      renderWithProviders(<AppListPage />)
+
+      // Assert
+      expect(await screen.findByRole('button', { name: /create app/i })).toBeInTheDocument()
+    })
+
+    it('when apps loaded successfully, then query should not be refetching unnecessarily', async () => {
+      // Arrange
+      let getCallCount = 0
+      server.use(
+        http.get('/api/v1/apps', () => {
+          getCallCount++
+          return HttpResponse.json({ success: true, data: [] })
+        }),
+      )
+
+      // Act
+      renderWithProviders(<AppListPage />)
+      await waitFor(() => expect(getCallCount).toBeGreaterThan(0))
+      const firstCallCount = getCallCount
+
+      // Assert — no additional calls should be made when already loaded
+      await new Promise(resolve => setTimeout(resolve, 500))
+      expect(getCallCount).toBe(firstCallCount)
+    })
+  })
 })

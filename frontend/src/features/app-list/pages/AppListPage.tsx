@@ -8,8 +8,10 @@ import { AppList } from '../components/AppList'
  * Page displaying all apps.
  */
 export function AppListPage() {
-  const { data, isLoading, isError } = useGetApiV1Apps()
   const { currentPage, goToAppCreate } = useNavigation()
+  const { data, isLoading, isError } = useGetApiV1Apps({
+    query: { enabled: currentPage.name === 'app-list' },
+  })
 
   if (currentPage.name !== 'app-list') return null
 
