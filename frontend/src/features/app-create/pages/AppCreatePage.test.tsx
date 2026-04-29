@@ -198,6 +198,124 @@ describe('AppCreatePage', () => {
     })
   })
 
+  describe('Error Cases - Unrecognized Status Codes', () => {
+    it('when POST returns 500, then shows error alert and stays on create page', async () => {
+      // Arrange
+      const user = userEvent.setup()
+      server.use(
+        http.post('/api/v1/apps', () =>
+          HttpResponse.json(
+            {
+              success: false,
+              data: null,
+              error: {
+                code: 'SERVER_ERROR',
+                message: 'Internal server error',
+              },
+            },
+            { status: 500 },
+          ),
+        ),
+      )
+      renderWithProviders(<AppCreatePage />)
+
+      // Act
+      await user.type(screen.getByLabelText(/app name/i), 'New App')
+      await user.click(screen.getByRole('button', { name: /create/i }))
+
+      // Assert
+      expect(await screen.findByRole('alert')).toBeInTheDocument()
+      expect(screen.getByText(/create new app/i)).toBeInTheDocument()
+    })
+
+    it('when POST returns 503 (Service Unavailable), then shows error alert and stays on create page', async () => {
+      // Arrange
+      const user = userEvent.setup()
+      server.use(
+        http.post('/api/v1/apps', () =>
+          HttpResponse.json(
+            {
+              success: false,
+              data: null,
+              error: {
+                code: 'SERVICE_UNAVAILABLE',
+                message: 'Service temporarily unavailable',
+              },
+            },
+            { status: 503 },
+          ),
+        ),
+      )
+      renderWithProviders(<AppCreatePage />)
+
+      // Act
+      await user.type(screen.getByLabelText(/app name/i), 'New App')
+      await user.click(screen.getByRole('button', { name: /create/i }))
+
+      // Assert
+      expect(await screen.findByRole('alert')).toBeInTheDocument()
+      expect(screen.getByText(/create new app/i)).toBeInTheDocument()
+    })
+
+    it('when POST returns 418 (I\'m a teapot - boundary test), then shows error alert', async () => {
+      // Arrange
+      const user = userEvent.setup()
+      server.use(
+        http.post('/api/v1/apps', () =>
+          HttpResponse.json(
+            {
+              success: false,
+              data: null,
+              error: {
+                code: 'TEAPOT',
+                message: 'I am a teapot',
+              },
+            },
+            { status: 418 },
+          ),
+        ),
+      )
+      renderWithProviders(<AppCreatePage />)
+
+      // Act
+      await user.type(screen.getByLabelText(/app name/i), 'New App')
+      await user.click(screen.getByRole('button', { name: /create/i }))
+
+      // Assert
+      expect(await screen.findByRole('alert')).toBeInTheDocument()
+      expect(screen.getByText(/create new app/i)).toBeInTheDocument()
+    })
+
+    it('when POST returns 400 (Bad Request), then shows error alert', async () => {
+      // Arrange
+      const user = userEvent.setup()
+      server.use(
+        http.post('/api/v1/apps', () =>
+          HttpResponse.json(
+            {
+              success: false,
+              data: null,
+              error: {
+                code: 'BAD_REQUEST',
+                message: 'Bad request',
+              },
+            },
+            { status: 400 },
+          ),
+        ),
+      )
+      renderWithProviders(<AppCreatePage />)
+
+      // Act
+      await user.type(screen.getByLabelText(/app name/i), 'New App')
+      await user.click(screen.getByRole('button', { name: /create/i }))
+
+      // Assert
+      expect(await screen.findByRole('alert')).toBeInTheDocument()
+      expect(screen.getByText(/create new app/i)).toBeInTheDocument()
+    })
+  })
+
   describe('Loading State', () => {
     it('when form is submitting, then Create button is disabled', async () => {
       // Arrange

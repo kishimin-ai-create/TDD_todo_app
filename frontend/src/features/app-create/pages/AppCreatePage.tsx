@@ -27,6 +27,8 @@ export function AppCreatePage() {
         setServerError('App name already exists')
       } else if (typedResult?.status === 422) {
         setServerError('Validation error: please check your input')
+      } else {
+        setServerError('Server error. Please try again later.')
       }
     } catch {
       setServerError('An error occurred. Please try again.')
