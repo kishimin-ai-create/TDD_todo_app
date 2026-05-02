@@ -22,11 +22,13 @@ export default defineConfig({
       provider: 'v8',
       reporter: ['html', 'json'],
       reportsDirectory: './coverage',
-      lines: 80,
-      branches: 75,
-      functions: 80,
-      statements: 80,
-      all: true,
+      thresholds: {
+        lines: 80,
+        branches: 75,
+        functions: 80,
+        statements: 80,
+      },
+      include: ['src/**/*.{ts,tsx}'],
       exclude: [
         'node_modules/',
         'dist/',

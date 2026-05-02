@@ -1,5 +1,4 @@
 import { defineConfig } from 'vitest/config';
-import { fileURLToPath } from 'node:url';
 
 export default defineConfig({
   test: {
@@ -14,11 +13,13 @@ export default defineConfig({
       provider: 'v8',
       reporter: ['html', 'json'],
       reportsDirectory: './coverage/unit',
-      lines: 80,
-      branches: 75,
-      functions: 80,
-      statements: 80,
-      all: true,
+      thresholds: {
+        lines: 80,
+        branches: 75,
+        functions: 80,
+        statements: 80,
+      },
+      include: ['src/**/*.ts'],
       exclude: [
         'node_modules/',
         'dist/',
