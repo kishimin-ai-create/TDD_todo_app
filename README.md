@@ -4,6 +4,13 @@ This project is a todo list application for developers practicing Test-Driven
 Development (TDD), where development tasks are managed and completed as part of
 a TDD workflow.
 
+## 📊 Coverage
+
+[![Frontend Coverage](https://img.shields.io/badge/frontend%20coverage-dynamic-blue)]()
+[![Backend Coverage](https://img.shields.io/badge/backend%20coverage-dynamic-blue)]()
+
+View the [full coverage dashboard](docs/coverage/index.html) for detailed metrics.
+
 # Why is this project useful?
 
 It helps developers clearly organize tasks when developing with Test-Driven
@@ -37,6 +44,25 @@ npm run dev
 cd frontend
 npm run dev
 ```
+
+## Running Coverage Reports
+
+Generate coverage reports for frontend and backend:
+
+```bash
+npm run coverage              # Generate all coverage reports
+npm run coverage:frontend     # Frontend coverage only
+npm run coverage:backend      # Backend coverage only
+npm run coverage:report       # Generate central dashboard
+```
+
+The coverage dashboard will be available at `docs/coverage/index.html`.
+
+**Coverage Thresholds:**
+- Line Coverage: ≥ 80%
+- Branch Coverage: ≥ 75%
+- Function Coverage: ≥ 80%
+- Statement Coverage: ≥ 80%
 
 ## Usage
 
