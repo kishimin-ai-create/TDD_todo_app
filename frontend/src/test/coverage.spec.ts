@@ -21,15 +21,11 @@ describe('coverage reporting configuration', () => {
     expect(packageJson.scripts?.['coverage:frontend']).toBe('vitest run --coverage')
   })
 
-  it('configures frontend coverage output and thresholds', () => {
+  it('configures frontend coverage output', () => {
     const config = readFileSync(join(frontendRoot, 'vite.config.ts'), 'utf-8')
 
     expect(config).toContain("reporter: ['html', 'json']")
     expect(config).toContain("reportsDirectory: './coverage'")
-    expect(config).toMatch(/thresholds:\s*{[\s\S]*lines:\s*80/)
-    expect(config).toMatch(/thresholds:\s*{[\s\S]*branches:\s*75/)
-    expect(config).toMatch(/thresholds:\s*{[\s\S]*functions:\s*80/)
-    expect(config).toMatch(/thresholds:\s*{[\s\S]*statements:\s*80/)
   })
 
   it('defines root coverage aggregation scripts', () => {

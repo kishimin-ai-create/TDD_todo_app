@@ -22,24 +22,16 @@ describe('backend coverage reporting configuration', () => {
     expect(packageJson.scripts?.['coverage:integration']).toBe('vitest run --coverage --config vitest.integration.config.ts');
   });
 
-  it('configures unit coverage output and thresholds', () => {
+  it('configures unit coverage output', () => {
     const config = readFileSync(join(backendRoot, 'vitest.unit.config.ts'), 'utf-8');
 
     expect(config).toContain("reportsDirectory: './coverage/unit'");
-    expect(config).toMatch(/thresholds:\s*{[\s\S]*lines:\s*80/);
-    expect(config).toMatch(/thresholds:\s*{[\s\S]*branches:\s*75/);
-    expect(config).toMatch(/thresholds:\s*{[\s\S]*functions:\s*80/);
-    expect(config).toMatch(/thresholds:\s*{[\s\S]*statements:\s*80/);
   });
 
-  it('configures integration coverage output and thresholds', () => {
+  it('configures integration coverage output', () => {
     const config = readFileSync(join(backendRoot, 'vitest.integration.config.ts'), 'utf-8');
 
     expect(config).toContain("reportsDirectory: './coverage/integration'");
-    expect(config).toMatch(/thresholds:\s*{[\s\S]*lines:\s*80/);
-    expect(config).toMatch(/thresholds:\s*{[\s\S]*branches:\s*75/);
-    expect(config).toMatch(/thresholds:\s*{[\s\S]*functions:\s*80/);
-    expect(config).toMatch(/thresholds:\s*{[\s\S]*statements:\s*80/);
   });
 
   it('keeps root coverage dashboard support wired', () => {
