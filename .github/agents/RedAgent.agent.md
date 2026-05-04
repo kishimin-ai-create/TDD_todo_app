@@ -7,7 +7,7 @@ description:
   Testing Library, or integration tests. Red Agent creates tests that fail
   first, establishing the contract between components before any implementation
   code is written."
-tools: [read, search, edit, execute]
+tools: [read, search, edit, execute, git]
 user-invocable: false
 ---
 

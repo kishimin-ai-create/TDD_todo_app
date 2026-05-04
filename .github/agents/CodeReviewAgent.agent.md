@@ -5,7 +5,7 @@ description:
   review file to review/. It identifies bugs, security issues, logic errors,
   architecture violations, and test quality problems, then saves the findings
   in the same priority-badge format used by existing review files."
-tools: [read, search, write, execute, agent]
+tools: [read, search, write, execute, agent, git]
 user-invocable: true
 ---
 

@@ -6,7 +6,7 @@ description:
   typecheck + lint + tests, then commits — one fix per commit. Unlike
   RefactorAgent, FixAgent is allowed to change external behavior when the
   current behavior is wrong."
-tools: [read, search, edit, execute, agent]
+tools: [read, search, edit, execute, agent, git]
 user-invocable: true
 ---
 

@@ -6,7 +6,7 @@ description:
   implementation without over-engineering, premature optimization, or adding
   features beyond what tests require. Green Agent follows the principle: 'Make
   the tests pass, nothing more.'"
-tools: [read, search, edit, execute]
+tools: [read, search, edit, execute, git]
 user-invocable: false
 ---
 

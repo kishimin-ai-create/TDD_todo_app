@@ -6,7 +6,7 @@ description:
   and keeping the visual language consistent across components. It reads
   existing components and design docs, makes targeted style improvements,
   updates Storybook stories, and validates that the build and lint still pass."
-tools: [read, search, edit, execute, agent]
+tools: [read, search, edit, execute, agent, git]
 user-invocable: true
 ---
 
