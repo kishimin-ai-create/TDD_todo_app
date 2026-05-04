@@ -58,13 +58,13 @@ export function TodoForm({ mode, todo, appId, onCancel, onSuccess }: Props) {
   }
 
   return (
-    <form onSubmit={(e) => { handleSubmit(handleFormSubmit)(e).catch(() => {}) }} className="p-3 border rounded bg-gray-50">
+    <form onSubmit={(e) => { handleSubmit(handleFormSubmit)(e).catch(() => {}) }} className="p-4 border border-gray-200 rounded-lg bg-gray-50">
       <div className="mb-2">
         <label htmlFor="todo-title" className="block text-sm font-medium mb-1">Title</label>
         <input
           id="todo-title"
           {...register('title')}
-          className="w-full px-2 py-1 border rounded text-sm"
+          className="w-full px-3 py-2 border border-gray-300 rounded text-sm focus:outline-none focus:ring-2 focus:ring-blue-500"
           aria-label="Title"
         />
         {errors.title && (
@@ -102,14 +102,14 @@ export function TodoForm({ mode, todo, appId, onCancel, onSuccess }: Props) {
         <button
           type="button"
           onClick={onCancel}
-          className="px-3 py-1 text-sm bg-gray-200 rounded hover:bg-gray-300"
+          className="px-3 py-1 text-sm bg-gray-200 text-gray-700 rounded hover:bg-gray-300 focus-visible:outline focus-visible:outline-2 focus-visible:outline-gray-400"
         >
           Cancel
         </button>
         <button
           type="submit"
           disabled={isLoading}
-          className="px-3 py-1 text-sm bg-blue-500 text-white rounded hover:bg-blue-600 disabled:opacity-50"
+          className="px-3 py-1 text-sm bg-blue-500 text-white rounded hover:bg-blue-600 disabled:opacity-50 disabled:cursor-not-allowed focus-visible:outline focus-visible:outline-2 focus-visible:outline-blue-500"
         >
           {isLoading ? 'Loading...' : 'Save'}
         </button>

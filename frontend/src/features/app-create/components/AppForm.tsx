@@ -53,14 +53,14 @@ export function AppForm({ defaultValue, onSubmit, onCancel, isLoading, submitLab
         <button
           type="button"
           onClick={onCancel}
-          className="px-4 py-2 bg-gray-200 text-gray-700 rounded hover:bg-gray-300"
+          className="px-4 py-2 bg-gray-200 text-gray-700 rounded hover:bg-gray-300 focus-visible:outline focus-visible:outline-2 focus-visible:outline-gray-400 transition-colors duration-150"
         >
           Cancel
         </button>
         <button
           type="submit"
           disabled={isLoading}
-          className="px-4 py-2 bg-blue-500 text-white rounded hover:bg-blue-600 disabled:opacity-50"
+          className="px-4 py-2 bg-blue-500 text-white rounded hover:bg-blue-600 disabled:opacity-50 disabled:cursor-not-allowed focus-visible:outline focus-visible:outline-2 focus-visible:outline-blue-500 transition-colors duration-150"
         >
           {isLoading ? 'Loading...' : submitLabel}
         </button>

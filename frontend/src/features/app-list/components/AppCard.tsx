@@ -23,12 +23,12 @@ export function AppCard({ app, onView }: Props) {
   const formattedDate = new Date(app.createdAt).toISOString().split('T')[0]
 
   return (
-    <div className="p-4 bg-white border border-gray-200 rounded shadow hover:shadow-lg">
-      <h3 className="text-lg font-semibold">{app.name}</h3>
-      <p className="text-sm text-gray-500">Created: {formattedDate}</p>
+    <div className="p-4 bg-white border border-gray-200 rounded-lg shadow-sm hover:shadow-md transition-shadow duration-200">
+      <h3 className="text-lg font-semibold text-gray-900">{app.name}</h3>
+      <p className="text-sm text-gray-500 mt-1">Created: {formattedDate}</p>
       <button
         onClick={handleView}
-        className="mt-2 px-3 py-1 bg-blue-500 text-white rounded hover:bg-blue-600 text-sm"
+        className="mt-3 px-3 py-1 bg-blue-500 text-white rounded hover:bg-blue-600 text-sm focus-visible:outline focus-visible:outline-2 focus-visible:outline-blue-500 transition-colors duration-150"
       >
         View
       </button>

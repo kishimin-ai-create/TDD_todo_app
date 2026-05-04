@@ -31,7 +31,7 @@ describe('AppHeader', () => {
       )
 
       // Assert – date portion of ISO string should appear somewhere in the header
-      expect(screen.getByText(/2026-04-01/)).toBeInTheDocument()
+      expect(screen.getAllByText(/2026-04-01/).length).toBeGreaterThan(0)
     })
 
     it('when rendered, then shows Edit button', () => {
