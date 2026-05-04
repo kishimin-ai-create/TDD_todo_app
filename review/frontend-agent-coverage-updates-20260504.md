@@ -42,6 +42,11 @@ This makes the intentional removal explicit and documents the condition for re-a
 
 Useful? React with 👍 / 👎.
 
+Thank you for the suggestion. Added inline comments to both `frontend/src/test/coverage.spec.ts` and `backend/src/tests/coverage-integration.spec.ts` (unit and integration) test functions explaining that thresholds were deliberately removed because actual coverage (~27-56%) is below the target (80%), and clarifying that thresholds will be re-added as coverage improves through TDD. This makes the intentional choice explicit and documents the condition for re-enabling threshold checks.
+
+**Disposition:** fixed
+**Files changed:** `frontend/src/test/coverage.spec.ts`, `backend/src/tests/coverage-integration.spec.ts`
+
 ---
 
 **<sub><sub>![P3 Badge](https://img.shields.io/badge/P3-blue?style=flat)</sub></sub>
@@ -62,6 +67,11 @@ Coverage is collected and reported as part of every test run, but **thresholds a
 This ensures future maintainers understand the intentional choice and know when to revisit it.
 
 Useful? React with 👍 / 👎.
+
+Added a "Coverage Strategy" section to both `RedAgent.agent.md` and `GreenAgent.agent.md` documenting that coverage is collected and reported but thresholds are not enforced during the TDD cycle. The section explains the current state (~27-56% actual vs. 80% target) and clarifies that checks will be re-enabled once coverage improves. This gives future maintainers clear guidance on why thresholds are absent and the conditions for re-enabling them.
+
+**Disposition:** fixed
+**Files changed:** `.github/agents/RedAgent.agent.md`, `.github/agents/GreenAgent.agent.md`
 
 ---
 
