@@ -42,13 +42,45 @@ function readCoverageFile(filePath) {
 
 function extractMetrics(coverage) {
   if (!coverage) return { lines: 0, branches: 0, functions: 0, statements: 0 };
-  
-  const total = coverage.total || {};
+
+  // coverage-final.json is a file-coverage map: keys are file paths, values are
+  // Istanbul per-file data. There is no top-level `total` key — we must aggregate.
+  let stmtCovered = 0, stmtTotal = 0;
+  let branchCovered = 0, branchTotal = 0;
+  let fnCovered = 0, fnTotal = 0;
+
+  for (const fileData of Object.values(coverage)) {
+    // Statements: { "0": count, "1": count, ... }
+    const stmts = fileData.s || {};
+    for (const count of Object.values(stmts)) {
+      stmtTotal++;
+      if (count > 0) stmtCovered++;
+    }
+
+    // Branches: { "0": [taken, not_taken], "1": [...], ... }
+    const branches = fileData.b || {};
+    for (const counts of Object.values(branches)) {
+      for (const count of counts) {
+        branchTotal++;
+        if (count > 0) branchCovered++;
+      }
+    }
+
+    // Functions: { "0": count, "1": count, ... }
+    const fns = fileData.f || {};
+    for (const count of Object.values(fns)) {
+      fnTotal++;
+      if (count > 0) fnCovered++;
+    }
+  }
+
+  const pct = (covered, total) => total === 0 ? 0 : Math.round((covered / total) * 100);
+
   return {
-    lines: Math.round(total.lines?.pct || 0),
-    branches: Math.round(total.branches?.pct || 0),
-    functions: Math.round(total.functions?.pct || 0),
-    statements: Math.round(total.statements?.pct || 0)
+    lines: pct(stmtCovered, stmtTotal),       // Istanbul uses statements as proxy for lines
+    branches: pct(branchCovered, branchTotal),
+    functions: pct(fnCovered, fnTotal),
+    statements: pct(stmtCovered, stmtTotal)
   };
 }
 
@@ -117,7 +149,7 @@ function generateHTML(frontend, backendUnit, backendIntegration, overall) {
           <td class="metric ${frontend.branches >= 75 ? 'good' : frontend.branches >= 70 ? 'warning' : 'critical'}">${frontend.branches}%</td>
           <td class="metric ${frontend.functions >= 80 ? 'good' : frontend.functions >= 75 ? 'warning' : 'critical'}">${frontend.functions}%</td>
           <td class="metric ${frontend.statements >= 80 ? 'good' : frontend.statements >= 75 ? 'warning' : 'critical'}">${frontend.statements}%</td>
-          <td><a href="../frontend/coverage/index.html" target="_blank">View Report</a></td>
+          <td><a href="../../frontend/coverage/index.html" target="_blank">View Report</a></td>
         </tr>
         <tr>
           <td>Backend</td>
@@ -126,7 +158,7 @@ function generateHTML(frontend, backendUnit, backendIntegration, overall) {
           <td class="metric ${backendUnit.branches >= 75 ? 'good' : backendUnit.branches >= 70 ? 'warning' : 'critical'}">${backendUnit.branches}%</td>
           <td class="metric ${backendUnit.functions >= 80 ? 'good' : backendUnit.functions >= 75 ? 'warning' : 'critical'}">${backendUnit.functions}%</td>
           <td class="metric ${backendUnit.statements >= 80 ? 'good' : backendUnit.statements >= 75 ? 'warning' : 'critical'}">${backendUnit.statements}%</td>
-          <td><a href="../backend/coverage/unit/index.html" target="_blank">View Report</a></td>
+          <td><a href="../../backend/coverage/unit/index.html" target="_blank">View Report</a></td>
         </tr>
         <tr>
           <td>Backend</td>
