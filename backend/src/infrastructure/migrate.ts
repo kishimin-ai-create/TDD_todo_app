@@ -1,3 +1,5 @@
+/* eslint-disable no-console */
+
 import { createConnection } from 'mysql2/promise';
 import { readdir, readFile } from 'node:fs/promises';
 import { join } from 'node:path';
