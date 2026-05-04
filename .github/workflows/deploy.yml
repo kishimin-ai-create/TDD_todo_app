@@ -8,6 +8,8 @@ on:
 #   SAKURA_SSH_PRIVATE_KEY  - SSH private key (Ed25519 or RSA)
 #   SAKURA_HOST             - Server hostname or IP address
 #   SAKURA_USER             - SSH username
+#   SAKURA_KNOWN_HOST       - Pinned server public key (obtain once with:
+#                             ssh-keyscan -H <server> from a trusted network)
 
 env:
   DEPLOY_PATH: /var/www/tdd-todo-app
@@ -36,6 +38,10 @@ jobs:
         working-directory: frontend
         run: npm ci
 
+      - name: Run frontend tests
+        working-directory: frontend
+        run: npm test
+
       - name: Build frontend
         working-directory: frontend
         run: npm run build
@@ -44,6 +50,12 @@ jobs:
       - name: Install backend dependencies
         working-directory: backend
         run: npm ci
+
+      - name: Run backend unit tests
+        working-directory: backend
+        # Integration tests require a live MySQL instance; unit tests are
+        # sufficient as a deployment gate here.
+        run: npm run test:unit
 
       - name: Build backend
         working-directory: backend
@@ -56,12 +68,19 @@ jobs:
           ssh-private-key: ${{ secrets.SAKURA_SSH_PRIVATE_KEY }}
 
       - name: Add server to known_hosts
-        run: ssh-keyscan -H ${{ secrets.SAKURA_HOST }} >> ~/.ssh/known_hosts
+        env:
+          SAKURA_KNOWN_HOST: ${{ secrets.SAKURA_KNOWN_HOST }}
+        run: |
+          mkdir -p ~/.ssh
+          echo "$SAKURA_KNOWN_HOST" >> ~/.ssh/known_hosts
 
       # ── Remote Directory Setup ───────────────────────────────────────────────
       - name: Create remote directories
+        env:
+          SSH_USER: ${{ secrets.SAKURA_USER }}
+          SSH_HOST: ${{ secrets.SAKURA_HOST }}
         run: |
-          ssh ${{ secrets.SAKURA_USER }}@${{ secrets.SAKURA_HOST }} \
+          ssh "$SSH_USER@$SSH_HOST" \
             "mkdir -p \
               ${{ env.DEPLOY_PATH }}/frontend \
               ${{ env.DEPLOY_PATH }}/backend/dist/infrastructure \
@@ -69,38 +88,62 @@ jobs:
 
       # ── Deploy Frontend (static files → served by Nginx) ────────────────────
       - name: Deploy frontend
+        env:
+          SSH_USER: ${{ secrets.SAKURA_USER }}
+          SSH_HOST: ${{ secrets.SAKURA_HOST }}
         run: |
           rsync -avz --delete frontend/dist/ \
-            ${{ secrets.SAKURA_USER }}@${{ secrets.SAKURA_HOST }}:${{ env.DEPLOY_PATH }}/frontend/
+            "$SSH_USER@$SSH_HOST:${{ env.DEPLOY_PATH }}/frontend/"
 
       # ── Deploy Backend ───────────────────────────────────────────────────────
       - name: Deploy backend build artifacts
+        env:
+          SSH_USER: ${{ secrets.SAKURA_USER }}
+          SSH_HOST: ${{ secrets.SAKURA_HOST }}
         run: |
           rsync -avz --delete backend/dist/ \
-            ${{ secrets.SAKURA_USER }}@${{ secrets.SAKURA_HOST }}:${{ env.DEPLOY_PATH }}/backend/dist/
+            "$SSH_USER@$SSH_HOST:${{ env.DEPLOY_PATH }}/backend/dist/"
           rsync -avz --delete backend/migrations/ \
-            ${{ secrets.SAKURA_USER }}@${{ secrets.SAKURA_HOST }}:${{ env.DEPLOY_PATH }}/backend/migrations/
+            "$SSH_USER@$SSH_HOST:${{ env.DEPLOY_PATH }}/backend/migrations/"
           rsync -avz \
             backend/package.json \
             backend/package-lock.json \
             backend/ecosystem.config.cjs \
-            ${{ secrets.SAKURA_USER }}@${{ secrets.SAKURA_HOST }}:${{ env.DEPLOY_PATH }}/backend/
+            "$SSH_USER@$SSH_HOST:${{ env.DEPLOY_PATH }}/backend/"
 
       - name: Install production dependencies on server
+        env:
+          SSH_USER: ${{ secrets.SAKURA_USER }}
+          SSH_HOST: ${{ secrets.SAKURA_HOST }}
         run: |
-          ssh ${{ secrets.SAKURA_USER }}@${{ secrets.SAKURA_HOST }} \
+          ssh "$SSH_USER@$SSH_HOST" \
             "cd ${{ env.DEPLOY_PATH }}/backend && npm ci --omit=dev"
 
       # ── Database Migration ───────────────────────────────────────────────────
-      - name: Run database migrations
+      - name: Backup database before migration
+        env:
+          SSH_USER: ${{ secrets.SAKURA_USER }}
+          SSH_HOST: ${{ secrets.SAKURA_HOST }}
         run: |
-          ssh ${{ secrets.SAKURA_USER }}@${{ secrets.SAKURA_HOST }} \
+          ssh "$SSH_USER@$SSH_HOST" \
+            "mysqldump --defaults-file=${{ env.DEPLOY_PATH }}/backend/.my.cnf \
+              TDDTodoAppDB > /var/backups/tdd-todo-app-\$(date +%Y%m%d%H%M%S).sql"
+
+      - name: Run database migrations
+        env:
+          SSH_USER: ${{ secrets.SAKURA_USER }}
+          SSH_HOST: ${{ secrets.SAKURA_HOST }}
+        run: |
+          ssh "$SSH_USER@$SSH_HOST" \
             "cd ${{ env.DEPLOY_PATH }}/backend && node dist/infrastructure/migrate.mjs"
 
       # ── Restart Application ──────────────────────────────────────────────────
       - name: Restart backend service
+        env:
+          SSH_USER: ${{ secrets.SAKURA_USER }}
+          SSH_HOST: ${{ secrets.SAKURA_HOST }}
         run: |
-          ssh ${{ secrets.SAKURA_USER }}@${{ secrets.SAKURA_HOST }} << 'EOF'
+          ssh "$SSH_USER@$SSH_HOST" << 'EOF'
             set -e
             if pm2 describe tdd-todo-app > /dev/null 2>&1; then
               pm2 reload tdd-todo-app --update-env
