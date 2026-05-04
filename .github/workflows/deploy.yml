@@ -135,7 +135,7 @@ jobs:
           SSH_HOST: ${{ secrets.SAKURA_HOST }}
         run: |
           ssh "$SSH_USER@$SSH_HOST" \
-            "cd ${{ env.DEPLOY_PATH }}/backend && node dist/infrastructure/migrate.mjs"
+            "cd ${{ env.DEPLOY_PATH }}/backend && node --env-file .env dist/infrastructure/migrate.mjs"
 
       # ── Restart Application ──────────────────────────────────────────────────
       - name: Restart backend service
