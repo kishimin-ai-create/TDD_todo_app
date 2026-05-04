@@ -15,6 +15,21 @@ jobs:
     runs-on: ubuntu-latest
     timeout-minutes: 20
 
+    services:
+      mysql:
+        image: mysql:8.0
+        env:
+          MYSQL_ROOT_PASSWORD: ""
+          MYSQL_ALLOW_EMPTY_PASSWORD: "yes"
+          MYSQL_DATABASE: TDDTodoAppDB
+        ports:
+          - 3306:3306
+        options: >-
+          --health-cmd="mysqladmin ping -h 127.0.0.1 --silent"
+          --health-interval=10s
+          --health-timeout=5s
+          --health-retries=5
+
     steps:
       - name: Checkout
         uses: actions/checkout@v4
@@ -47,12 +62,38 @@ jobs:
         continue-on-error: true
         run: npm run coverage:unit
         working-directory: backend
+        env:
+          DB_HOST: 127.0.0.1
+          DB_PORT: 3306
+          DB_DATABASE: TDDTodoAppDB
+          DB_USERNAME: root
+          DB_PASSWORD: ""
+
+      - name: Build backend
+        run: npm run build
+        working-directory: backend
+
+      - name: Run database migrations
+        run: node dist/infrastructure/migrate.mjs
+        working-directory: backend
+        env:
+          DB_HOST: 127.0.0.1
+          DB_PORT: 3306
+          DB_DATABASE: TDDTodoAppDB
+          DB_USERNAME: root
+          DB_PASSWORD: ""
 
       - name: Run backend integration coverage
         id: backend_integration_coverage
         continue-on-error: true
         run: npm run coverage:integration
         working-directory: backend
+        env:
+          DB_HOST: 127.0.0.1
+          DB_PORT: 3306
+          DB_DATABASE: TDDTodoAppDB
+          DB_USERNAME: root
+          DB_PASSWORD: ""
 
       - name: Generate combined coverage dashboard
         if: always()
