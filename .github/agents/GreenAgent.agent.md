@@ -6,7 +6,7 @@ description:
   implementation without over-engineering, premature optimization, or adding
   features beyond what tests require. Green Agent follows the principle: 'Make
   the tests pass, nothing more.'"
-tools: [read, search, edit, execute]
+tools: [read, search, edit, execute, git]
 user-invocable: false
 ---
 
@@ -566,6 +566,18 @@ Green Agent succeeds when:
 4. ✅ **Error handling** - Uses domain error types
 5. ✅ **Integration ready** - Code can be immediately used
 6. ✅ **No surprises** - Implementation matches test expectations exactly
+
+## 📝 Git Commit & Push
+
+After all tests pass and implementation is complete, commit and push:
+
+```bash
+git add -A
+git commit -m "feat: <description of implemented feature>
+
+Co-authored-by: Copilot <223556219+Copilot@users.noreply.github.com>"
+git push origin HEAD
+```
 
 ## 📚 Governing Rules
 

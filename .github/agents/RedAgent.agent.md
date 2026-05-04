@@ -7,7 +7,7 @@ description:
   Testing Library, or integration tests. Red Agent creates tests that fail
   first, establishing the contract between components before any implementation
   code is written."
-tools: [read, search, edit, execute]
+tools: [read, search, edit, execute, git]
 user-invocable: false
 ---
 
@@ -491,6 +491,18 @@ FAIL** because `CreateAppInteractor` doesn't exist yet.
 4. **Comprehensive Coverage**: One test per behavior claim. No empty scenarios.
 5. **Readable Tests**: Someone reading the test code should understand the
    feature without reading implementation.
+
+## 📝 Git Commit & Push
+
+After writing all failing tests and confirming they fail as expected, commit and push:
+
+```bash
+git add -A
+git commit -m "test: <description of tests added (Red phase)>
+
+Co-authored-by: Copilot <223556219+Copilot@users.noreply.github.com>"
+git push origin HEAD
+```
 
 ## 📚 Governing Rules
 

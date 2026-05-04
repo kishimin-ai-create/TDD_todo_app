@@ -4,7 +4,7 @@ description:
   The OpenApiWriterAgent reads route implementations, validators, specs, and
   related backend files, then creates or updates a factual OpenAPI document for
   the current API."
-tools: [read, search, write, execute, agent]
+tools: [read, search, write, execute, agent, git]
 user-invocable: true
 ---
 
@@ -101,6 +101,18 @@ When producing OpenAPI:
 
 ```text
 @OpenApiWriterAgent update docs/spec/backend/openapi.yaml to match the apps endpoint implementation
+```
+
+## 📝 Git Commit & Push
+
+After writing or updating the OpenAPI spec, commit and push:
+
+```bash
+git add -A
+git commit -m "docs: update OpenAPI specification for <scope>
+
+Co-authored-by: Copilot <223556219+Copilot@users.noreply.github.com>"
+git push origin HEAD
 ```
 
 ## 🔚 Post-Completion Required Steps

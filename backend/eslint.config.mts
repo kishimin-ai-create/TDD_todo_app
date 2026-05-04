@@ -9,7 +9,7 @@ import vitest from "@vitest/eslint-plugin";
 
 export default defineConfig([
   {
-    ignores: ["coverage/**", "dist/**"],
+    ignores: ["coverage/**", "dist/**", "ecosystem.config.cjs"],
   },
   {
     plugins: {

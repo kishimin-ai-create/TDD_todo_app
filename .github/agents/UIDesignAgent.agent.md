@@ -6,7 +6,7 @@ description:
   and keeping the visual language consistent across components. It reads
   existing components and design docs, makes targeted style improvements,
   updates Storybook stories, and validates that the build and lint still pass."
-tools: [read, search, edit, execute, agent]
+tools: [read, search, edit, execute, agent, git]
 user-invocable: true
 ---
 
@@ -245,6 +245,18 @@ UIDesignAgent task is complete when:
 - **Create Storybook story files** with the create tool if they do not exist.
 - After all edits, run validation commands with the execute tool.
 - Do not end the task without confirming files have been written.
+
+## 📝 Git Commit & Push
+
+After all design changes are validated, commit and push:
+
+```bash
+git add -A
+git commit -m "feat: <description of UI design improvements>
+
+Co-authored-by: Copilot <223556219+Copilot@users.noreply.github.com>"
+git push origin HEAD
+```
 
 ## 🔚 Post-Completion Required Steps
 

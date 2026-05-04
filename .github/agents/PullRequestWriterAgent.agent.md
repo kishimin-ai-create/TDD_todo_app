@@ -4,7 +4,7 @@ description:
   and task context. The PullRequestWriterAgent reads diffs, changed files, tests,
   and related docs, then writes a factual PR draft into pull-request/ using the
   repository PR template."
-tools: [read, search, write, execute, agent]
+tools: [read, search, write, execute, agent, git]
 user-invocable: true
 ---
 
@@ -133,6 +133,18 @@ When drafting a PR:
 
 ```text
 @PullRequestWriterAgent output the changes related to issue #123 in PR template format
+```
+
+## 📝 Git Commit & Push
+
+After writing the PR draft, commit and push:
+
+```bash
+git add -A
+git commit -m "docs: add PR draft for <feature or scope>
+
+Co-authored-by: Copilot <223556219+Copilot@users.noreply.github.com>"
+git push origin HEAD
 ```
 
 ## 🔚 Post-Completion Required Steps

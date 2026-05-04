@@ -5,7 +5,7 @@ description:
   review file to review/. It identifies bugs, security issues, logic errors,
   architecture violations, and test quality problems, then saves the findings
   in the same priority-badge format used by existing review files."
-tools: [read, search, write, execute, agent]
+tools: [read, search, write, execute, agent, git]
 user-invocable: true
 ---
 
@@ -217,6 +217,18 @@ Useful? React with 👍 / 👎.
 
 ```text
 @CodeReviewAgent review the latest commits
+```
+
+## 📝 Git Commit & Push
+
+After writing the review file, commit and push:
+
+```bash
+git add -A
+git commit -m "docs: add code review findings for <scope>
+
+Co-authored-by: Copilot <223556219+Copilot@users.noreply.github.com>"
+git push origin HEAD
 ```
 
 ## 🔚 Post-Completion Required Steps

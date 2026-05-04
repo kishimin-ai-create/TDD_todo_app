@@ -4,7 +4,7 @@ description:
   ReviewResponseAgent reads review feedback, determines whether each point should
   be fixed in code or answered in comment form, applies safe fixes when
   appropriate, and drafts concise review replies."
-tools: [read, search, write, execute, agent]
+tools: [read, search, write, execute, agent, git]
 user-invocable: true
 ---
 
@@ -146,6 +146,18 @@ When processing review comments:
 @ReviewResponseAgent respond to the findings in review/Master-20260421.md
 ```
 *(explicit target — skips the auto-detection step)*
+
+## 📝 Git Commit & Push
+
+After updating the review file and applying code fixes, commit and push:
+
+```bash
+git add -A
+git commit -m "fix: respond to review findings in <review file name>
+
+Co-authored-by: Copilot <223556219+Copilot@users.noreply.github.com>"
+git push origin HEAD
+```
 
 ## 🔚 Post-Completion Required Steps
 

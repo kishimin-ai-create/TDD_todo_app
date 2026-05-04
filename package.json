@@ -1,0 +1,11 @@
+{
+  "name": "tdd-todo-app",
+  "version": "1.0.0",
+  "description": "Test-Driven Development Todo Application",
+  "scripts": {
+    "coverage": "npm run coverage:frontend && npm run coverage:backend && npm run coverage:report",
+    "coverage:frontend": "cd frontend && npm run coverage",
+    "coverage:backend": "cd backend && npm run coverage",
+    "coverage:report": "node scripts/generate-coverage-report.js"
+  }
+}

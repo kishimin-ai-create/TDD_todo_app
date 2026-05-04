@@ -4,7 +4,7 @@ description:
   context. The WorkSummaryAgent reads relevant changed files and session context,
   then writes an article-like summary into diary/YYYYMMDD.md, appending when the
   file for the same date already exists."
-tools: [read, search, edit, execute]
+tools: [read, search, edit, execute, git]
 user-invocable: true
 ---
 

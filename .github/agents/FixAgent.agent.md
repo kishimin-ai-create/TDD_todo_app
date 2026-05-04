@@ -6,7 +6,7 @@ description:
   typecheck + lint + tests, then commits — one fix per commit. Unlike
   RefactorAgent, FixAgent is allowed to change external behavior when the
   current behavior is wrong."
-tools: [read, search, edit, execute, agent]
+tools: [read, search, edit, execute, agent, git]
 user-invocable: true
 ---
 
@@ -349,6 +349,7 @@ Once all three commands pass, immediately commit that single fix:
 ```bash
 git add -A
 git commit -m "fix: <short description of what was wrong and what was corrected>"
+git push origin HEAD
 ```
 
 - One defect fix = one commit. Never bundle multiple fixes into one commit.

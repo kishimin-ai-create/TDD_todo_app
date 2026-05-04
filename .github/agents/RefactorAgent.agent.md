@@ -6,7 +6,7 @@ description:
   deduplication, better naming, structural reorganization, and design
   clarity—without modifying external specifications, API contracts, or test
   expectations. Refactor Agent is a 'non-breaking improvement specialist.'"
-tools: [read, search, edit, execute]
+tools: [read, search, edit, execute, git]
 user-invocable: false
 ---
 
@@ -467,6 +467,7 @@ Once all three commands pass, immediately commit that single change:
 ```bash
 git add -A
 git commit -m "refactor: <short description of this specific change>"
+git push origin HEAD
 ```
 
 - One refactoring change = one commit. Never bundle multiple fixes into one commit.

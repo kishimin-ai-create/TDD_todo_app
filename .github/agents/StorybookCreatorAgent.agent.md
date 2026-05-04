@@ -74,7 +74,7 @@ StorybookCreatorAgent **MUST** deliver:
 
 ## 📝 Git Commit Authority
 
-StorybookCreatorAgent **HAS permission to commit** changes to git. When story files are generated successfully:
+StorybookCreatorAgent **HAS permission to commit and push** changes to git. When story files are generated successfully:
 
 1. **Stage all new story files**: `git add frontend/src/features/**/*.stories.tsx`
 2. **Stage any documentation files**: `git add STORYBOOK_*.md`
@@ -83,6 +83,7 @@ StorybookCreatorAgent **HAS permission to commit** changes to git. When story fi
    ```
    Co-authored-by: Copilot <223556219+Copilot@users.noreply.github.com>
    ```
+5. **Push the commit**: `git push origin HEAD`
 
 The commit should include:
 - All `.stories.tsx` files created/modified
