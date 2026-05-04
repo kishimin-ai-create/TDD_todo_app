@@ -63,7 +63,7 @@ export function TodoItem({ todo, appId, onRefresh }: Props) {
   }
 
   return (
-    <div className="p-3 border rounded bg-white">
+    <div className="p-4 border border-gray-200 rounded-lg bg-white shadow-sm">
       {successMsg && (
         <p aria-live="polite" className="text-green-600 text-sm mb-2">{successMsg}</p>
       )}
@@ -90,6 +90,7 @@ export function TodoItem({ todo, appId, onRefresh }: Props) {
           </button>
         </div>
       </div>
+      <p className="text-xs text-gray-400 ml-6 mt-0.5">Created: {todo.createdAt.slice(0, 10)}</p>
 
       {showConfirm && (
         <div role="dialog" className="mt-2 p-3 bg-yellow-50 border border-yellow-300 rounded">

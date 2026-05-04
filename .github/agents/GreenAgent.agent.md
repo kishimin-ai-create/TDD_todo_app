@@ -124,6 +124,10 @@ A Green Agent implementation is complete when:
 - [ ] No unused imports or dead code
 - [ ] File is ready to commit and integrate
 
+## 📊 Coverage Strategy
+
+Coverage is collected and reported as part of every test run, but **thresholds are not enforced** while the TDD cycle is in progress. Actual coverage (~27–56% across the stack) is well below the aspirational target (80%). Once coverage reaches the threshold, checks will be re-enabled to prevent regression.
+
 ## 🧠 Thinking Rules
 
 When implementing code:

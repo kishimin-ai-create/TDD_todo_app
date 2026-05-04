@@ -174,7 +174,7 @@ test('app and todo CRUD happy path @smoke', async ({ page }) => {
   await page.getByLabel('Title').fill('Write CRUD E2E test');
   await page.getByRole('button', { name: 'Save' }).click();
 
-  const todoItem = page.locator('div.p-3.border.rounded.bg-white').filter({ hasText: 'Write CRUD E2E test' });
+  const todoItem = page.locator('div.p-4.border.border-gray-200.rounded-lg.bg-white').filter({ hasText: 'Write CRUD E2E test' });
   await expect(todoItem).toBeVisible();
 
   await todoItem.getByRole('checkbox').click();
@@ -184,7 +184,7 @@ test('app and todo CRUD happy path @smoke', async ({ page }) => {
   await page.getByLabel('Title').fill('Review CRUD E2E test');
   await page.getByRole('button', { name: 'Save' }).click();
 
-  const updatedTodoItem = page.locator('div.p-3.border.rounded.bg-white').filter({ hasText: 'Review CRUD E2E test' });
+  const updatedTodoItem = page.locator('div.p-4.border.border-gray-200.rounded-lg.bg-white').filter({ hasText: 'Review CRUD E2E test' });
   await expect(updatedTodoItem).toBeVisible();
 
   await updatedTodoItem.getByRole('button', { name: 'Delete' }).click();

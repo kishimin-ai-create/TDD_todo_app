@@ -96,7 +96,7 @@ describe('AppDetailPage', () => {
       renderWithProviders(<AppDetailPage appId="app-1" />)
 
       // Assert
-      expect(await screen.findByText(/2026-04-01/)).toBeInTheDocument()
+      expect((await screen.findAllByText(/2026-04-01/)).length).toBeGreaterThan(0)
     })
   })
 

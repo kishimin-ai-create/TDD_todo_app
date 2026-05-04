@@ -113,6 +113,10 @@ A Red Agent test suite is complete when:
 - [ ] Test file is executable: `npm test -- path/to/test.ts`
 - [ ] File contains NO TODO comments or placeholders
 
+## 📊 Coverage Strategy
+
+Coverage is collected and reported as part of every test run, but **thresholds are not enforced** while the TDD cycle is in progress. Actual coverage (~27–56% across the stack) is well below the aspirational target (80%). Once coverage reaches the threshold, checks will be re-enabled to prevent regression.
+
 ## 🧪 Test Conventions
 
 ### Test File Naming

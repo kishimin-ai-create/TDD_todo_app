@@ -1,3 +1,5 @@
+/* eslint-disable no-console */
+
 import { serve } from '@hono/node-server';
 import honoApp from './index';
 
