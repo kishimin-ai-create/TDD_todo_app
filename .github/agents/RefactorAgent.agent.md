@@ -467,6 +467,7 @@ Once all three commands pass, immediately commit that single change:
 ```bash
 git add -A
 git commit -m "refactor: <short description of this specific change>"
+git push origin HEAD
 ```
 
 - One refactoring change = one commit. Never bundle multiple fixes into one commit.

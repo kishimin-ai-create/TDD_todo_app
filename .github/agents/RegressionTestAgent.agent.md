@@ -215,6 +215,18 @@ RegressionTestAgent succeeds when it improves confidence in already-built code
 without drifting into unnecessary test volume, and when it leaves behind a clear
 record of what was tested and what happened when the tests were run.
 
+## 📝 Git Commit & Push
+
+After adding regression tests and confirming they pass, commit and push:
+
+```bash
+git add -A
+git commit -m "test: add regression tests for <scope>
+
+Co-authored-by: Copilot <223556219+Copilot@users.noreply.github.com>"
+git push origin HEAD
+```
+
 ## 🔚 Post-Completion Required Steps
 
 When all work is complete, you MUST call the following agents in order:

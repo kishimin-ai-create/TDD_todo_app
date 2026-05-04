@@ -147,6 +147,18 @@ When processing review comments:
 ```
 *(explicit target — skips the auto-detection step)*
 
+## 📝 Git Commit & Push
+
+After updating the review file and applying code fixes, commit and push:
+
+```bash
+git add -A
+git commit -m "fix: respond to review findings in <review file name>
+
+Co-authored-by: Copilot <223556219+Copilot@users.noreply.github.com>"
+git push origin HEAD
+```
+
 ## 🔚 Post-Completion Required Steps
 
 When all work is complete, you MUST call the following agent:

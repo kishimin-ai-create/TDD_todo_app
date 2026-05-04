@@ -349,6 +349,7 @@ Once all three commands pass, immediately commit that single fix:
 ```bash
 git add -A
 git commit -m "fix: <short description of what was wrong and what was corrected>"
+git push origin HEAD
 ```
 
 - One defect fix = one commit. Never bundle multiple fixes into one commit.

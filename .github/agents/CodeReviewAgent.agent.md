@@ -219,6 +219,18 @@ Useful? React with 👍 / 👎.
 @CodeReviewAgent review the latest commits
 ```
 
+## 📝 Git Commit & Push
+
+After writing the review file, commit and push:
+
+```bash
+git add -A
+git commit -m "docs: add code review findings for <scope>
+
+Co-authored-by: Copilot <223556219+Copilot@users.noreply.github.com>"
+git push origin HEAD
+```
+
 ## 🔚 Post-Completion Required Steps
 
 When all work is complete, you MUST call the following agent:

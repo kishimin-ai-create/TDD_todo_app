@@ -567,6 +567,18 @@ Green Agent succeeds when:
 5. ✅ **Integration ready** - Code can be immediately used
 6. ✅ **No surprises** - Implementation matches test expectations exactly
 
+## 📝 Git Commit & Push
+
+After all tests pass and implementation is complete, commit and push:
+
+```bash
+git add -A
+git commit -m "feat: <description of implemented feature>
+
+Co-authored-by: Copilot <223556219+Copilot@users.noreply.github.com>"
+git push origin HEAD
+```
+
 ## 📚 Governing Rules
 
 Before acting, read the following rule files and apply them throughout all work:

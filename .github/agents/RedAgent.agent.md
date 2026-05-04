@@ -492,6 +492,18 @@ FAIL** because `CreateAppInteractor` doesn't exist yet.
 5. **Readable Tests**: Someone reading the test code should understand the
    feature without reading implementation.
 
+## 📝 Git Commit & Push
+
+After writing all failing tests and confirming they fail as expected, commit and push:
+
+```bash
+git add -A
+git commit -m "test: <description of tests added (Red phase)>
+
+Co-authored-by: Copilot <223556219+Copilot@users.noreply.github.com>"
+git push origin HEAD
+```
+
 ## 📚 Governing Rules
 
 Before acting, read the following rule files and apply them throughout all work:

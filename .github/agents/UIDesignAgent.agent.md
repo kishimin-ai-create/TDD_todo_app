@@ -246,6 +246,18 @@ UIDesignAgent task is complete when:
 - After all edits, run validation commands with the execute tool.
 - Do not end the task without confirming files have been written.
 
+## 📝 Git Commit & Push
+
+After all design changes are validated, commit and push:
+
+```bash
+git add -A
+git commit -m "feat: <description of UI design improvements>
+
+Co-authored-by: Copilot <223556219+Copilot@users.noreply.github.com>"
+git push origin HEAD
+```
+
 ## 🔚 Post-Completion Required Steps
 
 When all work is complete, you MUST call the following agents in order:

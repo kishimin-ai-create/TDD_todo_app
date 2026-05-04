@@ -135,6 +135,18 @@ When drafting a PR:
 @PullRequestWriterAgent output the changes related to issue #123 in PR template format
 ```
 
+## 📝 Git Commit & Push
+
+After writing the PR draft, commit and push:
+
+```bash
+git add -A
+git commit -m "docs: add PR draft for <feature or scope>
+
+Co-authored-by: Copilot <223556219+Copilot@users.noreply.github.com>"
+git push origin HEAD
+```
+
 ## 🔚 Post-Completion Required Steps
 
 When all work is complete, you MUST call the following agents in order:

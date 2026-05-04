@@ -103,6 +103,18 @@ When producing OpenAPI:
 @OpenApiWriterAgent update docs/spec/backend/openapi.yaml to match the apps endpoint implementation
 ```
 
+## 📝 Git Commit & Push
+
+After writing or updating the OpenAPI spec, commit and push:
+
+```bash
+git add -A
+git commit -m "docs: update OpenAPI specification for <scope>
+
+Co-authored-by: Copilot <223556219+Copilot@users.noreply.github.com>"
+git push origin HEAD
+```
+
 ## 🔚 Post-Completion Required Steps
 
 When all work is complete, you MUST call the following agents in order:
