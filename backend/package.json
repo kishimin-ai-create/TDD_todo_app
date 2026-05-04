@@ -3,6 +3,9 @@
   "scripts": {
     "dev": "tsx --env-file-if-exists=.env --watch src/server.ts",
     "migrate": "tsx --env-file-if-exists=.env src/infrastructure/migrate.ts",
+    "build": "npm run build:server && npm run build:migrate",
+    "build:server": "esbuild src/server.ts --bundle --platform=node --packages=external --outfile=dist/server.mjs --format=esm",
+    "build:migrate": "esbuild src/infrastructure/migrate.ts --bundle --platform=node --packages=external --outfile=dist/infrastructure/migrate.mjs --format=esm",
     "lint": "eslint .",
     "test": "vitest run --reporter=default --reporter=json --outputFile=test-result.json",
     "test:unit": "vitest run --config vitest.unit.config.ts --reporter=default",
@@ -27,6 +30,7 @@
     "@stylistic/eslint-plugin": "^5.10.0",
     "@vitest/coverage-v8": "^4.1.4",
     "@vitest/eslint-plugin": "^1.6.16",
+    "esbuild": "^0.25.12",
     "eslint": "^10.2.1",
     "eslint-plugin-jsdoc": "^62.9.0",
     "globals": "^17.5.0",

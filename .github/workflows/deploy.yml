@@ -1,0 +1,111 @@
+name: Deploy to Sakura Cloud
+
+on:
+  push:
+    branches: [main]
+
+# Required GitHub Secrets:
+#   SAKURA_SSH_PRIVATE_KEY  - SSH private key (Ed25519 or RSA)
+#   SAKURA_HOST             - Server hostname or IP address
+#   SAKURA_USER             - SSH username
+
+env:
+  DEPLOY_PATH: /var/www/tdd-todo-app
+  NODE_VERSION: 20
+
+jobs:
+  deploy:
+    name: Build & Deploy
+    runs-on: ubuntu-latest
+    environment: production
+    timeout-minutes: 20
+
+    steps:
+      - uses: actions/checkout@v4
+
+      - uses: actions/setup-node@v4
+        with:
+          node-version: ${{ env.NODE_VERSION }}
+          cache: npm
+          cache-dependency-path: |
+            frontend/package-lock.json
+            backend/package-lock.json
+
+      # ── Frontend ────────────────────────────────────────────────────────────
+      - name: Install frontend dependencies
+        working-directory: frontend
+        run: npm ci
+
+      - name: Build frontend
+        working-directory: frontend
+        run: npm run build
+
+      # ── Backend ─────────────────────────────────────────────────────────────
+      - name: Install backend dependencies
+        working-directory: backend
+        run: npm ci
+
+      - name: Build backend
+        working-directory: backend
+        run: npm run build
+
+      # ── SSH Setup ───────────────────────────────────────────────────────────
+      - name: Setup SSH agent
+        uses: webfactory/ssh-agent@v0.9.0
+        with:
+          ssh-private-key: ${{ secrets.SAKURA_SSH_PRIVATE_KEY }}
+
+      - name: Add server to known_hosts
+        run: ssh-keyscan -H ${{ secrets.SAKURA_HOST }} >> ~/.ssh/known_hosts
+
+      # ── Remote Directory Setup ───────────────────────────────────────────────
+      - name: Create remote directories
+        run: |
+          ssh ${{ secrets.SAKURA_USER }}@${{ secrets.SAKURA_HOST }} \
+            "mkdir -p \
+              ${{ env.DEPLOY_PATH }}/frontend \
+              ${{ env.DEPLOY_PATH }}/backend/dist/infrastructure \
+              ${{ env.DEPLOY_PATH }}/backend/migrations"
+
+      # ── Deploy Frontend (static files → served by Nginx) ────────────────────
+      - name: Deploy frontend
+        run: |
+          rsync -avz --delete frontend/dist/ \
+            ${{ secrets.SAKURA_USER }}@${{ secrets.SAKURA_HOST }}:${{ env.DEPLOY_PATH }}/frontend/
+
+      # ── Deploy Backend ───────────────────────────────────────────────────────
+      - name: Deploy backend build artifacts
+        run: |
+          rsync -avz --delete backend/dist/ \
+            ${{ secrets.SAKURA_USER }}@${{ secrets.SAKURA_HOST }}:${{ env.DEPLOY_PATH }}/backend/dist/
+          rsync -avz --delete backend/migrations/ \
+            ${{ secrets.SAKURA_USER }}@${{ secrets.SAKURA_HOST }}:${{ env.DEPLOY_PATH }}/backend/migrations/
+          rsync -avz \
+            backend/package.json \
+            backend/package-lock.json \
+            backend/ecosystem.config.cjs \
+            ${{ secrets.SAKURA_USER }}@${{ secrets.SAKURA_HOST }}:${{ env.DEPLOY_PATH }}/backend/
+
+      - name: Install production dependencies on server
+        run: |
+          ssh ${{ secrets.SAKURA_USER }}@${{ secrets.SAKURA_HOST }} \
+            "cd ${{ env.DEPLOY_PATH }}/backend && npm ci --omit=dev"
+
+      # ── Database Migration ───────────────────────────────────────────────────
+      - name: Run database migrations
+        run: |
+          ssh ${{ secrets.SAKURA_USER }}@${{ secrets.SAKURA_HOST }} \
+            "cd ${{ env.DEPLOY_PATH }}/backend && node dist/infrastructure/migrate.mjs"
+
+      # ── Restart Application ──────────────────────────────────────────────────
+      - name: Restart backend service
+        run: |
+          ssh ${{ secrets.SAKURA_USER }}@${{ secrets.SAKURA_HOST }} << 'EOF'
+            set -e
+            if pm2 describe tdd-todo-app > /dev/null 2>&1; then
+              pm2 reload tdd-todo-app --update-env
+            else
+              pm2 start /var/www/tdd-todo-app/backend/ecosystem.config.cjs
+            fi
+            pm2 save
+          EOF
