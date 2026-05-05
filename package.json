@@ -6,6 +6,11 @@
     "coverage": "npm run coverage:frontend && npm run coverage:backend && npm run coverage:report",
     "coverage:frontend": "cd frontend && npm run coverage",
     "coverage:backend": "cd backend && npm run coverage",
-    "coverage:report": "node scripts/generate-coverage-report.js"
+    "coverage:report": "node scripts/generate-coverage-report.js",
+    "deploy": "wrangler deploy",
+    "preview": "wrangler dev"
+  },
+  "devDependencies": {
+    "wrangler": "^4.88.0"
   }
 }
