@@ -1,25 +1,21 @@
 import mysql from 'mysql2/promise';
 
+import { getMysqlConnectionConfig } from './mysql-connection-config';
+
 export type MysqlPool = mysql.Pool;
 
 /**
- * Creates a MySQL connection pool from environment variables.
- * Throws a startup error if required credentials are absent.
+ * Creates a MySQL connection pool from DATABASE_URL or legacy DB_* variables.
  */
 export function createMysqlPool(): MysqlPool {
-  const user = process.env.DB_USERNAME;
-  const password = process.env.DB_PASSWORD;
-  if (!user || password === undefined) {
-    throw new Error(
-      'DB_USERNAME and DB_PASSWORD environment variables are required',
-    );
-  }
+  const config = getMysqlConnectionConfig();
+
   return mysql.createPool({
-    host: process.env.DB_HOST ?? '127.0.0.1',
-    port: Number(process.env.DB_PORT ?? '3306'),
-    database: process.env.DB_DATABASE ?? 'TDDTodoAppDB',
-    user,
-    password,
+    host: config.host,
+    port: config.port,
+    database: config.database,
+    user: config.user,
+    password: config.password,
     timezone: '+00:00',
     waitForConnections: true,
     connectionLimit: 10,
