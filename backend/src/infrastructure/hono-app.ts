@@ -1,4 +1,5 @@
 import { Hono, type Context } from 'hono';
+import { cors } from 'hono/cors';
 import type { ContentfulStatusCode } from 'hono/utils/http-status';
 import { describeRoute, openAPIRouteHandler, resolver } from 'hono-openapi';
 import type { AppController } from '../controllers/app-controller';
@@ -46,6 +47,15 @@ type HonoAppDependencies = {
  */
 export function createHonoApp(dependencies: HonoAppDependencies): Hono {
   const app = new Hono();
+
+  app.use(
+    '*',
+    cors({
+      origin: process.env.CORS_ORIGIN ?? '*',
+      allowMethods: ['GET', 'POST', 'PUT', 'DELETE', 'OPTIONS'],
+      allowHeaders: ['Content-Type'],
+    }),
+  );
 
   app.get('/', c => c.text('Hello Hono!'));
 
