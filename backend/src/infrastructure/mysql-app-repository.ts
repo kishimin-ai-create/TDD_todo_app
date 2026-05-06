@@ -1,4 +1,6 @@
 import type { RowDataPacket } from 'mysql2';
+// eslint-disable-next-line no-console
+const logError = (context: string, err: unknown) => console.error(`[mysql-app-repository] ${context}`, err);
 import { AppError } from '../models/app-error';
 import type { AppEntity } from '../models/app';
 import type { AppRepository } from '../repositories/app-repository';
@@ -44,6 +46,7 @@ export function createMysqlAppRepository(pool: MysqlPool): AppRepository {
         [app.id, app.name, app.createdAt, app.updatedAt, app.deletedAt],
       );
     } catch (err: unknown) {
+      logError('save', err);
       throw new AppError('REPOSITORY_ERROR', 'Repository operation failed', { cause: err });
     }
   }
@@ -55,6 +58,7 @@ export function createMysqlAppRepository(pool: MysqlPool): AppRepository {
       );
       return rows.map(rowToApp);
     } catch (err: unknown) {
+      logError('listActive', err);
       throw new AppError('REPOSITORY_ERROR', 'Repository operation failed', { cause: err });
     }
   }
@@ -68,6 +72,7 @@ export function createMysqlAppRepository(pool: MysqlPool): AppRepository {
       const row = rows[0];
       return row ? rowToApp(row) : null;
     } catch (err: unknown) {
+      logError('findActiveById', err);
       throw new AppError('REPOSITORY_ERROR', 'Repository operation failed', { cause: err });
     }
   }
@@ -87,6 +92,7 @@ export function createMysqlAppRepository(pool: MysqlPool): AppRepository {
       );
       return rows[0].exists === 1;
     } catch (err: unknown) {
+      logError('existsActiveByName', err);
       throw new AppError('REPOSITORY_ERROR', 'Repository operation failed', { cause: err });
     }
   }
