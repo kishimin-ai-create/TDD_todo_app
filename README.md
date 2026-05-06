@@ -70,6 +70,10 @@ The coverage dashboard will be available at `docs/coverage/index.html`.
 2. Implement each task using Test-Driven Development (TDD)
 3. Remove or mark tasks as completed once finished
 
+## Deployment
+
+Cloudflare deployment setup is documented in [docs/deployment.md](docs/deployment.md).
+
 # Where to get help?
 
 - If you find any bugs or have feature requests, please open an issue.
