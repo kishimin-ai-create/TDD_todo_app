@@ -15,7 +15,7 @@ services:
     name: tdd-todo-app-backend
     env: node
     plan: free
-    buildCommand: cd backend && npm ci && npm run build
+    buildCommand: cd backend && npm ci --include=dev && npm run build
     startCommand: cd backend && npm start
     envVars:
       - key: NODE_ENV
