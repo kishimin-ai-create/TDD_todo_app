@@ -57,6 +57,12 @@ export function createHonoApp(dependencies: HonoAppDependencies): Hono {
     }),
   );
 
+  // eslint-disable-next-line no-console
+  app.onError((err, c) => {
+    console.error('[unhandled error]', err);
+    return c.json({ data: null, success: false, error: { code: 'INTERNAL_ERROR', message: 'Internal server error' } }, 500);
+  });
+
   app.get('/', c => c.text('Hello Hono!'));
 
   app.post(
