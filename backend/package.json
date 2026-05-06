@@ -4,6 +4,7 @@
     "dev": "tsx --env-file-if-exists=.env --watch src/server.ts",
     "migrate": "tsx --env-file-if-exists=.env src/infrastructure/migrate.ts",
     "build": "npm run build:server && npm run build:migrate",
+    "start": "node dist/server.mjs",
     "build:server": "esbuild src/server.ts --bundle --platform=node --packages=external --outfile=dist/server.mjs --format=esm",
     "build:migrate": "esbuild src/infrastructure/migrate.ts --bundle --platform=node --packages=external --outfile=dist/infrastructure/migrate.mjs --format=esm",
     "lint": "eslint .",

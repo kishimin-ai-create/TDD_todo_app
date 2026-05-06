@@ -6,23 +6,26 @@ import { join } from 'node:path';
 import { fileURLToPath } from 'node:url';
 import type { RowDataPacket } from 'mysql2';
 
+import { getMysqlConnectionConfig } from './mysql-connection-config';
+
 type MigrationRow = RowDataPacket & { name: string };
 
 /**
  * Runs pending SQL migration files against the configured MySQL database.
  */
 async function migrate(): Promise<void> {
-  const dbName = process.env.DB_DATABASE ?? 'TDDTodoAppDB';
+  const config = getMysqlConnectionConfig();
+  const dbName = config.database;
 
   if (!/^\w+$/.test(dbName)) {
-    throw new Error(`Invalid DB_DATABASE value: "${dbName}"`);
+    throw new Error(`Invalid database name: "${dbName}"`);
   }
 
   const connection = await createConnection({
-    host: process.env.DB_HOST ?? '127.0.0.1',
-    port: Number(process.env.DB_PORT ?? '3306'),
-    user: process.env.DB_USERNAME ?? 'root',
-    password: process.env.DB_PASSWORD ?? '',
+    host: config.host,
+    port: config.port,
+    user: config.user,
+    password: config.password,
     timezone: '+00:00',
     multipleStatements: true,
   });
