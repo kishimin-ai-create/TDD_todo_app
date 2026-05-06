@@ -40,7 +40,7 @@ export function createMysqlTodoRepository(pool: MysqlPool): TodoRepository {
            completed = VALUES(completed),
            updatedAt = VALUES(updatedAt),
            deletedAt = VALUES(deletedAt)`,
-        [todo.id, todo.appId, todo.title, todo.completed, todo.createdAt, todo.updatedAt, todo.deletedAt],
+        [todo.id, todo.appId, todo.title, todo.completed, new Date(todo.createdAt), new Date(todo.updatedAt), todo.deletedAt ? new Date(todo.deletedAt) : null],
       );
     } catch (err: unknown) {
       throw new AppError('REPOSITORY_ERROR', 'Repository operation failed', { cause: err });

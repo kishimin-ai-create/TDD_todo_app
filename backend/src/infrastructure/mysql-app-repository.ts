@@ -43,7 +43,7 @@ export function createMysqlAppRepository(pool: MysqlPool): AppRepository {
            name      = VALUES(name),
            updatedAt = VALUES(updatedAt),
            deletedAt = VALUES(deletedAt)`,
-        [app.id, app.name, app.createdAt, app.updatedAt, app.deletedAt],
+        [app.id, app.name, new Date(app.createdAt), new Date(app.updatedAt), app.deletedAt ? new Date(app.deletedAt) : null],
       );
     } catch (err: unknown) {
       logError('save', err);
