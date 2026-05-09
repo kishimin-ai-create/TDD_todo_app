@@ -23,6 +23,24 @@ export const TodoDtoSchema = z.object({
 });
 
 /**
+ * UserDto Zod schema matching the shape returned by presentUser().
+ */
+export const UserDtoSchema = z.object({
+  id: z.string(),
+  email: z.string(),
+  createdAt: z.string(),
+  updatedAt: z.string(),
+});
+
+/**
+ * AuthDto Zod schema for successful authentication responses.
+ */
+export const AuthDtoSchema = z.object({
+  token: z.string(),
+  user: UserDtoSchema,
+});
+
+/**
  * Error body Zod schema for machine-readable error details.
  */
 export const ErrorBodySchema = z.object({
@@ -75,4 +93,20 @@ export const CreateTodoRequestSchema = z.object({
 export const UpdateTodoRequestSchema = z.object({
   title: z.string().trim().min(1).max(200).optional(),
   completed: z.boolean().optional(),
+});
+
+/**
+ * Register request body schema.
+ */
+export const RegisterRequestSchema = z.object({
+  email: z.string().trim().email(),
+  password: z.string().min(8).max(72),
+});
+
+/**
+ * Login request body schema.
+ */
+export const LoginRequestSchema = z.object({
+  email: z.string().trim().email(),
+  password: z.string().min(1),
 });

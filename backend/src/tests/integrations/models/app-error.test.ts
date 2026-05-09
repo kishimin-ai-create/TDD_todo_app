@@ -9,6 +9,7 @@ import { createInMemoryStorage } from '../../../infrastructure/in-memory-storage
 import { createAppInteractor } from '../../../services/app-interactor';
 
 const GHOST_ID = '00000000-0000-0000-0000-000000000000';
+const USER_ID = 'user-error-test';
 
 function makeInteractor() {
   const storage = createInMemoryStorage();
@@ -25,7 +26,7 @@ describe('AppError cross-layer propagation', () => {
     const interactor = makeInteractor();
     let caught: unknown;
     try {
-      await interactor.get({ appId: GHOST_ID });
+      await interactor.get({ userId: USER_ID, appId: GHOST_ID });
     } catch (e) {
       caught = e;
     }
@@ -36,10 +37,10 @@ describe('AppError cross-layer propagation', () => {
 
   it('interactor throws AppError with CONFLICT on duplicate create', async () => {
     const interactor = makeInteractor();
-    await interactor.create({ name: 'Dup' });
+    await interactor.create({ userId: USER_ID, name: 'Dup' });
     let caught: unknown;
     try {
-      await interactor.create({ name: 'Dup' });
+      await interactor.create({ userId: USER_ID, name: 'Dup' });
     } catch (e) {
       caught = e;
     }
@@ -81,7 +82,7 @@ describe('AppError cross-layer propagation', () => {
     });
     let caught: unknown;
     try {
-      await interactor.list();
+      await interactor.list({ userId: USER_ID });
     } catch (e) {
       caught = e;
     }

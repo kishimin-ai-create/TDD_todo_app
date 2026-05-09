@@ -8,9 +8,12 @@ import {
 import type { AppEntity } from '../../../models/app';
 import type { TodoEntity } from '../../../models/todo';
 
+const USER_ID = 'user-test';
+
 function makeApp(id: string, name: string, deleted = false): AppEntity {
   return {
     id,
+    userId: USER_ID,
     name,
     createdAt: '2024-01-01T00:00:00.000Z',
     updatedAt: '2024-01-01T00:00:00.000Z',
@@ -72,7 +75,7 @@ describe('InMemoryRepositories cross-repo integration', () => {
       await appRepo.save(makeApp('a1', 'App'));
       await todoRepo.save(makeTodo('t1', 'a1', 'Todo'));
       storage.clear();
-      expect(await appRepo.listActive()).toHaveLength(0);
+      expect(await appRepo.listActiveByUserId(USER_ID)).toHaveLength(0);
       expect(await todoRepo.listActiveByAppId('a1')).toHaveLength(0);
     });
   });
@@ -84,7 +87,7 @@ describe('InMemoryRepositories cross-repo integration', () => {
       const repo1 = createInMemoryAppRepository(storage1);
       const repo2 = createInMemoryAppRepository(storage2);
       await repo1.save(makeApp('a1', 'App 1'));
-      expect(await repo2.listActive()).toHaveLength(0);
+      expect(await repo2.listActiveByUserId(USER_ID)).toHaveLength(0);
     });
   });
 
@@ -113,6 +116,28 @@ describe('InMemoryRepositories cross-repo integration', () => {
       expect(todosB).toHaveLength(1);
       expect(todosA[0].id).toBe('t1');
       expect(todosB[0].id).toBe('t2');
+    });
+  });
+
+  describe('app repo filters by userId', () => {
+    it('listActiveByUserId only returns apps for the given user', async () => {
+      const storage = createInMemoryStorage();
+      const appRepo = createInMemoryAppRepository(storage);
+      await appRepo.save(makeApp('a1', 'User1 App'));
+      await appRepo.save({ ...makeApp('a2', 'User2 App'), userId: 'user-2' });
+      const list = await appRepo.listActiveByUserId(USER_ID);
+      expect(list).toHaveLength(1);
+      expect(list[0].id).toBe('a1');
+    });
+
+    it('existsActiveByName is scoped to the given userId', async () => {
+      const storage = createInMemoryStorage();
+      const appRepo = createInMemoryAppRepository(storage);
+      await appRepo.save(makeApp('a1', 'Shared Name'));
+      // Same name for a different user should not conflict
+      expect(await appRepo.existsActiveByName('Shared Name', 'user-2')).toBe(false);
+      // But same user should conflict
+      expect(await appRepo.existsActiveByName('Shared Name', USER_ID)).toBe(true);
     });
   });
 

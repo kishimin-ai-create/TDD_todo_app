@@ -19,11 +19,11 @@ export function createInMemoryAppRepository(
     );
   }
 
-  function listActive(): Promise<AppEntity[]> {
+  function listActiveByUserId(userId: string): Promise<AppEntity[]> {
     return Promise.resolve().then(() =>
       withRepositoryError(() =>
         [...storage.apps.values()]
-          .filter(app => app.deletedAt === null)
+          .filter(app => app.userId === userId && app.deletedAt === null)
           .map(cloneApp),
       ),
     );
@@ -40,13 +40,17 @@ export function createInMemoryAppRepository(
 
   function existsActiveByName(
     name: string,
+    userId: string,
     excludeId?: string,
   ): Promise<boolean> {
     return Promise.resolve().then(() =>
       withRepositoryError(() =>
         [...storage.apps.values()].some(
           app =>
-            app.deletedAt === null && app.name === name && app.id !== excludeId,
+            app.deletedAt === null &&
+            app.userId === userId &&
+            app.name === name &&
+            app.id !== excludeId,
         ),
       ),
     );
@@ -54,7 +58,7 @@ export function createInMemoryAppRepository(
 
   return {
     save,
-    listActive,
+    listActiveByUserId,
     findActiveById,
     existsActiveByName,
   };

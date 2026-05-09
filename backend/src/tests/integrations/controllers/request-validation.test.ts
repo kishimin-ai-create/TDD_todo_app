@@ -9,52 +9,53 @@ import {
 
 const APP_ID = 'app-123';
 const TODO_ID = 'todo-456';
+const USER_ID = 'user-789';
 
 describe('RequestValidation integration', () => {
   // ─── parseCreateAppInput ─────────────────────────────────────────────────
 
   describe('parseCreateAppInput', () => {
     it('returns CreateAppInput with trimmed name', () => {
-      expect(parseCreateAppInput({ name: '  My App  ' })).toEqual({ name: 'My App' });
+      expect(parseCreateAppInput(USER_ID, { name: '  My App  ' })).toEqual({ userId: USER_ID, name: 'My App' });
     });
 
     it('throws VALIDATION_ERROR when name is missing', () => {
-      expect(() => parseCreateAppInput({})).toThrow(
+      expect(() => parseCreateAppInput(USER_ID, {})).toThrow(
         expect.objectContaining({ code: 'VALIDATION_ERROR' }),
       );
     });
 
     it('throws VALIDATION_ERROR when name is a number', () => {
-      expect(() => parseCreateAppInput({ name: 42 })).toThrow(
+      expect(() => parseCreateAppInput(USER_ID, { name: 42 })).toThrow(
         expect.objectContaining({ code: 'VALIDATION_ERROR' }),
       );
     });
 
     it('throws VALIDATION_ERROR when name is whitespace only', () => {
-      expect(() => parseCreateAppInput({ name: '   ' })).toThrow(
+      expect(() => parseCreateAppInput(USER_ID, { name: '   ' })).toThrow(
         expect.objectContaining({ code: 'VALIDATION_ERROR' }),
       );
     });
 
     it('throws VALIDATION_ERROR when name exceeds 100 characters', () => {
-      expect(() => parseCreateAppInput({ name: 'a'.repeat(101) })).toThrow(
+      expect(() => parseCreateAppInput(USER_ID, { name: 'a'.repeat(101) })).toThrow(
         expect.objectContaining({ code: 'VALIDATION_ERROR' }),
       );
     });
 
     it('accepts a name of exactly 100 characters', () => {
-      const result = parseCreateAppInput({ name: 'a'.repeat(100) });
+      const result = parseCreateAppInput(USER_ID, { name: 'a'.repeat(100) });
       expect(result.name).toHaveLength(100);
     });
 
     it('returns empty name from null body (null → empty record)', () => {
-      expect(() => parseCreateAppInput(null)).toThrow(
+      expect(() => parseCreateAppInput(USER_ID, null)).toThrow(
         expect.objectContaining({ code: 'VALIDATION_ERROR' }),
       );
     });
 
     it('throws VALIDATION_ERROR when body is an array', () => {
-      expect(() => parseCreateAppInput([{ name: 'x' }])).toThrow(
+      expect(() => parseCreateAppInput(USER_ID, [{ name: 'x' }])).toThrow(
         expect.objectContaining({ code: 'VALIDATION_ERROR' }),
       );
     });
@@ -63,38 +64,39 @@ describe('RequestValidation integration', () => {
   // ─── parseUpdateAppInput ─────────────────────────────────────────────────
 
   describe('parseUpdateAppInput', () => {
-    it('returns UpdateAppInput with appId only when body is empty', () => {
-      expect(parseUpdateAppInput(APP_ID, {})).toEqual({ appId: APP_ID });
+    it('returns UpdateAppInput with userId and appId only when body is empty', () => {
+      expect(parseUpdateAppInput(USER_ID, APP_ID, {})).toEqual({ userId: USER_ID, appId: APP_ID });
     });
 
     it('includes trimmed name when provided', () => {
-      expect(parseUpdateAppInput(APP_ID, { name: '  New  ' })).toEqual({
+      expect(parseUpdateAppInput(USER_ID, APP_ID, { name: '  New  ' })).toEqual({
+        userId: USER_ID,
         appId: APP_ID,
         name: 'New',
       });
     });
 
     it('throws VALIDATION_ERROR when name is an empty string', () => {
-      expect(() => parseUpdateAppInput(APP_ID, { name: '' })).toThrow(
+      expect(() => parseUpdateAppInput(USER_ID, APP_ID, { name: '' })).toThrow(
         expect.objectContaining({ code: 'VALIDATION_ERROR' }),
       );
     });
 
     it('throws VALIDATION_ERROR when name is not a string', () => {
-      expect(() => parseUpdateAppInput(APP_ID, { name: true })).toThrow(
+      expect(() => parseUpdateAppInput(USER_ID, APP_ID, { name: true })).toThrow(
         expect.objectContaining({ code: 'VALIDATION_ERROR' }),
       );
     });
 
     it('throws VALIDATION_ERROR when name exceeds 100 characters', () => {
-      expect(() => parseUpdateAppInput(APP_ID, { name: 'a'.repeat(101) })).toThrow(
+      expect(() => parseUpdateAppInput(USER_ID, APP_ID, { name: 'a'.repeat(101) })).toThrow(
         expect.objectContaining({ code: 'VALIDATION_ERROR' }),
       );
     });
 
     it('ignores unknown extra fields', () => {
-      const result = parseUpdateAppInput(APP_ID, { name: 'Valid', extra: true });
-      expect(result).toEqual({ appId: APP_ID, name: 'Valid' });
+      const result = parseUpdateAppInput(USER_ID, APP_ID, { name: 'Valid', extra: true });
+      expect(result).toEqual({ userId: USER_ID, appId: APP_ID, name: 'Valid' });
     });
   });
 

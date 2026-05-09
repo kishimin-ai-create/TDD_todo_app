@@ -8,6 +8,8 @@ import {
 } from '../../../infrastructure/in-memory-repositories';
 import { createInMemoryStorage } from '../../../infrastructure/in-memory-storage';
 
+const USER_ID = 'user-contract';
+
 function makeUsecase(): AppUsecase {
   const storage = createInMemoryStorage();
   return createAppInteractor({
@@ -28,9 +30,10 @@ describe('AppUsecase interface contract', () => {
 
   it('create resolves to an AppEntity shape', async () => {
     const usecase = makeUsecase();
-    const app = await usecase.create({ name: 'Contract Test' });
+    const app = await usecase.create({ userId: USER_ID, name: 'Contract Test' });
     expect(app).toMatchObject({
       id: expect.any(String),
+      userId: USER_ID,
       name: 'Contract Test',
       createdAt: expect.any(String),
       updatedAt: expect.any(String),
@@ -40,28 +43,28 @@ describe('AppUsecase interface contract', () => {
 
   it('list resolves to an array', async () => {
     const usecase = makeUsecase();
-    const result = await usecase.list();
+    const result = await usecase.list({ userId: USER_ID });
     expect(Array.isArray(result)).toBe(true);
   });
 
   it('get resolves to the app by id', async () => {
     const usecase = makeUsecase();
-    const created = await usecase.create({ name: 'Get Contract' });
-    const found = await usecase.get({ appId: created.id });
+    const created = await usecase.create({ userId: USER_ID, name: 'Get Contract' });
+    const found = await usecase.get({ userId: USER_ID, appId: created.id });
     expect(found.id).toBe(created.id);
   });
 
   it('update resolves to the modified app', async () => {
     const usecase = makeUsecase();
-    const created = await usecase.create({ name: 'Original' });
-    const updated = await usecase.update({ appId: created.id, name: 'Updated' });
+    const created = await usecase.create({ userId: USER_ID, name: 'Original' });
+    const updated = await usecase.update({ userId: USER_ID, appId: created.id, name: 'Updated' });
     expect(updated.name).toBe('Updated');
   });
 
   it('delete resolves to the soft-deleted app', async () => {
     const usecase = makeUsecase();
-    const created = await usecase.create({ name: 'To Delete' });
-    const deleted = await usecase.delete({ appId: created.id });
+    const created = await usecase.create({ userId: USER_ID, name: 'To Delete' });
+    const deleted = await usecase.delete({ userId: USER_ID, appId: created.id });
     expect(deleted.deletedAt).not.toBeNull();
   });
 });

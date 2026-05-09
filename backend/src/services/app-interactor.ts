@@ -7,6 +7,7 @@ import type {
   CreateAppInput,
   DeleteAppInput,
   GetAppInput,
+  ListAppsInput,
   UpdateAppInput,
 } from './app-usecase';
 
@@ -28,18 +29,20 @@ export function createAppInteractor(
   const generateId = dependencies.generateId ?? (() => crypto.randomUUID());
   const now = dependencies.now ?? (() => new Date().toISOString());
 
-  async function findExistingApp(appId: string): Promise<AppEntity> {
+  async function findOwnedApp(appId: string, userId: string): Promise<AppEntity> {
     const app = await appRepository.findActiveById(appId);
     if (!app) throw new AppError('NOT_FOUND', 'App not found');
+    if (app.userId !== userId) throw new AppError('NOT_FOUND', 'App not found');
     return app;
   }
 
   async function create(input: CreateAppInput): Promise<AppEntity> {
-    const duplicated = await appRepository.existsActiveByName(input.name);
+    const duplicated = await appRepository.existsActiveByName(input.name, input.userId);
     if (duplicated) throw new AppError('CONFLICT', 'App name already exists');
     const timestamp = now();
     const app: AppEntity = {
       id: generateId(),
+      userId: input.userId,
       name: input.name,
       createdAt: timestamp,
       updatedAt: timestamp,
@@ -49,19 +52,20 @@ export function createAppInteractor(
     return app;
   }
 
-  async function list(): Promise<AppEntity[]> {
-    return appRepository.listActive();
+  async function list(input: ListAppsInput): Promise<AppEntity[]> {
+    return appRepository.listActiveByUserId(input.userId);
   }
 
   async function get(input: GetAppInput): Promise<AppEntity> {
-    return findExistingApp(input.appId);
+    return findOwnedApp(input.appId, input.userId);
   }
 
   async function update(input: UpdateAppInput): Promise<AppEntity> {
-    const app = await findExistingApp(input.appId);
+    const app = await findOwnedApp(input.appId, input.userId);
     if (input.name !== undefined) {
       const duplicated = await appRepository.existsActiveByName(
         input.name,
+        input.userId,
         app.id,
       );
       if (duplicated) throw new AppError('CONFLICT', 'App name already exists');
@@ -76,7 +80,7 @@ export function createAppInteractor(
   }
 
   async function remove(input: DeleteAppInput): Promise<AppEntity> {
-    const app = await findExistingApp(input.appId);
+    const app = await findOwnedApp(input.appId, input.userId);
     const deletedAt = now();
     const deletedApp: AppEntity = { ...app, updatedAt: deletedAt, deletedAt };
     await appRepository.save(deletedApp);

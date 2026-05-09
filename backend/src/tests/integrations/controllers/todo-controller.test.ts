@@ -28,7 +28,7 @@ describe('TodoController integration', () => {
 
   beforeEach(async () => {
     ctx = setup();
-    const app = await ctx.appInteractor.create({ name: 'Test App' });
+    const app = await ctx.appInteractor.create({ userId: 'user-todo-ctrl', name: 'Test App' });
     appId = app.id;
   });
 

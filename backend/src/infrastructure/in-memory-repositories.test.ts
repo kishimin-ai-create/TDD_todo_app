@@ -12,10 +12,12 @@ import { createInMemoryStorage } from './in-memory-storage';
 // ─── Fixtures ─────────────────────────────────────────────────────────────────
 
 const TIME = '2024-01-01T00:00:00.000Z';
+const USER_ID = 'user-infra-test';
 
 function makeApp(overrides: Partial<AppEntity> = {}): AppEntity {
   return {
     id: 'app-1',
+    userId: USER_ID,
     name: 'Test App',
     createdAt: TIME,
     updatedAt: TIME,
@@ -85,57 +87,71 @@ describe('createInMemoryAppRepository', () => {
     });
   });
 
-  describe('listActive', () => {
-    it('returns all active (non-deleted) apps', async () => {
+  describe('listActiveByUserId', () => {
+    it('returns all active (non-deleted) apps for the user', async () => {
       await repo.save(makeApp({ id: 'app-1', name: 'A' }));
       await repo.save(makeApp({ id: 'app-2', name: 'B' }));
-      const list = await repo.listActive();
+      const list = await repo.listActiveByUserId(USER_ID);
       expect(list).toHaveLength(2);
     });
 
     it('excludes soft-deleted apps', async () => {
       await repo.save(makeApp({ id: 'app-1', name: 'Active' }));
       await repo.save(makeApp({ id: 'app-2', name: 'Deleted', deletedAt: TIME }));
-      const list = await repo.listActive();
+      const list = await repo.listActiveByUserId(USER_ID);
       expect(list).toHaveLength(1);
       expect(list[0].name).toBe('Active');
     });
 
     it('returns an empty array when no apps exist', async () => {
-      const list = await repo.listActive();
+      const list = await repo.listActiveByUserId(USER_ID);
       expect(list).toEqual([]);
+    });
+
+    it("does not include other users' apps", async () => {
+      await repo.save(makeApp({ id: 'app-1', name: 'Mine' }));
+      await repo.save(makeApp({ id: 'app-2', name: 'Theirs', userId: 'other-user' }));
+      const list = await repo.listActiveByUserId(USER_ID);
+      expect(list).toHaveLength(1);
+      expect(list[0].name).toBe('Mine');
     });
   });
 
   describe('existsActiveByName', () => {
-    it('returns true when an active app with the name exists', async () => {
+    it('returns true when an active app with the name exists for the user', async () => {
       await repo.save(makeApp({ name: 'My App' }));
-      const exists = await repo.existsActiveByName('My App');
+      const exists = await repo.existsActiveByName('My App', USER_ID);
       expect(exists).toBe(true);
     });
 
     it('returns false when no app with the name exists', async () => {
-      const exists = await repo.existsActiveByName('Nonexistent');
+      const exists = await repo.existsActiveByName('Nonexistent', USER_ID);
       expect(exists).toBe(false);
     });
 
     it('returns false for a soft-deleted app with the same name', async () => {
       await repo.save(makeApp({ name: 'Gone', deletedAt: TIME }));
-      const exists = await repo.existsActiveByName('Gone');
+      const exists = await repo.existsActiveByName('Gone', USER_ID);
       expect(exists).toBe(false);
     });
 
     it('returns false when the only match is the excluded id', async () => {
       await repo.save(makeApp({ id: 'app-1', name: 'Same Name' }));
-      const exists = await repo.existsActiveByName('Same Name', 'app-1');
+      const exists = await repo.existsActiveByName('Same Name', USER_ID, 'app-1');
       expect(exists).toBe(false);
     });
 
     it('returns true when another app has the same name (excluding self)', async () => {
       await repo.save(makeApp({ id: 'app-1', name: 'Shared' }));
       await repo.save(makeApp({ id: 'app-2', name: 'Shared' }));
-      const exists = await repo.existsActiveByName('Shared', 'app-1');
+      const exists = await repo.existsActiveByName('Shared', USER_ID, 'app-1');
       expect(exists).toBe(true);
+    });
+
+    it("returns false when only another user's app has the name", async () => {
+      await repo.save(makeApp({ id: 'app-1', name: 'Cross', userId: 'other-user' }));
+      const exists = await repo.existsActiveByName('Cross', USER_ID);
+      expect(exists).toBe(false);
     });
   });
 });

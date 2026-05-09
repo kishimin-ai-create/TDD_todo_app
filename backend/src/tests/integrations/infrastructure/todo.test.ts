@@ -9,18 +9,25 @@ import {
   request,
   createApp,
   createTodo,
+  registerUser,
 } from '../helpers';
 
-beforeEach(() => clearStorage());
+let token: string;
 
-// ═════════════════════════════════════════════════════════════════════════════
+beforeEach(async () => {
+  clearStorage();
+  const auth = await registerUser();
+  token = auth.token;
+});
+
+// =============================================================================
 // Todo Endpoints
-// ═════════════════════════════════════════════════════════════════════════════
+// =============================================================================
 
 describe('POST /api/v1/apps/:appId/todos', () => {
   it('201: creates a todo with correct response shape', async () => {
-    const createdApp = await createApp('Todo Owner');
-    const res = await request('POST', `/api/v1/apps/${createdApp.id}/todos`, { title: 'First Todo' });
+    const createdApp = await createApp('Todo Owner', token);
+    const res = await request('POST', `/api/v1/apps/${createdApp.id}/todos`, { title: 'First Todo' }, token);
 
     expect(res.status).toBe(201);
 
@@ -36,8 +43,8 @@ describe('POST /api/v1/apps/:appId/todos', () => {
   });
 
   it('422: missing title field', async () => {
-    const createdApp = await createApp('App For Missing Title');
-    const res = await request('POST', `/api/v1/apps/${createdApp.id}/todos`, {});
+    const createdApp = await createApp('App For Missing Title', token);
+    const res = await request('POST', `/api/v1/apps/${createdApp.id}/todos`, {}, token);
 
     expect(res.status).toBe(422);
 
@@ -48,8 +55,8 @@ describe('POST /api/v1/apps/:appId/todos', () => {
   });
 
   it('422: empty title', async () => {
-    const createdApp = await createApp('App For Empty Title');
-    const res = await request('POST', `/api/v1/apps/${createdApp.id}/todos`, { title: '' });
+    const createdApp = await createApp('App For Empty Title', token);
+    const res = await request('POST', `/api/v1/apps/${createdApp.id}/todos`, { title: '' }, token);
 
     expect(res.status).toBe(422);
 
@@ -58,8 +65,8 @@ describe('POST /api/v1/apps/:appId/todos', () => {
   });
 
   it('422: whitespace-only title', async () => {
-    const createdApp = await createApp('App For Whitespace Title');
-    const res = await request('POST', `/api/v1/apps/${createdApp.id}/todos`, { title: '   ' });
+    const createdApp = await createApp('App For Whitespace Title', token);
+    const res = await request('POST', `/api/v1/apps/${createdApp.id}/todos`, { title: '   ' }, token);
 
     expect(res.status).toBe(422);
 
@@ -68,8 +75,8 @@ describe('POST /api/v1/apps/:appId/todos', () => {
   });
 
   it('422: title exceeds 200 characters', async () => {
-    const createdApp = await createApp('App For Long Title');
-    const res = await request('POST', `/api/v1/apps/${createdApp.id}/todos`, { title: 'c'.repeat(201) });
+    const createdApp = await createApp('App For Long Title', token);
+    const res = await request('POST', `/api/v1/apps/${createdApp.id}/todos`, { title: 'c'.repeat(201) }, token);
 
     expect(res.status).toBe(422);
 
@@ -78,9 +85,9 @@ describe('POST /api/v1/apps/:appId/todos', () => {
   });
 
   it('201: title at exactly 200 characters is accepted', async () => {
-    const createdApp = await createApp('App For Max Title');
+    const createdApp = await createApp('App For Max Title', token);
     const maxTitle = 'c'.repeat(200);
-    const res = await request('POST', `/api/v1/apps/${createdApp.id}/todos`, { title: maxTitle });
+    const res = await request('POST', `/api/v1/apps/${createdApp.id}/todos`, { title: maxTitle }, token);
 
     expect(res.status).toBe(201);
 
@@ -90,7 +97,7 @@ describe('POST /api/v1/apps/:appId/todos', () => {
   });
 
   it('404: app not found', async () => {
-    const res = await request('POST', `/api/v1/apps/${GHOST_APP_ID}/todos`, { title: 'Orphan Todo' });
+    const res = await request('POST', `/api/v1/apps/${GHOST_APP_ID}/todos`, { title: 'Orphan Todo' }, token);
 
     expect(res.status).toBe(404);
 
@@ -98,14 +105,21 @@ describe('POST /api/v1/apps/:appId/todos', () => {
     expect(json.success).toBe(false);
     expect(json.data).toBeNull();
   });
+
+  it('401: missing token', async () => {
+    const createdApp = await createApp('Auth App', token);
+    const res = await request('POST', `/api/v1/apps/${createdApp.id}/todos`, { title: 'No Token' });
+
+    expect(res.status).toBe(401);
+  });
 });
 
-// ─────────────────────────────────────────────────────────────────────────────
+// -----------------------------------------------------------------------------
 
 describe('GET /api/v1/apps/:appId/todos', () => {
   it('200: returns an array', async () => {
-    const createdApp = await createApp('Todo List App');
-    const res = await request('GET', `/api/v1/apps/${createdApp.id}/todos`);
+    const createdApp = await createApp('Todo List App', token);
+    const res = await request('GET', `/api/v1/apps/${createdApp.id}/todos`, undefined, token);
 
     expect(res.status).toBe(200);
 
@@ -115,11 +129,11 @@ describe('GET /api/v1/apps/:appId/todos', () => {
   });
 
   it('200: returns multiple todos', async () => {
-    const createdApp = await createApp('Multi Todo App');
-    await createTodo(createdApp.id, 'Todo A');
-    await createTodo(createdApp.id, 'Todo B');
+    const createdApp = await createApp('Multi Todo App', token);
+    await createTodo(createdApp.id, 'Todo A', token);
+    await createTodo(createdApp.id, 'Todo B', token);
 
-    const res = await request('GET', `/api/v1/apps/${createdApp.id}/todos`);
+    const res = await request('GET', `/api/v1/apps/${createdApp.id}/todos`, undefined, token);
     const json = await res.json() as { data: Array<{ title: string }> };
     expect(json.data.length).toBe(2);
     const titles = json.data.map((t) => t.title);
@@ -128,19 +142,19 @@ describe('GET /api/v1/apps/:appId/todos', () => {
   });
 
   it('200: excludes soft-deleted todos', async () => {
-    const createdApp = await createApp('Soft Delete List App');
-    const todo = await createTodo(createdApp.id, 'Will Be Deleted');
-    await createTodo(createdApp.id, 'Stays');
-    await request('DELETE', `/api/v1/apps/${createdApp.id}/todos/${todo.id}`);
+    const createdApp = await createApp('Soft Delete List App', token);
+    const todo = await createTodo(createdApp.id, 'Will Be Deleted', token);
+    await createTodo(createdApp.id, 'Stays', token);
+    await request('DELETE', `/api/v1/apps/${createdApp.id}/todos/${todo.id}`, undefined, token);
 
-    const res = await request('GET', `/api/v1/apps/${createdApp.id}/todos`);
+    const res = await request('GET', `/api/v1/apps/${createdApp.id}/todos`, undefined, token);
     const json = await res.json() as { data: Array<{ id: string }> };
     expect(json.data.find((t) => t.id === todo.id)).toBeUndefined();
     expect(json.data.length).toBe(1);
   });
 
   it('404: app not found', async () => {
-    const res = await request('GET', `/api/v1/apps/${GHOST_APP_ID}/todos`);
+    const res = await request('GET', `/api/v1/apps/${GHOST_APP_ID}/todos`, undefined, token);
 
     expect(res.status).toBe(404);
 
@@ -149,10 +163,10 @@ describe('GET /api/v1/apps/:appId/todos', () => {
   });
 
   it('200: response items do not expose deletedAt', async () => {
-    const createdApp = await createApp('No Leak Todo List');
-    await createTodo(createdApp.id, 'Check Field');
+    const createdApp = await createApp('No Leak Todo List', token);
+    await createTodo(createdApp.id, 'Check Field', token);
 
-    const res = await request('GET', `/api/v1/apps/${createdApp.id}/todos`);
+    const res = await request('GET', `/api/v1/apps/${createdApp.id}/todos`, undefined, token);
     const json = await res.json() as { data: Array<Record<string, unknown>> };
     for (const item of json.data) {
       expect(item.deletedAt).toBeUndefined();
@@ -160,14 +174,14 @@ describe('GET /api/v1/apps/:appId/todos', () => {
   });
 });
 
-// ─────────────────────────────────────────────────────────────────────────────
+// -----------------------------------------------------------------------------
 
 describe('GET /api/v1/apps/:appId/todos/:todoId', () => {
   it('200: returns the todo', async () => {
-    const createdApp = await createApp('Single Todo App');
-    const createdTodo = await createTodo(createdApp.id, 'Detail Todo');
+    const createdApp = await createApp('Single Todo App', token);
+    const createdTodo = await createTodo(createdApp.id, 'Detail Todo', token);
 
-    const res = await request('GET', `/api/v1/apps/${createdApp.id}/todos/${createdTodo.id}`);
+    const res = await request('GET', `/api/v1/apps/${createdApp.id}/todos/${createdTodo.id}`, undefined, token);
 
     expect(res.status).toBe(200);
 
@@ -182,8 +196,8 @@ describe('GET /api/v1/apps/:appId/todos/:todoId', () => {
   });
 
   it('404: todo does not exist', async () => {
-    const createdApp = await createApp('Todo 404 App');
-    const res = await request('GET', `/api/v1/apps/${createdApp.id}/todos/${GHOST_TODO_ID}`);
+    const createdApp = await createApp('Todo 404 App', token);
+    const res = await request('GET', `/api/v1/apps/${createdApp.id}/todos/${GHOST_TODO_ID}`, undefined, token);
 
     expect(res.status).toBe(404);
 
@@ -193,7 +207,7 @@ describe('GET /api/v1/apps/:appId/todos/:todoId', () => {
   });
 
   it('404: app does not exist', async () => {
-    const res = await request('GET', `/api/v1/apps/${GHOST_APP_ID}/todos/${GHOST_TODO_ID}`);
+    const res = await request('GET', `/api/v1/apps/${GHOST_APP_ID}/todos/${GHOST_TODO_ID}`, undefined, token);
 
     expect(res.status).toBe(404);
 
@@ -202,32 +216,32 @@ describe('GET /api/v1/apps/:appId/todos/:todoId', () => {
   });
 
   it('404: soft-deleted todo is not found', async () => {
-    const createdApp = await createApp('Deleted Todo App');
-    const createdTodo = await createTodo(createdApp.id, 'Delete Me');
-    await request('DELETE', `/api/v1/apps/${createdApp.id}/todos/${createdTodo.id}`);
+    const createdApp = await createApp('Deleted Todo App', token);
+    const createdTodo = await createTodo(createdApp.id, 'Delete Me', token);
+    await request('DELETE', `/api/v1/apps/${createdApp.id}/todos/${createdTodo.id}`, undefined, token);
 
-    const res = await request('GET', `/api/v1/apps/${createdApp.id}/todos/${createdTodo.id}`);
+    const res = await request('GET', `/api/v1/apps/${createdApp.id}/todos/${createdTodo.id}`, undefined, token);
     expect(res.status).toBe(404);
   });
 
   it('200: response does not expose deletedAt', async () => {
-    const createdApp = await createApp('No Leak Todo Detail');
-    const createdTodo = await createTodo(createdApp.id, 'Field Check');
+    const createdApp = await createApp('No Leak Todo Detail', token);
+    const createdTodo = await createTodo(createdApp.id, 'Field Check', token);
 
-    const res = await request('GET', `/api/v1/apps/${createdApp.id}/todos/${createdTodo.id}`);
+    const res = await request('GET', `/api/v1/apps/${createdApp.id}/todos/${createdTodo.id}`, undefined, token);
     const json = await res.json() as { data: Record<string, unknown> };
     expect(json.data.deletedAt).toBeUndefined();
   });
 });
 
-// ─────────────────────────────────────────────────────────────────────────────
+// -----------------------------------------------------------------------------
 
 describe('PUT /api/v1/apps/:appId/todos/:todoId', () => {
   it('200: updates the title', async () => {
-    const createdApp = await createApp('Update Title App');
-    const createdTodo = await createTodo(createdApp.id, 'Old Title');
+    const createdApp = await createApp('Update Title App', token);
+    const createdTodo = await createTodo(createdApp.id, 'Old Title', token);
 
-    const res = await request('PUT', `/api/v1/apps/${createdApp.id}/todos/${createdTodo.id}`, { title: 'New Title' });
+    const res = await request('PUT', `/api/v1/apps/${createdApp.id}/todos/${createdTodo.id}`, { title: 'New Title' }, token);
 
     expect(res.status).toBe(200);
 
@@ -238,10 +252,10 @@ describe('PUT /api/v1/apps/:appId/todos/:todoId', () => {
   });
 
   it('200: marks todo as completed', async () => {
-    const createdApp = await createApp('Complete App');
-    const createdTodo = await createTodo(createdApp.id, 'Complete Me');
+    const createdApp = await createApp('Complete App', token);
+    const createdTodo = await createTodo(createdApp.id, 'Complete Me', token);
 
-    const res = await request('PUT', `/api/v1/apps/${createdApp.id}/todos/${createdTodo.id}`, { completed: true });
+    const res = await request('PUT', `/api/v1/apps/${createdApp.id}/todos/${createdTodo.id}`, { completed: true }, token);
 
     expect(res.status).toBe(200);
 
@@ -251,11 +265,11 @@ describe('PUT /api/v1/apps/:appId/todos/:todoId', () => {
   });
 
   it('200: marks completed todo back to incomplete', async () => {
-    const createdApp = await createApp('Uncomplete App');
-    const createdTodo = await createTodo(createdApp.id, 'Toggle Me');
-    await request('PUT', `/api/v1/apps/${createdApp.id}/todos/${createdTodo.id}`, { completed: true });
+    const createdApp = await createApp('Uncomplete App', token);
+    const createdTodo = await createTodo(createdApp.id, 'Toggle Me', token);
+    await request('PUT', `/api/v1/apps/${createdApp.id}/todos/${createdTodo.id}`, { completed: true }, token);
 
-    const res = await request('PUT', `/api/v1/apps/${createdApp.id}/todos/${createdTodo.id}`, { completed: false });
+    const res = await request('PUT', `/api/v1/apps/${createdApp.id}/todos/${createdTodo.id}`, { completed: false }, token);
 
     expect(res.status).toBe(200);
 
@@ -264,10 +278,10 @@ describe('PUT /api/v1/apps/:appId/todos/:todoId', () => {
   });
 
   it('422: empty title', async () => {
-    const createdApp = await createApp('Empty Title Update App');
-    const createdTodo = await createTodo(createdApp.id, 'Has Title');
+    const createdApp = await createApp('Empty Title Update App', token);
+    const createdTodo = await createTodo(createdApp.id, 'Has Title', token);
 
-    const res = await request('PUT', `/api/v1/apps/${createdApp.id}/todos/${createdTodo.id}`, { title: '' });
+    const res = await request('PUT', `/api/v1/apps/${createdApp.id}/todos/${createdTodo.id}`, { title: '' }, token);
 
     expect(res.status).toBe(422);
 
@@ -276,10 +290,10 @@ describe('PUT /api/v1/apps/:appId/todos/:todoId', () => {
   });
 
   it('422: whitespace-only title', async () => {
-    const createdApp = await createApp('Whitespace Update App');
-    const createdTodo = await createTodo(createdApp.id, 'Good Title');
+    const createdApp = await createApp('Whitespace Update App', token);
+    const createdTodo = await createTodo(createdApp.id, 'Good Title', token);
 
-    const res = await request('PUT', `/api/v1/apps/${createdApp.id}/todos/${createdTodo.id}`, { title: '   ' });
+    const res = await request('PUT', `/api/v1/apps/${createdApp.id}/todos/${createdTodo.id}`, { title: '   ' }, token);
 
     expect(res.status).toBe(422);
 
@@ -288,10 +302,10 @@ describe('PUT /api/v1/apps/:appId/todos/:todoId', () => {
   });
 
   it('422: title exceeds 200 characters', async () => {
-    const createdApp = await createApp('Long Update App');
-    const createdTodo = await createTodo(createdApp.id, 'Normal Title');
+    const createdApp = await createApp('Long Update App', token);
+    const createdTodo = await createTodo(createdApp.id, 'Normal Title', token);
 
-    const res = await request('PUT', `/api/v1/apps/${createdApp.id}/todos/${createdTodo.id}`, { title: 'd'.repeat(201) });
+    const res = await request('PUT', `/api/v1/apps/${createdApp.id}/todos/${createdTodo.id}`, { title: 'd'.repeat(201) }, token);
 
     expect(res.status).toBe(422);
 
@@ -300,8 +314,8 @@ describe('PUT /api/v1/apps/:appId/todos/:todoId', () => {
   });
 
   it('404: todo does not exist', async () => {
-    const createdApp = await createApp('Update 404 App');
-    const res = await request('PUT', `/api/v1/apps/${createdApp.id}/todos/${GHOST_TODO_ID}`, { title: 'Ghost Update' });
+    const createdApp = await createApp('Update 404 App', token);
+    const res = await request('PUT', `/api/v1/apps/${createdApp.id}/todos/${GHOST_TODO_ID}`, { title: 'Ghost Update' }, token);
 
     expect(res.status).toBe(404);
 
@@ -310,7 +324,7 @@ describe('PUT /api/v1/apps/:appId/todos/:todoId', () => {
   });
 
   it('404: app does not exist', async () => {
-    const res = await request('PUT', `/api/v1/apps/${GHOST_APP_ID}/todos/${GHOST_TODO_ID}`, { title: 'No App' });
+    const res = await request('PUT', `/api/v1/apps/${GHOST_APP_ID}/todos/${GHOST_TODO_ID}`, { title: 'No App' }, token);
 
     expect(res.status).toBe(404);
 
@@ -319,14 +333,14 @@ describe('PUT /api/v1/apps/:appId/todos/:todoId', () => {
   });
 });
 
-// ─────────────────────────────────────────────────────────────────────────────
+// -----------------------------------------------------------------------------
 
 describe('DELETE /api/v1/apps/:appId/todos/:todoId', () => {
   it('200: soft-deletes the todo and returns it', async () => {
-    const createdApp = await createApp('Delete Todo App');
-    const createdTodo = await createTodo(createdApp.id, 'Delete Todo');
+    const createdApp = await createApp('Delete Todo App', token);
+    const createdTodo = await createTodo(createdApp.id, 'Delete Todo', token);
 
-    const res = await request('DELETE', `/api/v1/apps/${createdApp.id}/todos/${createdTodo.id}`);
+    const res = await request('DELETE', `/api/v1/apps/${createdApp.id}/todos/${createdTodo.id}`, undefined, token);
 
     expect(res.status).toBe(200);
 
@@ -337,17 +351,17 @@ describe('DELETE /api/v1/apps/:appId/todos/:todoId', () => {
   });
 
   it('404: deleted todo returns 404 on GET detail', async () => {
-    const createdApp = await createApp('After Delete App');
-    const createdTodo = await createTodo(createdApp.id, 'Will Vanish');
-    await request('DELETE', `/api/v1/apps/${createdApp.id}/todos/${createdTodo.id}`);
+    const createdApp = await createApp('After Delete App', token);
+    const createdTodo = await createTodo(createdApp.id, 'Will Vanish', token);
+    await request('DELETE', `/api/v1/apps/${createdApp.id}/todos/${createdTodo.id}`, undefined, token);
 
-    const res = await request('GET', `/api/v1/apps/${createdApp.id}/todos/${createdTodo.id}`);
+    const res = await request('GET', `/api/v1/apps/${createdApp.id}/todos/${createdTodo.id}`, undefined, token);
     expect(res.status).toBe(404);
   });
 
   it('404: todo does not exist', async () => {
-    const createdApp = await createApp('Delete Ghost App');
-    const res = await request('DELETE', `/api/v1/apps/${createdApp.id}/todos/${GHOST_TODO_ID}`);
+    const createdApp = await createApp('Delete Ghost App', token);
+    const res = await request('DELETE', `/api/v1/apps/${createdApp.id}/todos/${GHOST_TODO_ID}`, undefined, token);
 
     expect(res.status).toBe(404);
 
@@ -356,7 +370,7 @@ describe('DELETE /api/v1/apps/:appId/todos/:todoId', () => {
   });
 
   it('404: app does not exist', async () => {
-    const res = await request('DELETE', `/api/v1/apps/${GHOST_APP_ID}/todos/${GHOST_TODO_ID}`);
+    const res = await request('DELETE', `/api/v1/apps/${GHOST_APP_ID}/todos/${GHOST_TODO_ID}`, undefined, token);
 
     expect(res.status).toBe(404);
 
@@ -365,12 +379,12 @@ describe('DELETE /api/v1/apps/:appId/todos/:todoId', () => {
   });
 
   it('200: deleted todo is excluded from GET list', async () => {
-    const createdApp = await createApp('Exclude Deleted App');
-    const createdTodo = await createTodo(createdApp.id, 'Excluded Todo');
-    await createTodo(createdApp.id, 'Remaining Todo');
-    await request('DELETE', `/api/v1/apps/${createdApp.id}/todos/${createdTodo.id}`);
+    const createdApp = await createApp('Exclude Deleted App', token);
+    const createdTodo = await createTodo(createdApp.id, 'Excluded Todo', token);
+    await createTodo(createdApp.id, 'Remaining Todo', token);
+    await request('DELETE', `/api/v1/apps/${createdApp.id}/todos/${createdTodo.id}`, undefined, token);
 
-    const res = await request('GET', `/api/v1/apps/${createdApp.id}/todos`);
+    const res = await request('GET', `/api/v1/apps/${createdApp.id}/todos`, undefined, token);
     const json = await res.json() as { data: Array<{ id: string }> };
     expect(json.data.find((t) => t.id === createdTodo.id)).toBeUndefined();
     expect(json.data.length).toBe(1);

@@ -8,6 +8,7 @@ import type { MysqlPool } from './mysql-client';
 
 type AppRow = RowDataPacket & {
   id: string;
+  userId: string;
   name: string;
   createdAt: Date;
   updatedAt: Date;
@@ -23,6 +24,7 @@ type ExistsRow = RowDataPacket & {
 function rowToApp(row: AppRow): AppEntity {
   return {
     id: row.id,
+    userId: row.userId,
     name: row.name,
     createdAt: row.createdAt.toISOString(),
     updatedAt: row.updatedAt.toISOString(),
@@ -37,13 +39,14 @@ export function createMysqlAppRepository(pool: MysqlPool): AppRepository {
   async function save(app: AppEntity): Promise<void> {
     try {
       await pool.execute(
-        `INSERT INTO App (id, name, createdAt, updatedAt, deletedAt)
-         VALUES (?, ?, ?, ?, ?)
+        `INSERT INTO App (id, userId, name, createdAt, updatedAt, deletedAt)
+         VALUES (?, ?, ?, ?, ?, ?)
          ON DUPLICATE KEY UPDATE
+           userId    = VALUES(userId),
            name      = VALUES(name),
            updatedAt = VALUES(updatedAt),
            deletedAt = VALUES(deletedAt)`,
-        [app.id, app.name, new Date(app.createdAt), new Date(app.updatedAt), app.deletedAt ? new Date(app.deletedAt) : null],
+        [app.id, app.userId, app.name, new Date(app.createdAt), new Date(app.updatedAt), app.deletedAt ? new Date(app.deletedAt) : null],
       );
     } catch (err: unknown) {
       logError('save', err);
@@ -51,14 +54,15 @@ export function createMysqlAppRepository(pool: MysqlPool): AppRepository {
     }
   }
 
-  async function listActive(): Promise<AppEntity[]> {
+  async function listActiveByUserId(userId: string): Promise<AppEntity[]> {
     try {
       const [rows] = await pool.execute<AppRow[]>(
-        'SELECT id, name, createdAt, updatedAt, deletedAt FROM App WHERE deletedAt IS NULL',
+        'SELECT id, userId, name, createdAt, updatedAt, deletedAt FROM App WHERE userId = ? AND deletedAt IS NULL',
+        [userId],
       );
       return rows.map(rowToApp);
     } catch (err: unknown) {
-      logError('listActive', err);
+      logError('listActiveByUserId', err);
       throw new AppError('REPOSITORY_ERROR', 'Repository operation failed', { cause: err });
     }
   }
@@ -66,7 +70,7 @@ export function createMysqlAppRepository(pool: MysqlPool): AppRepository {
   async function findActiveById(id: string): Promise<AppEntity | null> {
     try {
       const [rows] = await pool.execute<AppRow[]>(
-        'SELECT id, name, createdAt, updatedAt, deletedAt FROM App WHERE id = ? AND deletedAt IS NULL',
+        'SELECT id, userId, name, createdAt, updatedAt, deletedAt FROM App WHERE id = ? AND deletedAt IS NULL',
         [id],
       );
       const row = rows[0];
@@ -77,18 +81,18 @@ export function createMysqlAppRepository(pool: MysqlPool): AppRepository {
     }
   }
 
-  async function existsActiveByName(name: string, excludeId?: string): Promise<boolean> {
+  async function existsActiveByName(name: string, userId: string, excludeId?: string): Promise<boolean> {
     try {
       if (excludeId !== undefined) {
         const [rows] = await pool.execute<ExistsRow[]>(
-          'SELECT EXISTS(SELECT 1 FROM App WHERE name = ? AND deletedAt IS NULL AND id != ?) AS `exists`',
-          [name, excludeId],
+          'SELECT EXISTS(SELECT 1 FROM App WHERE name = ? AND userId = ? AND deletedAt IS NULL AND id != ?) AS `exists`',
+          [name, userId, excludeId],
         );
         return rows[0].exists === 1;
       }
       const [rows] = await pool.execute<ExistsRow[]>(
-        'SELECT EXISTS(SELECT 1 FROM App WHERE name = ? AND deletedAt IS NULL) AS `exists`',
-        [name],
+        'SELECT EXISTS(SELECT 1 FROM App WHERE name = ? AND userId = ? AND deletedAt IS NULL) AS `exists`',
+        [name, userId],
       );
       return rows[0].exists === 1;
     } catch (err: unknown) {
@@ -97,5 +101,5 @@ export function createMysqlAppRepository(pool: MysqlPool): AppRepository {
     }
   }
 
-  return { save, listActive, findActiveById, existsActiveByName };
+  return { save, listActiveByUserId, findActiveById, existsActiveByName };
 }

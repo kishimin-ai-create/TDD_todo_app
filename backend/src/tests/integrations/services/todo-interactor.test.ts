@@ -34,7 +34,7 @@ describe('TodoInteractor integration', () => {
 
   describe('create', () => {
     it('creates a todo with UUID id, correct appId, and ISO timestamps', async () => {
-      const app = await ctx.appInteractor.create({ name: 'App' });
+      const app = await ctx.appInteractor.create({ userId: 'user-todo-interactor', name: 'App' });
       const todo = await ctx.interactor.create({ appId: app.id, title: 'My Todo' });
       expect(UUID_RE.test(todo.id)).toBe(true);
       expect(todo.appId).toBe(app.id);
@@ -46,7 +46,7 @@ describe('TodoInteractor integration', () => {
     });
 
     it('persists to repository so it appears in list', async () => {
-      const app = await ctx.appInteractor.create({ name: 'App' });
+      const app = await ctx.appInteractor.create({ userId: 'user-todo-interactor', name: 'App' });
       const todo = await ctx.interactor.create({ appId: app.id, title: 'Listed' });
       const list = await ctx.interactor.list({ appId: app.id });
       expect(list.some(t => t.id === todo.id)).toBe(true);
@@ -63,19 +63,19 @@ describe('TodoInteractor integration', () => {
 
   describe('list', () => {
     it('returns an empty array when no todos exist for the app', async () => {
-      const app = await ctx.appInteractor.create({ name: 'Empty App' });
+      const app = await ctx.appInteractor.create({ userId: 'user-todo-interactor', name: 'Empty App' });
       expect(await ctx.interactor.list({ appId: app.id })).toEqual([]);
     });
 
     it('returns all active todos for the app', async () => {
-      const app = await ctx.appInteractor.create({ name: 'App' });
+      const app = await ctx.appInteractor.create({ userId: 'user-todo-interactor', name: 'App' });
       await ctx.interactor.create({ appId: app.id, title: 'T1' });
       await ctx.interactor.create({ appId: app.id, title: 'T2' });
       expect(await ctx.interactor.list({ appId: app.id })).toHaveLength(2);
     });
 
     it('excludes soft-deleted todos', async () => {
-      const app = await ctx.appInteractor.create({ name: 'App' });
+      const app = await ctx.appInteractor.create({ userId: 'user-todo-interactor', name: 'App' });
       const todo = await ctx.interactor.create({ appId: app.id, title: 'Del' });
       await ctx.interactor.delete({ appId: app.id, todoId: todo.id });
       const list = await ctx.interactor.list({ appId: app.id });
@@ -93,7 +93,7 @@ describe('TodoInteractor integration', () => {
 
   describe('get', () => {
     it('returns the correct todo by appId and todoId', async () => {
-      const app = await ctx.appInteractor.create({ name: 'App' });
+      const app = await ctx.appInteractor.create({ userId: 'user-todo-interactor', name: 'App' });
       const todo = await ctx.interactor.create({ appId: app.id, title: 'Get Me' });
       const found = await ctx.interactor.get({ appId: app.id, todoId: todo.id });
       expect(found.id).toBe(todo.id);
@@ -101,7 +101,7 @@ describe('TodoInteractor integration', () => {
     });
 
     it('throws NOT_FOUND for an unknown todoId', async () => {
-      const app = await ctx.appInteractor.create({ name: 'App' });
+      const app = await ctx.appInteractor.create({ userId: 'user-todo-interactor', name: 'App' });
       await expect(
         ctx.interactor.get({ appId: app.id, todoId: GHOST_TODO_ID }),
       ).rejects.toMatchObject({ code: 'NOT_FOUND' });
@@ -118,7 +118,7 @@ describe('TodoInteractor integration', () => {
 
   describe('update', () => {
     it('updates the title', async () => {
-      const app = await ctx.appInteractor.create({ name: 'App' });
+      const app = await ctx.appInteractor.create({ userId: 'user-todo-interactor', name: 'App' });
       const todo = await ctx.interactor.create({ appId: app.id, title: 'Old' });
       const updated = await ctx.interactor.update({ appId: app.id, todoId: todo.id, title: 'New' });
       expect(updated.title).toBe('New');
@@ -126,7 +126,7 @@ describe('TodoInteractor integration', () => {
     });
 
     it('marks todo as completed', async () => {
-      const app = await ctx.appInteractor.create({ name: 'App' });
+      const app = await ctx.appInteractor.create({ userId: 'user-todo-interactor', name: 'App' });
       const todo = await ctx.interactor.create({ appId: app.id, title: 'Complete Me' });
       const updated = await ctx.interactor.update({
         appId: app.id,
@@ -137,7 +137,7 @@ describe('TodoInteractor integration', () => {
     });
 
     it('marks a completed todo back to incomplete', async () => {
-      const app = await ctx.appInteractor.create({ name: 'App' });
+      const app = await ctx.appInteractor.create({ userId: 'user-todo-interactor', name: 'App' });
       const todo = await ctx.interactor.create({ appId: app.id, title: 'Toggle' });
       await ctx.interactor.update({ appId: app.id, todoId: todo.id, completed: true });
       const toggled = await ctx.interactor.update({
@@ -149,7 +149,7 @@ describe('TodoInteractor integration', () => {
     });
 
     it('preserves title and completed when neither is updated', async () => {
-      const app = await ctx.appInteractor.create({ name: 'App' });
+      const app = await ctx.appInteractor.create({ userId: 'user-todo-interactor', name: 'App' });
       const todo = await ctx.interactor.create({ appId: app.id, title: 'Stable' });
       const updated = await ctx.interactor.update({ appId: app.id, todoId: todo.id });
       expect(updated.title).toBe('Stable');
@@ -157,7 +157,7 @@ describe('TodoInteractor integration', () => {
     });
 
     it('throws NOT_FOUND for an unknown todo', async () => {
-      const app = await ctx.appInteractor.create({ name: 'App' });
+      const app = await ctx.appInteractor.create({ userId: 'user-todo-interactor', name: 'App' });
       await expect(
         ctx.interactor.update({ appId: app.id, todoId: GHOST_TODO_ID, title: 'X' }),
       ).rejects.toMatchObject({ code: 'NOT_FOUND' });
@@ -174,7 +174,7 @@ describe('TodoInteractor integration', () => {
 
   describe('delete', () => {
     it('soft-deletes the todo and returns it with deletedAt set', async () => {
-      const app = await ctx.appInteractor.create({ name: 'App' });
+      const app = await ctx.appInteractor.create({ userId: 'user-todo-interactor', name: 'App' });
       const todo = await ctx.interactor.create({ appId: app.id, title: 'Del' });
       const deleted = await ctx.interactor.delete({ appId: app.id, todoId: todo.id });
       expect(deleted.id).toBe(todo.id);
@@ -183,7 +183,7 @@ describe('TodoInteractor integration', () => {
     });
 
     it('deleted todo is no longer in the list', async () => {
-      const app = await ctx.appInteractor.create({ name: 'App' });
+      const app = await ctx.appInteractor.create({ userId: 'user-todo-interactor', name: 'App' });
       const todo = await ctx.interactor.create({ appId: app.id, title: 'Del' });
       await ctx.interactor.delete({ appId: app.id, todoId: todo.id });
       const list = await ctx.interactor.list({ appId: app.id });
@@ -191,7 +191,7 @@ describe('TodoInteractor integration', () => {
     });
 
     it('throws NOT_FOUND for an unknown todo', async () => {
-      const app = await ctx.appInteractor.create({ name: 'App' });
+      const app = await ctx.appInteractor.create({ userId: 'user-todo-interactor', name: 'App' });
       await expect(
         ctx.interactor.delete({ appId: app.id, todoId: GHOST_TODO_ID }),
       ).rejects.toMatchObject({ code: 'NOT_FOUND' });

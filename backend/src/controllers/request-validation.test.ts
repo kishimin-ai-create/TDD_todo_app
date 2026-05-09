@@ -8,63 +8,65 @@ import {
   parseUpdateTodoInput,
 } from './request-validation';
 
+const USER_ID = 'user-unit';
+
 // ─── parseCreateAppInput ─────────────────────────────────────────────────────
 
 describe('parseCreateAppInput', () => {
   it('returns CreateAppInput with trimmed name for valid input', () => {
-    const result = parseCreateAppInput({ name: 'My App' });
-    expect(result).toEqual({ name: 'My App' });
+    const result = parseCreateAppInput(USER_ID, { name: 'My App' });
+    expect(result).toEqual({ userId: USER_ID, name: 'My App' });
   });
 
   it('trims surrounding whitespace from name', () => {
-    const result = parseCreateAppInput({ name: '  Trimmed  ' });
+    const result = parseCreateAppInput(USER_ID, { name: '  Trimmed  ' });
     expect(result.name).toBe('Trimmed');
   });
 
   it('accepts a name exactly 100 characters long', () => {
     const name = 'a'.repeat(100);
-    expect(parseCreateAppInput({ name }).name).toBe(name);
+    expect(parseCreateAppInput(USER_ID, { name }).name).toBe(name);
   });
 
   it('throws VALIDATION_ERROR when name is missing', () => {
-    expect(() => parseCreateAppInput({})).toThrow(AppError);
-    expect(() => parseCreateAppInput({})).toThrow(
+    expect(() => parseCreateAppInput(USER_ID, {})).toThrow(AppError);
+    expect(() => parseCreateAppInput(USER_ID, {})).toThrow(
       expect.objectContaining({ code: 'VALIDATION_ERROR' }),
     );
   });
 
   it('throws VALIDATION_ERROR when name is not a string', () => {
-    expect(() => parseCreateAppInput({ name: 42 })).toThrow(
+    expect(() => parseCreateAppInput(USER_ID, { name: 42 })).toThrow(
       expect.objectContaining({ code: 'VALIDATION_ERROR' }),
     );
   });
 
   it('throws VALIDATION_ERROR when name is empty string', () => {
-    expect(() => parseCreateAppInput({ name: '' })).toThrow(
+    expect(() => parseCreateAppInput(USER_ID, { name: '' })).toThrow(
       expect.objectContaining({ code: 'VALIDATION_ERROR' }),
     );
   });
 
   it('throws VALIDATION_ERROR when name is whitespace only', () => {
-    expect(() => parseCreateAppInput({ name: '   ' })).toThrow(
+    expect(() => parseCreateAppInput(USER_ID, { name: '   ' })).toThrow(
       expect.objectContaining({ code: 'VALIDATION_ERROR' }),
     );
   });
 
   it('throws VALIDATION_ERROR when name exceeds 100 characters', () => {
     expect(() =>
-      parseCreateAppInput({ name: 'a'.repeat(101) }),
+      parseCreateAppInput(USER_ID, { name: 'a'.repeat(101) }),
     ).toThrow(expect.objectContaining({ code: 'VALIDATION_ERROR' }));
   });
 
   it('returns empty record when body is not an object', () => {
-    expect(() => parseCreateAppInput(null)).toThrow(
+    expect(() => parseCreateAppInput(USER_ID, null)).toThrow(
       expect.objectContaining({ code: 'VALIDATION_ERROR' }),
     );
-    expect(() => parseCreateAppInput('string')).toThrow(
+    expect(() => parseCreateAppInput(USER_ID, 'string')).toThrow(
       expect.objectContaining({ code: 'VALIDATION_ERROR' }),
     );
-    expect(() => parseCreateAppInput([])).toThrow(
+    expect(() => parseCreateAppInput(USER_ID, [])).toThrow(
       expect.objectContaining({ code: 'VALIDATION_ERROR' }),
     );
   });
@@ -73,36 +75,36 @@ describe('parseCreateAppInput', () => {
 // ─── parseUpdateAppInput ─────────────────────────────────────────────────────
 
 describe('parseUpdateAppInput', () => {
-  it('returns UpdateAppInput with appId and trimmed name', () => {
-    const result = parseUpdateAppInput('app-1', { name: 'New Name' });
-    expect(result).toEqual({ appId: 'app-1', name: 'New Name' });
+  it('returns UpdateAppInput with userId, appId, and trimmed name', () => {
+    const result = parseUpdateAppInput(USER_ID, 'app-1', { name: 'New Name' });
+    expect(result).toEqual({ userId: USER_ID, appId: 'app-1', name: 'New Name' });
   });
 
-  it('returns UpdateAppInput with only appId when name is not provided', () => {
-    const result = parseUpdateAppInput('app-1', {});
-    expect(result).toEqual({ appId: 'app-1' });
+  it('returns UpdateAppInput with only userId and appId when name is not provided', () => {
+    const result = parseUpdateAppInput(USER_ID, 'app-1', {});
+    expect(result).toEqual({ userId: USER_ID, appId: 'app-1' });
   });
 
   it('does not include name key when body has no name', () => {
-    const result = parseUpdateAppInput('app-1', {});
+    const result = parseUpdateAppInput(USER_ID, 'app-1', {});
     expect('name' in result).toBe(false);
   });
 
   it('throws VALIDATION_ERROR when name is empty string', () => {
-    expect(() => parseUpdateAppInput('app-1', { name: '' })).toThrow(
+    expect(() => parseUpdateAppInput(USER_ID, 'app-1', { name: '' })).toThrow(
       expect.objectContaining({ code: 'VALIDATION_ERROR' }),
     );
   });
 
   it('throws VALIDATION_ERROR when name is whitespace only', () => {
-    expect(() => parseUpdateAppInput('app-1', { name: '   ' })).toThrow(
+    expect(() => parseUpdateAppInput(USER_ID, 'app-1', { name: '   ' })).toThrow(
       expect.objectContaining({ code: 'VALIDATION_ERROR' }),
     );
   });
 
   it('throws VALIDATION_ERROR when name exceeds 100 characters', () => {
     expect(() =>
-      parseUpdateAppInput('app-1', { name: 'b'.repeat(101) }),
+      parseUpdateAppInput(USER_ID, 'app-1', { name: 'b'.repeat(101) }),
     ).toThrow(expect.objectContaining({ code: 'VALIDATION_ERROR' }));
   });
 });

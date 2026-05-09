@@ -30,7 +30,7 @@ describe('TodoUsecase interface contract', () => {
 
   it('create resolves to a TodoEntity shape', async () => {
     const { appInteractor, usecase } = makeUsecase();
-    const app = await appInteractor.create({ name: 'Contract App' });
+    const app = await appInteractor.create({ userId: 'user-todo-usecase', name: 'Contract App' });
     const todo = await usecase.create({ appId: app.id, title: 'Contract Todo' });
     expect(todo).toMatchObject({
       id: expect.any(String),
@@ -45,14 +45,14 @@ describe('TodoUsecase interface contract', () => {
 
   it('list resolves to an array', async () => {
     const { appInteractor, usecase } = makeUsecase();
-    const app = await appInteractor.create({ name: 'List Contract App' });
+    const app = await appInteractor.create({ userId: 'user-todo-usecase', name: 'List Contract App' });
     const result = await usecase.list({ appId: app.id });
     expect(Array.isArray(result)).toBe(true);
   });
 
   it('get resolves to the todo by appId and todoId', async () => {
     const { appInteractor, usecase } = makeUsecase();
-    const app = await appInteractor.create({ name: 'Get Contract App' });
+    const app = await appInteractor.create({ userId: 'user-todo-usecase', name: 'Get Contract App' });
     const created = await usecase.create({ appId: app.id, title: 'Get Contract' });
     const found = await usecase.get({ appId: app.id, todoId: created.id });
     expect(found.id).toBe(created.id);
@@ -60,7 +60,7 @@ describe('TodoUsecase interface contract', () => {
 
   it('update resolves to the modified todo', async () => {
     const { appInteractor, usecase } = makeUsecase();
-    const app = await appInteractor.create({ name: 'Update Contract App' });
+    const app = await appInteractor.create({ userId: 'user-todo-usecase', name: 'Update Contract App' });
     const created = await usecase.create({ appId: app.id, title: 'Original' });
     const updated = await usecase.update({ appId: app.id, todoId: created.id, title: 'Updated' });
     expect(updated.title).toBe('Updated');
@@ -68,7 +68,7 @@ describe('TodoUsecase interface contract', () => {
 
   it('delete resolves to the soft-deleted todo', async () => {
     const { appInteractor, usecase } = makeUsecase();
-    const app = await appInteractor.create({ name: 'Del Contract App' });
+    const app = await appInteractor.create({ userId: 'user-todo-usecase', name: 'Del Contract App' });
     const created = await usecase.create({ appId: app.id, title: 'To Delete' });
     const deleted = await usecase.delete({ appId: app.id, todoId: created.id });
     expect(deleted.deletedAt).not.toBeNull();

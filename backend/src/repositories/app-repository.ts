@@ -5,7 +5,7 @@ import type { AppEntity } from '../models/app';
  */
 export interface AppRepository {
   save(app: AppEntity): Promise<void>;
-  listActive(): Promise<AppEntity[]>;
+  listActiveByUserId(userId: string): Promise<AppEntity[]>;
   findActiveById(id: string): Promise<AppEntity | null>;
-  existsActiveByName(name: string, excludeId?: string): Promise<boolean>;
+  existsActiveByName(name: string, userId: string, excludeId?: string): Promise<boolean>;
 }

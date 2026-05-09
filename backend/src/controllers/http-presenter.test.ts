@@ -15,6 +15,7 @@ import {
 
 const sampleApp: AppEntity = {
   id: 'app-uuid-1',
+  userId: 'user-presenter-unit',
   name: 'Test App',
   createdAt: '2024-01-01T00:00:00.000Z',
   updatedAt: '2024-01-02T00:00:00.000Z',

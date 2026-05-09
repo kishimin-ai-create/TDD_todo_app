@@ -6,9 +6,10 @@ import { createInMemoryStorage } from '../../../infrastructure/in-memory-storage
 import type { AppEntity } from '../../../models/app';
 
 const TIME = '2024-01-01T00:00:00.000Z';
+const USER_ID = 'user-repo-test';
 
 function makeApp(id: string, name: string, deletedAt: string | null = null): AppEntity {
-  return { id, name, createdAt: TIME, updatedAt: TIME, deletedAt };
+  return { id, userId: USER_ID, name, createdAt: TIME, updatedAt: TIME, deletedAt };
 }
 
 describe('AppRepository contract', () => {
@@ -51,54 +52,67 @@ describe('AppRepository contract', () => {
     });
   });
 
-  // ─── listActive ───────────────────────────────────────────────────────────
+  // ─── listActiveByUserId ───────────────────────────────────────────────────
 
-  describe('listActive', () => {
-    it('returns empty array when no entities exist', async () => {
-      expect(await repo.listActive()).toEqual([]);
+  describe('listActiveByUserId', () => {
+    it('returns empty array when no entities exist for the user', async () => {
+      expect(await repo.listActiveByUserId(USER_ID)).toEqual([]);
     });
 
-    it('returns only active (non-deleted) entities', async () => {
+    it('returns only active (non-deleted) entities for the user', async () => {
       await repo.save(makeApp('app-1', 'Active'));
       await repo.save(makeApp('app-2', 'Deleted', TIME));
-      const list = await repo.listActive();
+      const list = await repo.listActiveByUserId(USER_ID);
       expect(list).toHaveLength(1);
       expect(list[0].name).toBe('Active');
     });
 
-    it('returns all active entities', async () => {
+    it('returns all active entities for the user', async () => {
       await repo.save(makeApp('app-1', 'A'));
       await repo.save(makeApp('app-2', 'B'));
-      expect(await repo.listActive()).toHaveLength(2);
+      expect(await repo.listActiveByUserId(USER_ID)).toHaveLength(2);
+    });
+
+    it("does not include other users' apps", async () => {
+      await repo.save(makeApp('app-1', 'Mine'));
+      await repo.save({ ...makeApp('app-2', 'Theirs'), userId: 'other-user' });
+      const list = await repo.listActiveByUserId(USER_ID);
+      expect(list).toHaveLength(1);
+      expect(list[0].name).toBe('Mine');
     });
   });
 
   // ─── existsActiveByName ───────────────────────────────────────────────────
 
   describe('existsActiveByName', () => {
-    it('returns true when an active entity with the given name exists', async () => {
+    it('returns true when an active entity with the given name exists for the user', async () => {
       await repo.save(makeApp('app-1', 'My App'));
-      expect(await repo.existsActiveByName('My App')).toBe(true);
+      expect(await repo.existsActiveByName('My App', USER_ID)).toBe(true);
     });
 
     it('returns false when no entity with the name exists', async () => {
-      expect(await repo.existsActiveByName('None')).toBe(false);
+      expect(await repo.existsActiveByName('None', USER_ID)).toBe(false);
     });
 
     it('returns false when only a soft-deleted entity has the name', async () => {
       await repo.save(makeApp('app-1', 'Gone', TIME));
-      expect(await repo.existsActiveByName('Gone')).toBe(false);
+      expect(await repo.existsActiveByName('Gone', USER_ID)).toBe(false);
     });
 
     it('returns false when the only matching entity is excluded by id (self-check)', async () => {
       await repo.save(makeApp('app-1', 'Same Name'));
-      expect(await repo.existsActiveByName('Same Name', 'app-1')).toBe(false);
+      expect(await repo.existsActiveByName('Same Name', USER_ID, 'app-1')).toBe(false);
     });
 
     it('returns true when another entity (not excluded by id) has the same name', async () => {
       await repo.save(makeApp('app-1', 'Shared'));
       await repo.save(makeApp('app-2', 'Shared'));
-      expect(await repo.existsActiveByName('Shared', 'app-1')).toBe(true);
+      expect(await repo.existsActiveByName('Shared', USER_ID, 'app-1')).toBe(true);
+    });
+
+    it("returns false when only another user's app has the name", async () => {
+      await repo.save({ ...makeApp('app-1', 'Cross User'), userId: 'other-user' });
+      expect(await repo.existsActiveByName('Cross User', USER_ID)).toBe(false);
     });
   });
 });

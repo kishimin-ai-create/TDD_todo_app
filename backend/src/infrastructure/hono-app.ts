@@ -1,12 +1,15 @@
 import { Hono, type Context } from 'hono';
 import { cors } from 'hono/cors';
+import { sign, verify } from 'hono/jwt';
 import type { ContentfulStatusCode } from 'hono/utils/http-status';
 import { describeRoute, openAPIRouteHandler, resolver } from 'hono-openapi';
 import type { AppController } from '../controllers/app-controller';
 import type { TodoController } from '../controllers/todo-controller';
+import type { AuthController } from '../controllers/auth-controller';
 import type { JsonHttpResponse } from '../controllers/http-presenter';
 import {
   AppDtoSchema,
+  AuthDtoSchema,
   ErrorResponseSchema,
   SuccessResponseSchema,
   TodoDtoSchema,
@@ -17,8 +20,13 @@ const AppSuccessSchema = SuccessResponseSchema(AppDtoSchema);
 const AppListSuccessSchema = SuccessResponseSchema(z.array(AppDtoSchema));
 const TodoSuccessSchema = SuccessResponseSchema(TodoDtoSchema);
 const TodoListSuccessSchema = SuccessResponseSchema(z.array(TodoDtoSchema));
+const AuthSuccessSchema = SuccessResponseSchema(AuthDtoSchema);
 
 const errorResponses = {
+  401: {
+    description: 'Unauthorized — missing or invalid token.',
+    content: { 'application/json': { schema: resolver(ErrorResponseSchema) } },
+  },
   404: {
     description: 'Resource not found.',
     content: { 'application/json': { schema: resolver(ErrorResponseSchema) } },
@@ -37,9 +45,17 @@ const errorResponses = {
   },
 } as const;
 
+type JwtPayload = {
+  sub: string;
+  email: string;
+  exp: number;
+};
+
 type HonoAppDependencies = {
   appController: AppController;
   todoController: TodoController;
+  authController: AuthController;
+  jwtSecret: string;
 };
 
 /**
@@ -47,13 +63,14 @@ type HonoAppDependencies = {
  */
 export function createHonoApp(dependencies: HonoAppDependencies): Hono {
   const app = new Hono();
+  const jwtSecret = dependencies.jwtSecret;
 
   app.use(
     '*',
     cors({
       origin: process.env.CORS_ORIGIN ?? '*',
       allowMethods: ['GET', 'POST', 'PUT', 'DELETE', 'OPTIONS'],
-      allowHeaders: ['Content-Type'],
+      allowHeaders: ['Content-Type', 'Authorization'],
     }),
   );
 
@@ -64,6 +81,105 @@ export function createHonoApp(dependencies: HonoAppDependencies): Hono {
   });
 
   app.get('/', c => c.text('Hello Hono!'));
+
+  // ─── Auth routes (public) ──────────────────────────────────────────────────
+
+  app.post(
+    '/api/v1/auth/register',
+    describeRoute({
+      description: 'Register a new user.',
+      requestBody: {
+        required: true,
+        content: {
+          'application/json': {
+            schema: {
+              type: 'object',
+              required: ['email', 'password'],
+              properties: {
+                email: { type: 'string', format: 'email' },
+                password: { type: 'string', minLength: 8, maxLength: 72 },
+              },
+            },
+          },
+        },
+      },
+      responses: {
+        201: {
+          description: 'User registered successfully.',
+          content: { 'application/json': { schema: resolver(AuthSuccessSchema) } },
+        },
+        409: errorResponses[409],
+        422: errorResponses[422],
+        500: errorResponses[500],
+      },
+    }),
+    async c =>
+      toJsonResponse(
+        c,
+        await dependencies.authController.register(await readRequestBody(c)),
+      ),
+  );
+
+  app.post(
+    '/api/v1/auth/login',
+    describeRoute({
+      description: 'Login and receive a JWT token.',
+      requestBody: {
+        required: true,
+        content: {
+          'application/json': {
+            schema: {
+              type: 'object',
+              required: ['email', 'password'],
+              properties: {
+                email: { type: 'string', format: 'email' },
+                password: { type: 'string' },
+              },
+            },
+          },
+        },
+      },
+      responses: {
+        200: {
+          description: 'Login successful.',
+          content: { 'application/json': { schema: resolver(AuthSuccessSchema) } },
+        },
+        401: errorResponses[401],
+        422: errorResponses[422],
+        500: errorResponses[500],
+      },
+    }),
+    async c =>
+      toJsonResponse(
+        c,
+        await dependencies.authController.login(await readRequestBody(c)),
+      ),
+  );
+
+  // ─── JWT middleware for all /api/v1/apps* routes ───────────────────────────
+
+  app.use('/api/v1/apps/*', async (c, next) => {
+    const authHeader = c.req.header('Authorization');
+    if (!authHeader || !authHeader.startsWith('Bearer ')) {
+      return c.json(
+        { data: null, success: false, error: { code: 'UNAUTHORIZED', message: 'Missing or invalid authorization header' } },
+        401,
+      );
+    }
+    const token = authHeader.slice(7);
+    try {
+      const payload = await verify(token, jwtSecret, 'HS256') as JwtPayload;
+      c.set('jwtPayload', payload);
+      await next();
+    } catch {
+      return c.json(
+        { data: null, success: false, error: { code: 'UNAUTHORIZED', message: 'Invalid or expired token' } },
+        401,
+      );
+    }
+  });
+
+  // ─── App routes (protected) ────────────────────────────────────────────────
 
   app.post(
     '/api/v1/apps',
@@ -90,6 +206,7 @@ export function createHonoApp(dependencies: HonoAppDependencies): Hono {
             'application/json': { schema: resolver(AppSuccessSchema) },
           },
         },
+        401: errorResponses[401],
         409: errorResponses[409],
         422: errorResponses[422],
         500: errorResponses[500],
@@ -98,14 +215,17 @@ export function createHonoApp(dependencies: HonoAppDependencies): Hono {
     async c =>
       toJsonResponse(
         c,
-        await dependencies.appController.create(await readRequestBody(c)),
+        await dependencies.appController.create(
+          await readRequestBody(c),
+          getUserId(c),
+        ),
       ),
   );
 
   app.get(
     '/api/v1/apps',
     describeRoute({
-      description: 'List all active Apps.',
+      description: 'List all active Apps for the authenticated user.',
       responses: {
         200: {
           description: 'List of Apps retrieved successfully.',
@@ -113,10 +233,11 @@ export function createHonoApp(dependencies: HonoAppDependencies): Hono {
             'application/json': { schema: resolver(AppListSuccessSchema) },
           },
         },
+        401: errorResponses[401],
         500: errorResponses[500],
       },
     }),
-    async c => toJsonResponse(c, await dependencies.appController.list()),
+    async c => toJsonResponse(c, await dependencies.appController.list(getUserId(c))),
   );
 
   app.get(
@@ -130,6 +251,7 @@ export function createHonoApp(dependencies: HonoAppDependencies): Hono {
             'application/json': { schema: resolver(AppSuccessSchema) },
           },
         },
+        401: errorResponses[401],
         404: errorResponses[404],
         500: errorResponses[500],
       },
@@ -137,7 +259,7 @@ export function createHonoApp(dependencies: HonoAppDependencies): Hono {
     async c =>
       toJsonResponse(
         c,
-        await dependencies.appController.get(c.req.param('appId')),
+        await dependencies.appController.get(c.req.param('appId'), getUserId(c)),
       ),
   );
 
@@ -165,6 +287,7 @@ export function createHonoApp(dependencies: HonoAppDependencies): Hono {
             'application/json': { schema: resolver(AppSuccessSchema) },
           },
         },
+        401: errorResponses[401],
         404: errorResponses[404],
         409: errorResponses[409],
         422: errorResponses[422],
@@ -177,6 +300,7 @@ export function createHonoApp(dependencies: HonoAppDependencies): Hono {
         await dependencies.appController.update(
           c.req.param('appId'),
           await readRequestBody(c),
+          getUserId(c),
         ),
       ),
   );
@@ -192,6 +316,7 @@ export function createHonoApp(dependencies: HonoAppDependencies): Hono {
             'application/json': { schema: resolver(AppSuccessSchema) },
           },
         },
+        401: errorResponses[401],
         404: errorResponses[404],
         500: errorResponses[500],
       },
@@ -199,7 +324,7 @@ export function createHonoApp(dependencies: HonoAppDependencies): Hono {
     async c =>
       toJsonResponse(
         c,
-        await dependencies.appController.delete(c.req.param('appId')),
+        await dependencies.appController.delete(c.req.param('appId'), getUserId(c)),
       ),
   );
 
@@ -228,6 +353,7 @@ export function createHonoApp(dependencies: HonoAppDependencies): Hono {
             'application/json': { schema: resolver(TodoSuccessSchema) },
           },
         },
+        401: errorResponses[401],
         404: errorResponses[404],
         422: errorResponses[422],
         500: errorResponses[500],
@@ -254,6 +380,7 @@ export function createHonoApp(dependencies: HonoAppDependencies): Hono {
             'application/json': { schema: resolver(TodoListSuccessSchema) },
           },
         },
+        401: errorResponses[401],
         404: errorResponses[404],
         500: errorResponses[500],
       },
@@ -276,6 +403,7 @@ export function createHonoApp(dependencies: HonoAppDependencies): Hono {
             'application/json': { schema: resolver(TodoSuccessSchema) },
           },
         },
+        401: errorResponses[401],
         404: errorResponses[404],
         500: errorResponses[500],
       },
@@ -315,6 +443,7 @@ export function createHonoApp(dependencies: HonoAppDependencies): Hono {
             'application/json': { schema: resolver(TodoSuccessSchema) },
           },
         },
+        401: errorResponses[401],
         404: errorResponses[404],
         422: errorResponses[422],
         500: errorResponses[500],
@@ -342,6 +471,7 @@ export function createHonoApp(dependencies: HonoAppDependencies): Hono {
             'application/json': { schema: resolver(TodoSuccessSchema) },
           },
         },
+        401: errorResponses[401],
         404: errorResponses[404],
         500: errorResponses[500],
       },
@@ -373,6 +503,22 @@ export function createHonoApp(dependencies: HonoAppDependencies): Hono {
   return app;
 }
 
+/**
+ * Creates a JWT sign function bound to the given secret.
+ */
+export function createJwtSigner(
+  secret: string,
+): (userId: string, email: string) => Promise<string> {
+  return async (userId: string, email: string): Promise<string> => {
+    const payload = {
+      sub: userId,
+      email,
+      exp: Math.floor(Date.now() / 1000) + 60 * 60 * 24 * 7, // 7 days
+    };
+    return sign(payload, secret, 'HS256');
+  };
+}
+
 async function readRequestBody(context: Context): Promise<unknown> {
   try {
     return await context.req.json();
@@ -384,4 +530,9 @@ async function readRequestBody(context: Context): Promise<unknown> {
 function toJsonResponse(context: Context, response: JsonHttpResponse) {
   // status values are produced by http-presenter which only emits valid HTTP codes
   return context.json(response.body, response.status as ContentfulStatusCode);
+}
+
+function getUserId(context: Context): string {
+  const payload = context.get('jwtPayload') as JwtPayload;
+  return payload.sub;
 }

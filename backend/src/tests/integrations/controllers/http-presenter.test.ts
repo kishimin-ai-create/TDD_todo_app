@@ -9,6 +9,8 @@ import { createAppInteractor } from '../../../services/app-interactor';
 import { createTodoInteractor } from '../../../services/todo-interactor';
 import { presentApp, presentTodo } from '../../../controllers/http-presenter';
 
+const USER_ID = 'user-presenter';
+
 function setup() {
   const storage = createInMemoryStorage();
   const appRepository = createInMemoryAppRepository(storage);
@@ -22,7 +24,7 @@ describe('HttpPresenter integration', () => {
   describe('presentApp', () => {
     it('returns the correct DTO shape from a real app entity', async () => {
       const { appInteractor } = setup();
-      const app = await appInteractor.create({ name: 'Presenter Test' });
+      const app = await appInteractor.create({ userId: USER_ID, name: 'Presenter Test' });
       const dto = presentApp(app);
       expect(dto).toEqual({
         id: app.id,
@@ -34,14 +36,14 @@ describe('HttpPresenter integration', () => {
 
     it('DTO does not include deletedAt', async () => {
       const { appInteractor } = setup();
-      const app = await appInteractor.create({ name: 'No Deleted' });
+      const app = await appInteractor.create({ userId: USER_ID, name: 'No Deleted' });
       const dto = presentApp(app);
       expect(dto).not.toHaveProperty('deletedAt');
     });
 
     it('createdAt and updatedAt are ISO strings from the real entity', async () => {
       const { appInteractor } = setup();
-      const app = await appInteractor.create({ name: 'Timestamps' });
+      const app = await appInteractor.create({ userId: USER_ID, name: 'Timestamps' });
       const dto = presentApp(app);
       expect(dto.createdAt).toMatch(/^\d{4}-\d{2}-\d{2}T/);
       expect(dto.updatedAt).toMatch(/^\d{4}-\d{2}-\d{2}T/);
@@ -49,7 +51,7 @@ describe('HttpPresenter integration', () => {
 
     it('name matches what was given at creation', async () => {
       const { appInteractor } = setup();
-      const app = await appInteractor.create({ name: 'Named Right' });
+      const app = await appInteractor.create({ userId: USER_ID, name: 'Named Right' });
       expect(presentApp(app).name).toBe('Named Right');
     });
   });
@@ -57,7 +59,7 @@ describe('HttpPresenter integration', () => {
   describe('presentTodo', () => {
     it('returns the correct DTO shape from a real todo entity', async () => {
       const { appInteractor, todoInteractor } = setup();
-      const app = await appInteractor.create({ name: 'App For Todo' });
+      const app = await appInteractor.create({ userId: USER_ID, name: 'App For Todo' });
       const todo = await todoInteractor.create({ appId: app.id, title: 'My Todo' });
       const dto = presentTodo(todo);
       expect(dto).toEqual({
@@ -72,7 +74,7 @@ describe('HttpPresenter integration', () => {
 
     it('DTO does not include deletedAt', async () => {
       const { appInteractor, todoInteractor } = setup();
-      const app = await appInteractor.create({ name: 'App' });
+      const app = await appInteractor.create({ userId: USER_ID, name: 'App' });
       const todo = await todoInteractor.create({ appId: app.id, title: 'Todo' });
       const dto = presentTodo(todo);
       expect(dto).not.toHaveProperty('deletedAt');
@@ -80,21 +82,21 @@ describe('HttpPresenter integration', () => {
 
     it('appId matches the parent app', async () => {
       const { appInteractor, todoInteractor } = setup();
-      const app = await appInteractor.create({ name: 'Parent' });
+      const app = await appInteractor.create({ userId: USER_ID, name: 'Parent' });
       const todo = await todoInteractor.create({ appId: app.id, title: 'Child' });
       expect(presentTodo(todo).appId).toBe(app.id);
     });
 
     it('completed defaults to false on a freshly created todo', async () => {
       const { appInteractor, todoInteractor } = setup();
-      const app = await appInteractor.create({ name: 'App' });
+      const app = await appInteractor.create({ userId: USER_ID, name: 'App' });
       const todo = await todoInteractor.create({ appId: app.id, title: 'Fresh' });
       expect(presentTodo(todo).completed).toBe(false);
     });
 
     it('completed reflects the updated value from the real entity', async () => {
       const { appInteractor, todoInteractor } = setup();
-      const app = await appInteractor.create({ name: 'App' });
+      const app = await appInteractor.create({ userId: USER_ID, name: 'App' });
       const todo = await todoInteractor.create({ appId: app.id, title: 'Check' });
       const updated = await todoInteractor.update({ appId: app.id, todoId: todo.id, completed: true });
       expect(presentTodo(updated).completed).toBe(true);

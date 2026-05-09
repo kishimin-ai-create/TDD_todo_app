@@ -11,7 +11,7 @@ function makeAppRepository(
 ): AppRepository {
   return {
     save: vi.fn().mockResolvedValue(undefined),
-    listActive: vi.fn().mockResolvedValue([]),
+    listActiveByUserId: vi.fn().mockResolvedValue([]),
     findActiveById: vi.fn().mockResolvedValue(null),
     existsActiveByName: vi.fn().mockResolvedValue(false),
     ...overrides,

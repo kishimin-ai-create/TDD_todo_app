@@ -45,7 +45,7 @@ describe('TodoEntity', () => {
     const todoRepo = createInMemoryTodoRepository(storage);
     const appInteractor = createAppInteractor({ appRepository: appRepo, todoRepository: todoRepo });
     const todoInteractor = createTodoInteractor({ appRepository: appRepo, todoRepository: todoRepo });
-    const app = await appInteractor.create({ name: 'Shape App' });
+    const app = await appInteractor.create({ userId: 'user-todo-model', name: 'Shape App' });
     const todo = await todoInteractor.create({ appId: app.id, title: 'Shape Todo' });
     expect(typeof todo.id).toBe('string');
     expect(todo.id.length).toBeGreaterThan(0);
@@ -63,7 +63,7 @@ describe('TodoEntity', () => {
     const todoRepo = createInMemoryTodoRepository(storage);
     const appInteractor = createAppInteractor({ appRepository: appRepo, todoRepository: todoRepo });
     const todoInteractor = createTodoInteractor({ appRepository: appRepo, todoRepository: todoRepo });
-    const app = await appInteractor.create({ name: 'Del Todo App' });
+    const app = await appInteractor.create({ userId: 'user-todo-model', name: 'Del Todo App' });
     const todo = await todoInteractor.create({ appId: app.id, title: 'Del Todo' });
     const deleted = await todoInteractor.delete({ appId: app.id, todoId: todo.id });
     expect(deleted.deletedAt).not.toBeNull();

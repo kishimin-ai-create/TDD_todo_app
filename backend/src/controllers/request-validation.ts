@@ -1,11 +1,14 @@
 import { AppError } from '../models/app-error';
 import type { CreateAppInput, UpdateAppInput } from '../services/app-usecase';
 import type { CreateTodoInput, UpdateTodoInput } from '../services/todo-usecase';
+import type { RegisterInput, LoginInput } from '../services/auth-usecase';
 import {
   CreateAppRequestSchema,
   UpdateAppRequestSchema,
   CreateTodoRequestSchema,
   UpdateTodoRequestSchema,
+  RegisterRequestSchema,
+  LoginRequestSchema,
 } from './schemas';
 
 function toValidationError(issues: { message: string }[]): AppError {
@@ -18,19 +21,19 @@ function toValidationError(issues: { message: string }[]): AppError {
 /**
  * Parses and validates the create-app request body.
  */
-export function parseCreateAppInput(body: unknown): CreateAppInput {
+export function parseCreateAppInput(userId: string, body: unknown): CreateAppInput {
   const result = CreateAppRequestSchema.safeParse(body);
   if (!result.success) throw toValidationError(result.error.issues);
-  return result.data;
+  return { userId, ...result.data };
 }
 
 /**
  * Parses and validates the update-app request body.
  */
-export function parseUpdateAppInput(appId: string, body: unknown): UpdateAppInput {
+export function parseUpdateAppInput(userId: string, appId: string, body: unknown): UpdateAppInput {
   const result = UpdateAppRequestSchema.safeParse(body ?? {});
   if (!result.success) throw toValidationError(result.error.issues);
-  return { appId, ...result.data };
+  return { userId, appId, ...result.data };
 }
 
 /**
@@ -49,4 +52,22 @@ export function parseUpdateTodoInput(appId: string, todoId: string, body: unknow
   const result = UpdateTodoRequestSchema.safeParse(body ?? {});
   if (!result.success) throw toValidationError(result.error.issues);
   return { appId, todoId, ...result.data };
+}
+
+/**
+ * Parses and validates the register request body.
+ */
+export function parseRegisterInput(body: unknown): RegisterInput {
+  const result = RegisterRequestSchema.safeParse(body);
+  if (!result.success) throw toValidationError(result.error.issues);
+  return result.data;
+}
+
+/**
+ * Parses and validates the login request body.
+ */
+export function parseLoginInput(body: unknown): LoginInput {
+  const result = LoginRequestSchema.safeParse(body);
+  if (!result.success) throw toValidationError(result.error.issues);
+  return result.data;
 }

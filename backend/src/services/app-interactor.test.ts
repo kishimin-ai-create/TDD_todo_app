@@ -6,12 +6,14 @@ import { createAppInteractor } from './app-interactor';
 
 // ─── Helpers ─────────────────────────────────────────────────────────────────
 
+const USER_ID = 'user-unit';
+
 function makeAppRepository(
   overrides: Partial<AppRepository> = {},
 ): AppRepository {
   return {
     save: vi.fn().mockResolvedValue(undefined),
-    listActive: vi.fn().mockResolvedValue([]),
+    listActiveByUserId: vi.fn().mockResolvedValue([]),
     findActiveById: vi.fn().mockResolvedValue(null),
     existsActiveByName: vi.fn().mockResolvedValue(false),
     ...overrides,
@@ -51,10 +53,11 @@ describe('createAppInteractor.create', () => {
     const appRepo = makeAppRepository();
     const interactor = makeInteractor(appRepo, makeTodoRepository());
 
-    const result = await interactor.create({ name: 'My App' });
+    const result = await interactor.create({ userId: USER_ID, name: 'My App' });
 
     expect(result).toEqual({
       id: FIXED_ID,
+      userId: USER_ID,
       name: 'My App',
       createdAt: FIXED_TIME,
       updatedAt: FIXED_TIME,
@@ -69,7 +72,7 @@ describe('createAppInteractor.create', () => {
     });
     const interactor = makeInteractor(appRepo, makeTodoRepository());
 
-    await expect(interactor.create({ name: 'Existing' })).rejects.toThrow(
+    await expect(interactor.create({ userId: USER_ID, name: 'Existing' })).rejects.toThrow(
       expect.objectContaining({ code: 'CONFLICT' }),
     );
   });
@@ -80,7 +83,7 @@ describe('createAppInteractor.create', () => {
     });
     const interactor = makeInteractor(appRepo, makeTodoRepository());
 
-    await expect(interactor.create({ name: 'Existing' })).rejects.toThrow();
+    await expect(interactor.create({ userId: USER_ID, name: 'Existing' })).rejects.toThrow();
     expect(appRepo.save).not.toHaveBeenCalled();
   });
 });
@@ -90,19 +93,19 @@ describe('createAppInteractor.create', () => {
 describe('createAppInteractor.list', () => {
   it('returns the list of active apps from the repository', async () => {
     const apps = [
-      { id: '1', name: 'A', createdAt: FIXED_TIME, updatedAt: FIXED_TIME, deletedAt: null },
+      { id: '1', userId: USER_ID, name: 'A', createdAt: FIXED_TIME, updatedAt: FIXED_TIME, deletedAt: null },
     ];
-    const appRepo = makeAppRepository({ listActive: vi.fn().mockResolvedValue(apps) });
+    const appRepo = makeAppRepository({ listActiveByUserId: vi.fn().mockResolvedValue(apps) });
     const interactor = makeInteractor(appRepo, makeTodoRepository());
 
-    const result = await interactor.list();
+    const result = await interactor.list({ userId: USER_ID });
 
     expect(result).toEqual(apps);
   });
 
   it('returns an empty array when no apps exist', async () => {
     const interactor = makeInteractor(makeAppRepository(), makeTodoRepository());
-    const result = await interactor.list();
+    const result = await interactor.list({ userId: USER_ID });
     expect(result).toEqual([]);
   });
 });
@@ -110,12 +113,12 @@ describe('createAppInteractor.list', () => {
 // ─── get ─────────────────────────────────────────────────────────────────────
 
 describe('createAppInteractor.get', () => {
-  it('returns the app when found', async () => {
-    const app = { id: 'app-1', name: 'Found', createdAt: FIXED_TIME, updatedAt: FIXED_TIME, deletedAt: null };
+  it('returns the app when found and belongs to user', async () => {
+    const app = { id: 'app-1', userId: USER_ID, name: 'Found', createdAt: FIXED_TIME, updatedAt: FIXED_TIME, deletedAt: null };
     const appRepo = makeAppRepository({ findActiveById: vi.fn().mockResolvedValue(app) });
     const interactor = makeInteractor(appRepo, makeTodoRepository());
 
-    const result = await interactor.get({ appId: 'app-1' });
+    const result = await interactor.get({ userId: USER_ID, appId: 'app-1' });
 
     expect(result).toEqual(app);
   });
@@ -123,7 +126,17 @@ describe('createAppInteractor.get', () => {
   it('throws NOT_FOUND when app does not exist', async () => {
     const interactor = makeInteractor(makeAppRepository(), makeTodoRepository());
 
-    await expect(interactor.get({ appId: 'ghost' })).rejects.toThrow(
+    await expect(interactor.get({ userId: USER_ID, appId: 'ghost' })).rejects.toThrow(
+      expect.objectContaining({ code: 'NOT_FOUND' }),
+    );
+  });
+
+  it("throws NOT_FOUND when app belongs to a different user", async () => {
+    const app = { id: 'app-1', userId: 'other-user', name: 'Found', createdAt: FIXED_TIME, updatedAt: FIXED_TIME, deletedAt: null };
+    const appRepo = makeAppRepository({ findActiveById: vi.fn().mockResolvedValue(app) });
+    const interactor = makeInteractor(appRepo, makeTodoRepository());
+
+    await expect(interactor.get({ userId: USER_ID, appId: 'app-1' })).rejects.toThrow(
       expect.objectContaining({ code: 'NOT_FOUND' }),
     );
   });
@@ -133,11 +146,11 @@ describe('createAppInteractor.get', () => {
 
 describe('createAppInteractor.update', () => {
   it('saves and returns the updated app entity', async () => {
-    const existing = { id: 'app-1', name: 'Old', createdAt: FIXED_TIME, updatedAt: FIXED_TIME, deletedAt: null };
+    const existing = { id: 'app-1', userId: USER_ID, name: 'Old', createdAt: FIXED_TIME, updatedAt: FIXED_TIME, deletedAt: null };
     const appRepo = makeAppRepository({ findActiveById: vi.fn().mockResolvedValue(existing) });
     const interactor = makeInteractor(appRepo, makeTodoRepository());
 
-    const result = await interactor.update({ appId: 'app-1', name: 'New' });
+    const result = await interactor.update({ userId: USER_ID, appId: 'app-1', name: 'New' });
 
     expect(result.name).toBe('New');
     expect(result.updatedAt).toBe(FIXED_TIME);
@@ -145,11 +158,11 @@ describe('createAppInteractor.update', () => {
   });
 
   it('keeps original name when name is not provided in the update', async () => {
-    const existing = { id: 'app-1', name: 'Original', createdAt: FIXED_TIME, updatedAt: FIXED_TIME, deletedAt: null };
+    const existing = { id: 'app-1', userId: USER_ID, name: 'Original', createdAt: FIXED_TIME, updatedAt: FIXED_TIME, deletedAt: null };
     const appRepo = makeAppRepository({ findActiveById: vi.fn().mockResolvedValue(existing) });
     const interactor = makeInteractor(appRepo, makeTodoRepository());
 
-    const result = await interactor.update({ appId: 'app-1' });
+    const result = await interactor.update({ userId: USER_ID, appId: 'app-1' });
 
     expect(result.name).toBe('Original');
   });
@@ -157,20 +170,20 @@ describe('createAppInteractor.update', () => {
   it('throws NOT_FOUND when app does not exist', async () => {
     const interactor = makeInteractor(makeAppRepository(), makeTodoRepository());
 
-    await expect(interactor.update({ appId: 'ghost', name: 'X' })).rejects.toThrow(
+    await expect(interactor.update({ userId: USER_ID, appId: 'ghost', name: 'X' })).rejects.toThrow(
       expect.objectContaining({ code: 'NOT_FOUND' }),
     );
   });
 
   it('throws CONFLICT when new name is already taken by a different app', async () => {
-    const existing = { id: 'app-1', name: 'Original', createdAt: FIXED_TIME, updatedAt: FIXED_TIME, deletedAt: null };
+    const existing = { id: 'app-1', userId: USER_ID, name: 'Original', createdAt: FIXED_TIME, updatedAt: FIXED_TIME, deletedAt: null };
     const appRepo = makeAppRepository({
       findActiveById: vi.fn().mockResolvedValue(existing),
       existsActiveByName: vi.fn().mockResolvedValue(true),
     });
     const interactor = makeInteractor(appRepo, makeTodoRepository());
 
-    await expect(interactor.update({ appId: 'app-1', name: 'Taken' })).rejects.toThrow(
+    await expect(interactor.update({ userId: USER_ID, appId: 'app-1', name: 'Taken' })).rejects.toThrow(
       expect.objectContaining({ code: 'CONFLICT' }),
     );
   });
@@ -180,27 +193,27 @@ describe('createAppInteractor.update', () => {
 
 describe('createAppInteractor.delete', () => {
   it('marks the app as deleted and returns it', async () => {
-    const existing = { id: 'app-1', name: 'ToDelete', createdAt: FIXED_TIME, updatedAt: FIXED_TIME, deletedAt: null };
+    const existing = { id: 'app-1', userId: USER_ID, name: 'ToDelete', createdAt: FIXED_TIME, updatedAt: FIXED_TIME, deletedAt: null };
     const appRepo = makeAppRepository({ findActiveById: vi.fn().mockResolvedValue(existing) });
     const interactor = makeInteractor(appRepo, makeTodoRepository());
 
-    const result = await interactor.delete({ appId: 'app-1' });
+    const result = await interactor.delete({ userId: USER_ID, appId: 'app-1' });
 
     expect(result.deletedAt).toBe(FIXED_TIME);
     expect(result.id).toBe('app-1');
   });
 
   it('saves the deleted app to the repository', async () => {
-    const existing = { id: 'app-1', name: 'ToDelete', createdAt: FIXED_TIME, updatedAt: FIXED_TIME, deletedAt: null };
+    const existing = { id: 'app-1', userId: USER_ID, name: 'ToDelete', createdAt: FIXED_TIME, updatedAt: FIXED_TIME, deletedAt: null };
     const appRepo = makeAppRepository({ findActiveById: vi.fn().mockResolvedValue(existing) });
     const interactor = makeInteractor(appRepo, makeTodoRepository());
 
-    const result = await interactor.delete({ appId: 'app-1' });
+    const result = await interactor.delete({ userId: USER_ID, appId: 'app-1' });
     expect(appRepo.save).toHaveBeenCalledWith(result);
   });
 
   it('cascade-deletes all active todos belonging to the app', async () => {
-    const existing = { id: 'app-1', name: 'Cascader', createdAt: FIXED_TIME, updatedAt: FIXED_TIME, deletedAt: null };
+    const existing = { id: 'app-1', userId: USER_ID, name: 'Cascader', createdAt: FIXED_TIME, updatedAt: FIXED_TIME, deletedAt: null };
     const todos = [
       { id: 'todo-1', appId: 'app-1', title: 'T1', completed: false, createdAt: FIXED_TIME, updatedAt: FIXED_TIME, deletedAt: null },
       { id: 'todo-2', appId: 'app-1', title: 'T2', completed: false, createdAt: FIXED_TIME, updatedAt: FIXED_TIME, deletedAt: null },
@@ -211,7 +224,7 @@ describe('createAppInteractor.delete', () => {
     });
     const interactor = makeInteractor(appRepo, todoRepo);
 
-    await interactor.delete({ appId: 'app-1' });
+    await interactor.delete({ userId: USER_ID, appId: 'app-1' });
 
     expect(todoRepo.save).toHaveBeenCalledTimes(2);
     expect(todoRepo.save).toHaveBeenCalledWith(expect.objectContaining({ id: 'todo-1', deletedAt: FIXED_TIME }));
@@ -221,7 +234,7 @@ describe('createAppInteractor.delete', () => {
   it('throws NOT_FOUND when app does not exist', async () => {
     const interactor = makeInteractor(makeAppRepository(), makeTodoRepository());
 
-    await expect(interactor.delete({ appId: 'ghost' })).rejects.toThrow(
+    await expect(interactor.delete({ userId: USER_ID, appId: 'ghost' })).rejects.toThrow(
       expect.objectContaining({ code: 'NOT_FOUND' }),
     );
   });

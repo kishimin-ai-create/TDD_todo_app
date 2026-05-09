@@ -6,6 +6,7 @@ import type { TodoEntity } from '../../../models/todo';
 
 const APP: AppEntity = {
   id: 'a1',
+  userId: 'user-storage-test',
   name: 'Test App',
   createdAt: '2024-01-01T00:00:00.000Z',
   updatedAt: '2024-01-01T00:00:00.000Z',

@@ -8,17 +8,24 @@ import {
   request,
   createApp,
   createTodo,
+  registerUser,
 } from '../helpers';
 
-beforeEach(() => clearStorage());
+let token: string;
 
-// ═════════════════════════════════════════════════════════════════════════════
+beforeEach(async () => {
+  clearStorage();
+  const auth = await registerUser();
+  token = auth.token;
+});
+
+// =============================================================================
 // App Endpoints
-// ═════════════════════════════════════════════════════════════════════════════
+// =============================================================================
 
 describe('POST /api/v1/apps', () => {
   it('201: creates an app with correct response shape', async () => {
-    const res = await request('POST', '/api/v1/apps', { name: 'My App' });
+    const res = await request('POST', '/api/v1/apps', { name: 'My App' }, token);
 
     expect(res.status).toBe(201);
 
@@ -35,7 +42,7 @@ describe('POST /api/v1/apps', () => {
   });
 
   it('422: missing name field', async () => {
-    const res = await request('POST', '/api/v1/apps', {});
+    const res = await request('POST', '/api/v1/apps', {}, token);
 
     expect(res.status).toBe(422);
 
@@ -48,7 +55,7 @@ describe('POST /api/v1/apps', () => {
   });
 
   it('422: empty string name', async () => {
-    const res = await request('POST', '/api/v1/apps', { name: '' });
+    const res = await request('POST', '/api/v1/apps', { name: '' }, token);
 
     expect(res.status).toBe(422);
 
@@ -57,7 +64,7 @@ describe('POST /api/v1/apps', () => {
   });
 
   it('422: whitespace-only name', async () => {
-    const res = await request('POST', '/api/v1/apps', { name: '   ' });
+    const res = await request('POST', '/api/v1/apps', { name: '   ' }, token);
 
     expect(res.status).toBe(422);
 
@@ -67,7 +74,7 @@ describe('POST /api/v1/apps', () => {
 
   it('422: name exceeds 100 characters (101 chars)', async () => {
     const longName = 'a'.repeat(101);
-    const res = await request('POST', '/api/v1/apps', { name: longName });
+    const res = await request('POST', '/api/v1/apps', { name: longName }, token);
 
     expect(res.status).toBe(422);
 
@@ -77,7 +84,7 @@ describe('POST /api/v1/apps', () => {
 
   it('201: name at exactly 100 characters is accepted', async () => {
     const maxName = 'a'.repeat(100);
-    const res = await request('POST', '/api/v1/apps', { name: maxName });
+    const res = await request('POST', '/api/v1/apps', { name: maxName }, token);
 
     expect(res.status).toBe(201);
 
@@ -86,9 +93,9 @@ describe('POST /api/v1/apps', () => {
     expect(json.data.name).toBe(maxName);
   });
 
-  it('409: duplicate app name', async () => {
-    await request('POST', '/api/v1/apps', { name: 'Duplicate App' });
-    const res = await request('POST', '/api/v1/apps', { name: 'Duplicate App' });
+  it('409: duplicate app name for same user', async () => {
+    await request('POST', '/api/v1/apps', { name: 'Duplicate App' }, token);
+    const res = await request('POST', '/api/v1/apps', { name: 'Duplicate App' }, token);
 
     expect(res.status).toBe(409);
 
@@ -97,13 +104,26 @@ describe('POST /api/v1/apps', () => {
     expect(json.data).toBeNull();
     expect(typeof json.error.code).toBe('string');
   });
+
+  it('201: same app name is allowed for different users', async () => {
+    const auth2 = await registerUser();
+    await request('POST', '/api/v1/apps', { name: 'Shared Name' }, token);
+    const res = await request('POST', '/api/v1/apps', { name: 'Shared Name' }, auth2.token);
+
+    expect(res.status).toBe(201);
+  });
+
+  it('401: missing token', async () => {
+    const res = await request('POST', '/api/v1/apps', { name: 'Unauthorized App' });
+    expect(res.status).toBe(401);
+  });
 });
 
-// ─────────────────────────────────────────────────────────────────────────────
+// -----------------------------------------------------------------------------
 
 describe('GET /api/v1/apps', () => {
   it('200: returns an array', async () => {
-    const res = await request('GET', '/api/v1/apps');
+    const res = await request('GET', '/api/v1/apps', undefined, token);
 
     expect(res.status).toBe(200);
 
@@ -113,8 +133,8 @@ describe('GET /api/v1/apps', () => {
   });
 
   it('200: includes a previously created app', async () => {
-    const created = await createApp('Listed App');
-    const res = await request('GET', '/api/v1/apps');
+    const created = await createApp('Listed App', token);
+    const res = await request('GET', '/api/v1/apps', undefined, token);
 
     const json = await res.json() as { data: Array<{ id: string; name: string }> };
     const found = json.data.find((a) => a.id === created.id);
@@ -123,32 +143,44 @@ describe('GET /api/v1/apps', () => {
   });
 
   it('200: excludes soft-deleted apps', async () => {
-    const created = await createApp('Soon Deleted');
-    await request('DELETE', `/api/v1/apps/${created.id}`);
+    const created = await createApp('Soon Deleted', token);
+    await request('DELETE', `/api/v1/apps/${created.id}`, undefined, token);
 
-    const res = await request('GET', '/api/v1/apps');
+    const res = await request('GET', '/api/v1/apps', undefined, token);
     const json = await res.json() as { data: Array<{ id: string }> };
     const found = json.data.find((a) => a.id === created.id);
     expect(found).toBeUndefined();
   });
 
   it('200: response items do not expose deletedAt', async () => {
-    await createApp('No Leak App');
-    const res = await request('GET', '/api/v1/apps');
+    await createApp('No Leak App', token);
+    const res = await request('GET', '/api/v1/apps', undefined, token);
 
     const json = await res.json() as { data: Array<Record<string, unknown>> };
     for (const item of json.data) {
       expect(item.deletedAt).toBeUndefined();
     }
   });
+
+  it('200: only returns apps belonging to the authenticated user', async () => {
+    const auth2 = await registerUser();
+    await createApp('User1 App', token);
+    await createApp('User2 App', auth2.token);
+
+    const res = await request('GET', '/api/v1/apps', undefined, token);
+    const json = await res.json() as { data: Array<{ name: string }> };
+    const names = json.data.map((a) => a.name);
+    expect(names).toContain('User1 App');
+    expect(names).not.toContain('User2 App');
+  });
 });
 
-// ─────────────────────────────────────────────────────────────────────────────
+// -----------------------------------------------------------------------------
 
 describe('GET /api/v1/apps/:appId', () => {
   it('200: returns the app', async () => {
-    const created = await createApp('Detail App');
-    const res = await request('GET', `/api/v1/apps/${created.id}`);
+    const created = await createApp('Detail App', token);
+    const res = await request('GET', `/api/v1/apps/${created.id}`, undefined, token);
 
     expect(res.status).toBe(200);
 
@@ -161,7 +193,7 @@ describe('GET /api/v1/apps/:appId', () => {
   });
 
   it('404: app does not exist', async () => {
-    const res = await request('GET', `/api/v1/apps/${GHOST_APP_ID}`);
+    const res = await request('GET', `/api/v1/apps/${GHOST_APP_ID}`, undefined, token);
 
     expect(res.status).toBe(404);
 
@@ -171,28 +203,36 @@ describe('GET /api/v1/apps/:appId', () => {
   });
 
   it('404: soft-deleted app is not found', async () => {
-    const created = await createApp('Deleted Detail App');
-    await request('DELETE', `/api/v1/apps/${created.id}`);
+    const created = await createApp('Deleted Detail App', token);
+    await request('DELETE', `/api/v1/apps/${created.id}`, undefined, token);
 
-    const res = await request('GET', `/api/v1/apps/${created.id}`);
+    const res = await request('GET', `/api/v1/apps/${created.id}`, undefined, token);
     expect(res.status).toBe(404);
   });
 
   it('200: response does not expose deletedAt', async () => {
-    const created = await createApp('No Leak Detail');
-    const res = await request('GET', `/api/v1/apps/${created.id}`);
+    const created = await createApp('No Leak Detail', token);
+    const res = await request('GET', `/api/v1/apps/${created.id}`, undefined, token);
 
     const json = await res.json() as { data: Record<string, unknown> };
     expect(json.data.deletedAt).toBeUndefined();
   });
+
+  it('404: cannot access another user\'s app', async () => {
+    const auth2 = await registerUser();
+    const created = await createApp('Other User App', auth2.token);
+
+    const res = await request('GET', `/api/v1/apps/${created.id}`, undefined, token);
+    expect(res.status).toBe(404);
+  });
 });
 
-// ─────────────────────────────────────────────────────────────────────────────
+// -----------------------------------------------------------------------------
 
 describe('PUT /api/v1/apps/:appId', () => {
   it('200: updates the app name', async () => {
-    const created = await createApp('Old Name');
-    const res = await request('PUT', `/api/v1/apps/${created.id}`, { name: 'New Name' });
+    const created = await createApp('Old Name', token);
+    const res = await request('PUT', `/api/v1/apps/${created.id}`, { name: 'New Name' }, token);
 
     expect(res.status).toBe(200);
 
@@ -203,8 +243,8 @@ describe('PUT /api/v1/apps/:appId', () => {
   });
 
   it('422: empty name', async () => {
-    const created = await createApp('Valid Name');
-    const res = await request('PUT', `/api/v1/apps/${created.id}`, { name: '' });
+    const created = await createApp('Valid Name', token);
+    const res = await request('PUT', `/api/v1/apps/${created.id}`, { name: '' }, token);
 
     expect(res.status).toBe(422);
 
@@ -213,8 +253,8 @@ describe('PUT /api/v1/apps/:appId', () => {
   });
 
   it('422: whitespace-only name', async () => {
-    const created = await createApp('Has Name');
-    const res = await request('PUT', `/api/v1/apps/${created.id}`, { name: '   ' });
+    const created = await createApp('Has Name', token);
+    const res = await request('PUT', `/api/v1/apps/${created.id}`, { name: '   ' }, token);
 
     expect(res.status).toBe(422);
 
@@ -223,8 +263,8 @@ describe('PUT /api/v1/apps/:appId', () => {
   });
 
   it('422: name exceeds 100 characters', async () => {
-    const created = await createApp('Update Too Long');
-    const res = await request('PUT', `/api/v1/apps/${created.id}`, { name: 'b'.repeat(101) });
+    const created = await createApp('Update Too Long', token);
+    const res = await request('PUT', `/api/v1/apps/${created.id}`, { name: 'b'.repeat(101) }, token);
 
     expect(res.status).toBe(422);
 
@@ -233,7 +273,7 @@ describe('PUT /api/v1/apps/:appId', () => {
   });
 
   it('404: app does not exist', async () => {
-    const res = await request('PUT', `/api/v1/apps/${GHOST_APP_ID}`, { name: 'Ghost Update' });
+    const res = await request('PUT', `/api/v1/apps/${GHOST_APP_ID}`, { name: 'Ghost Update' }, token);
 
     expect(res.status).toBe(404);
 
@@ -242,9 +282,9 @@ describe('PUT /api/v1/apps/:appId', () => {
   });
 
   it('409: duplicate name when updating', async () => {
-    await createApp('App Alpha');
-    const beta = await createApp('App Beta');
-    const res = await request('PUT', `/api/v1/apps/${beta.id}`, { name: 'App Alpha' });
+    await createApp('App Alpha', token);
+    const beta = await createApp('App Beta', token);
+    const res = await request('PUT', `/api/v1/apps/${beta.id}`, { name: 'App Alpha' }, token);
 
     expect(res.status).toBe(409);
 
@@ -253,9 +293,9 @@ describe('PUT /api/v1/apps/:appId', () => {
   });
 
   it('200: updatedAt is later than createdAt after update', async () => {
-    const created = await createApp('Time Check');
+    const created = await createApp('Time Check', token);
     await new Promise((r) => setTimeout(r, 5));
-    const res = await request('PUT', `/api/v1/apps/${created.id}`, { name: 'Time Check Updated' });
+    const res = await request('PUT', `/api/v1/apps/${created.id}`, { name: 'Time Check Updated' }, token);
 
     const json = await res.json() as { data: { createdAt: string; updatedAt: string } };
     const createdAt = new Date(json.data.createdAt).getTime();
@@ -264,12 +304,12 @@ describe('PUT /api/v1/apps/:appId', () => {
   });
 });
 
-// ─────────────────────────────────────────────────────────────────────────────
+// -----------------------------------------------------------------------------
 
 describe('DELETE /api/v1/apps/:appId', () => {
   it('200: soft-deletes the app and returns it', async () => {
-    const created = await createApp('To Delete');
-    const res = await request('DELETE', `/api/v1/apps/${created.id}`);
+    const created = await createApp('To Delete', token);
+    const res = await request('DELETE', `/api/v1/apps/${created.id}`, undefined, token);
 
     expect(res.status).toBe(200);
 
@@ -280,24 +320,24 @@ describe('DELETE /api/v1/apps/:appId', () => {
   });
 
   it('200: deleted app no longer appears in GET /apps list', async () => {
-    const created = await createApp('Disappear App');
-    await request('DELETE', `/api/v1/apps/${created.id}`);
+    const created = await createApp('Disappear App', token);
+    await request('DELETE', `/api/v1/apps/${created.id}`, undefined, token);
 
-    const listRes = await request('GET', '/api/v1/apps');
+    const listRes = await request('GET', '/api/v1/apps', undefined, token);
     const listJson = await listRes.json() as { data: Array<{ id: string }> };
     expect(listJson.data.find((a) => a.id === created.id)).toBeUndefined();
   });
 
   it('404: deleted app returns 404 on GET detail', async () => {
-    const created = await createApp('Gone App');
-    await request('DELETE', `/api/v1/apps/${created.id}`);
+    const created = await createApp('Gone App', token);
+    await request('DELETE', `/api/v1/apps/${created.id}`, undefined, token);
 
-    const res = await request('GET', `/api/v1/apps/${created.id}`);
+    const res = await request('GET', `/api/v1/apps/${created.id}`, undefined, token);
     expect(res.status).toBe(404);
   });
 
   it('404: app does not exist', async () => {
-    const res = await request('DELETE', `/api/v1/apps/${GHOST_APP_ID}`);
+    const res = await request('DELETE', `/api/v1/apps/${GHOST_APP_ID}`, undefined, token);
 
     expect(res.status).toBe(404);
 
@@ -306,14 +346,14 @@ describe('DELETE /api/v1/apps/:appId', () => {
   });
 
   it('200: cascade-deletes associated todos', async () => {
-    const app = await createApp('Cascade App');
-    const todo = await createTodo(app.id, 'Will be cascade-deleted');
+    const testApp = await createApp('Cascade App', token);
+    const todo = await createTodo(testApp.id, 'Will be cascade-deleted', token);
 
-    await request('DELETE', `/api/v1/apps/${app.id}`);
+    await request('DELETE', `/api/v1/apps/${testApp.id}`, undefined, token);
 
     // Re-create the app so the todo route is reachable, and verify the old todo is gone
-    const app2 = await createApp('Cascade App');
-    const todoRes = await request('GET', `/api/v1/apps/${app2.id}/todos/${todo.id}`);
+    const app2 = await createApp('Cascade App', token);
+    const todoRes = await request('GET', `/api/v1/apps/${app2.id}/todos/${todo.id}`, undefined, token);
     // The todo belonged to the old appId; either 404 app or 404 todo is acceptable
     expect(todoRes.status).toBe(404);
   });
