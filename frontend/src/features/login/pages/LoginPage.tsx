@@ -22,6 +22,9 @@ export function LoginPage() {
   })
 
   const handleLogin = () => {
+    // NOTE: This is a temporary mock login that accepts any valid-format credentials.
+    // Replace with a real API call (e.g., POST /api/v1/auth/login) once the backend
+    // authentication endpoint is implemented.
     setIsAuthenticated(true)
   }
 
