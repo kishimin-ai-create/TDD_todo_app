@@ -1,20 +1,8 @@
 import { useAtom } from 'jotai'
-import { useState } from 'react'
 
 import { authAtom } from '../../../shared/auth'
 import { useNavigation } from '../../../shared/navigation'
-
-type AuthSuccessResponse = {
-  success: true
-  data: { token: string; user: { id: string; email: string } }
-}
-
-type AuthFailResponse = {
-  success: false
-  error: string
-}
-
-type AuthResponse = AuthSuccessResponse | AuthFailResponse
+import { useAuthForm } from '../hooks/useAuthForm'
 
 /**
  * Sign-up page that allows new users to create an account.
@@ -22,33 +10,12 @@ type AuthResponse = AuthSuccessResponse | AuthFailResponse
 export function SignupPage() {
   const [, setAuth] = useAtom(authAtom)
   const { goToLogin, goToAppList } = useNavigation()
-  const [email, setEmail] = useState('')
-  const [password, setPassword] = useState('')
-  const [error, setError] = useState<string | null>(null)
 
-  async function doSignup() {
-    try {
-      const response = await fetch('/api/v1/auth/signup', {
-        method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ email, password }),
-      })
-      const data = (await response.json()) as AuthResponse
-      if (!response.ok || !data.success) {
-        setError(data.success ? 'Sign up failed' : data.error)
-        return
-      }
-      setAuth(data.data)
-      goToAppList()
-    } catch {
-      setError('An unexpected error occurred')
-    }
-  }
-
-  const handleSubmit = (e: React.FormEvent) => {
-    e.preventDefault()
-    void doSignup()
-  }
+  const { email, setEmail, password, setPassword, error, handleSubmit } = useAuthForm({
+    endpoint: '/api/v1/auth/signup',
+    fallbackErrorMessage: 'Sign up failed',
+    onSuccess: (auth) => { setAuth(auth); goToAppList() },
+  })
 
   return (
     <div className="max-w-md mx-auto p-6">
