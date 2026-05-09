@@ -32,3 +32,6 @@ storybook-static
 /blob-report/
 /playwright/.cache/
 /playwright/.auth/
+
+# Test output artifacts
+test-result.json
