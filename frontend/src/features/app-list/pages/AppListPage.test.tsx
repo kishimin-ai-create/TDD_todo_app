@@ -237,15 +237,28 @@ describe('AppListPage', () => {
       await waitFor(() => expect(getWasCalled).toBe(true))
     })
 
-    it('when currentPage.name is not "app-list", then component renders nothing', () => {
-      // Arrange — render with a non-app-list page to confirm early return
+    it('when currentPage.name is "landing", then component still renders app list', () => {
+      // Arrange — auth bootstrap flow can keep page at landing while app list should be visible
       const store = createStore()
       store.set(currentPageAtom, { name: 'landing' })
 
       // Act
       renderWithProviders(<AppListPage />, { store })
 
-      // Assert — component should return null; no heading or buttons present
+      // Assert
+      expect(screen.getByText(/todo app tdd/i)).toBeInTheDocument()
+      expect(screen.getByRole('button', { name: /create app/i })).toBeInTheDocument()
+    })
+
+    it('when currentPage.name is "app-detail", then component renders nothing', () => {
+      // Arrange
+      const store = createStore()
+      store.set(currentPageAtom, { name: 'app-detail', appId: 'app-1' })
+
+      // Act
+      renderWithProviders(<AppListPage />, { store })
+
+      // Assert — component should return null on app sub-pages
       expect(screen.queryByText(/todo app tdd/i)).not.toBeInTheDocument()
       expect(screen.queryByRole('button', { name: /create app/i })).not.toBeInTheDocument()
     })
