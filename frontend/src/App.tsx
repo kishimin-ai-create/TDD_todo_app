@@ -1,16 +1,33 @@
 import { useAtom } from 'jotai'
+import { useState } from 'react'
 
 import { AppCreatePage } from './features/app-create/pages/AppCreatePage'
 import { AppDetailPage } from './features/app-detail/pages/AppDetailPage'
 import { AppEditPage } from './features/app-edit/pages/AppEditPage'
 import { AppListPage } from './features/app-list/pages/AppListPage'
+import { LoginPage } from './features/auth/pages/LoginPage'
+import { SignupPage } from './features/auth/pages/SignupPage'
+import { authAtom } from './shared/auth'
 import { currentPageAtom } from './shared/navigation'
 
 /**
  * Main app component that manages page routing state.
  */
 function App() {
+  const [auth] = useAtom(authAtom)
   const [currentPage] = useAtom(currentPageAtom)
+  const [authPage, setAuthPage] = useState<'login' | 'signup'>('login')
+
+  if (!auth) {
+    if (authPage === 'signup') {
+      return (
+        <SignupPage onGoToLogin={() => setAuthPage('login')} />
+      )
+    }
+    return (
+      <LoginPage onGoToSignup={() => setAuthPage('signup')} />
+    )
+  }
 
   return (
     <div>

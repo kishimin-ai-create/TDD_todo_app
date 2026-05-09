@@ -5,6 +5,7 @@ export type AppErrorCode =
   | 'VALIDATION_ERROR'
   | 'CONFLICT'
   | 'NOT_FOUND'
+  | 'UNAUTHORIZED'
   | 'REPOSITORY_ERROR';
 
 /**

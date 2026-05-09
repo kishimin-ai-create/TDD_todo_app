@@ -14,6 +14,8 @@ afterEach(() => {
   // @testing-library/react cannot auto-register cleanup via globalThis.afterEach.
   cleanup();
   server.resetHandlers();
+  // Clear localStorage so atomWithStorage auth state does not leak between tests.
+  localStorage.clear();
 });
 
 afterAll(() => {

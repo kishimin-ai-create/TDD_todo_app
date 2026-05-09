@@ -2,22 +2,27 @@ import { describe, it, expect } from 'vitest';
 
 import { createHonoApp } from '../../../infrastructure/hono-app';
 import { createAppController } from '../../../controllers/app-controller';
+import { createAuthController } from '../../../controllers/auth-controller';
 import { createTodoController } from '../../../controllers/todo-controller';
 import { createAppInteractor } from '../../../services/app-interactor';
+import { createAuthInteractor } from '../../../services/auth-interactor';
 import { createTodoInteractor } from '../../../services/todo-interactor';
-import { createInMemoryAppRepository, createInMemoryTodoRepository } from '../../../infrastructure/in-memory-repositories';
+import { createInMemoryAppRepository, createInMemoryTodoRepository, createInMemoryUserRepository } from '../../../infrastructure/in-memory-repositories';
 import { createInMemoryStorage } from '../../../infrastructure/in-memory-storage';
 
 function buildApp() {
   const storage = createInMemoryStorage();
   const appRepository = createInMemoryAppRepository(storage);
   const todoRepository = createInMemoryTodoRepository(storage);
+  const userRepository = createInMemoryUserRepository(storage);
   const appUsecase = createAppInteractor({ appRepository, todoRepository });
   const todoUsecase = createTodoInteractor({ appRepository, todoRepository });
+  const authUsecase = createAuthInteractor({ userRepository });
   const appController = createAppController(appUsecase);
   const todoController = createTodoController(todoUsecase);
+  const authController = createAuthController(authUsecase);
   return {
-    app: createHonoApp({ appController, todoController }),
+    app: createHonoApp({ appController, todoController, authController }),
     clearStorage: () => storage.clear(),
   };
 }

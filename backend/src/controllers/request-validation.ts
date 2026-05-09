@@ -1,4 +1,5 @@
 import { AppError } from '../models/app-error';
+import type { SignupInput, LoginInput } from '../services/auth-usecase';
 import type { CreateAppInput, UpdateAppInput } from '../services/app-usecase';
 import type { CreateTodoInput, UpdateTodoInput } from '../services/todo-usecase';
 import {
@@ -6,6 +7,8 @@ import {
   UpdateAppRequestSchema,
   CreateTodoRequestSchema,
   UpdateTodoRequestSchema,
+  SignupRequestSchema,
+  LoginRequestSchema,
 } from './schemas';
 
 function toValidationError(issues: { message: string }[]): AppError {
@@ -49,4 +52,22 @@ export function parseUpdateTodoInput(appId: string, todoId: string, body: unknow
   const result = UpdateTodoRequestSchema.safeParse(body ?? {});
   if (!result.success) throw toValidationError(result.error.issues);
   return { appId, todoId, ...result.data };
+}
+
+/**
+ * Parses and validates the signup request body.
+ */
+export function parseSignupInput(body: unknown): SignupInput {
+  const result = SignupRequestSchema.safeParse(body);
+  if (!result.success) throw toValidationError(result.error.issues);
+  return result.data;
+}
+
+/**
+ * Parses and validates the login request body.
+ */
+export function parseLoginInput(body: unknown): LoginInput {
+  const result = LoginRequestSchema.safeParse(body);
+  if (!result.success) throw toValidationError(result.error.issues);
+  return result.data;
 }

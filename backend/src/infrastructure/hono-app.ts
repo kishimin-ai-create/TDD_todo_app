@@ -3,10 +3,12 @@ import { cors } from 'hono/cors';
 import type { ContentfulStatusCode } from 'hono/utils/http-status';
 import { describeRoute, openAPIRouteHandler, resolver } from 'hono-openapi';
 import type { AppController } from '../controllers/app-controller';
+import type { AuthController } from '../controllers/auth-controller';
 import type { TodoController } from '../controllers/todo-controller';
 import type { JsonHttpResponse } from '../controllers/http-presenter';
 import {
   AppDtoSchema,
+  AuthResultDtoSchema,
   ErrorResponseSchema,
   SuccessResponseSchema,
   TodoDtoSchema,
@@ -17,6 +19,7 @@ const AppSuccessSchema = SuccessResponseSchema(AppDtoSchema);
 const AppListSuccessSchema = SuccessResponseSchema(z.array(AppDtoSchema));
 const TodoSuccessSchema = SuccessResponseSchema(TodoDtoSchema);
 const TodoListSuccessSchema = SuccessResponseSchema(z.array(TodoDtoSchema));
+const AuthSuccessSchema = SuccessResponseSchema(AuthResultDtoSchema);
 
 const errorResponses = {
   404: {
@@ -40,6 +43,7 @@ const errorResponses = {
 type HonoAppDependencies = {
   appController: AppController;
   todoController: TodoController;
+  authController: AuthController;
 };
 
 /**
@@ -64,6 +68,85 @@ export function createHonoApp(dependencies: HonoAppDependencies): Hono {
   });
 
   app.get('/', c => c.text('Hello Hono!'));
+
+  app.post(
+    '/api/v1/auth/signup',
+    describeRoute({
+      description: 'Register a new user account.',
+      requestBody: {
+        required: true,
+        content: {
+          'application/json': {
+            schema: {
+              type: 'object',
+              required: ['email', 'password'],
+              properties: {
+                email: { type: 'string', format: 'email', maxLength: 255 },
+                password: { type: 'string', minLength: 8, maxLength: 100 },
+              },
+            },
+          },
+        },
+      },
+      responses: {
+        201: {
+          description: 'User registered successfully.',
+          content: {
+            'application/json': { schema: resolver(AuthSuccessSchema) },
+          },
+        },
+        409: errorResponses[409],
+        422: errorResponses[422],
+        500: errorResponses[500],
+      },
+    }),
+    async c =>
+      toJsonResponse(
+        c,
+        await dependencies.authController.signup(await readRequestBody(c)),
+      ),
+  );
+
+  app.post(
+    '/api/v1/auth/login',
+    describeRoute({
+      description: 'Authenticate with email and password.',
+      requestBody: {
+        required: true,
+        content: {
+          'application/json': {
+            schema: {
+              type: 'object',
+              required: ['email', 'password'],
+              properties: {
+                email: { type: 'string', format: 'email' },
+                password: { type: 'string', minLength: 1 },
+              },
+            },
+          },
+        },
+      },
+      responses: {
+        200: {
+          description: 'Login successful.',
+          content: {
+            'application/json': { schema: resolver(AuthSuccessSchema) },
+          },
+        },
+        401: {
+          description: 'Invalid credentials.',
+          content: { 'application/json': { schema: resolver(ErrorResponseSchema) } },
+        },
+        422: errorResponses[422],
+        500: errorResponses[500],
+      },
+    }),
+    async c =>
+      toJsonResponse(
+        c,
+        await dependencies.authController.login(await readRequestBody(c)),
+      ),
+  );
 
   app.post(
     '/api/v1/apps',

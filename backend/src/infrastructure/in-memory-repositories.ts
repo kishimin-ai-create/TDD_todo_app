@@ -1,8 +1,10 @@
 import { AppError } from '../models/app-error';
 import type { AppEntity } from '../models/app';
 import type { TodoEntity } from '../models/todo';
+import type { UserEntity } from '../models/user';
 import type { AppRepository } from '../repositories/app-repository';
 import type { TodoRepository } from '../repositories/todo-repository';
+import type { UserRepository } from '../repositories/user-repository';
 import type { InMemoryStorage } from './in-memory-storage';
 
 /**
@@ -119,4 +121,30 @@ function withRepositoryError<T>(operation: () => T): T {
   } catch {
     throw new AppError('REPOSITORY_ERROR', 'Repository operation failed');
   }
+}
+
+/**
+ * Creates the in-memory implementation of the user repository port.
+ */
+export function createInMemoryUserRepository(
+  storage: InMemoryStorage,
+): UserRepository {
+  function save(user: UserEntity): Promise<void> {
+    return Promise.resolve().then(() =>
+      withRepositoryError(() => {
+        storage.users.set(user.id, { ...user });
+      }),
+    );
+  }
+
+  function findByEmail(email: string): Promise<UserEntity | null> {
+    return Promise.resolve().then(() =>
+      withRepositoryError(() => {
+        const user = [...storage.users.values()].find(u => u.email === email);
+        return user ? { ...user } : null;
+      }),
+    );
+  }
+
+  return { save, findByEmail };
 }

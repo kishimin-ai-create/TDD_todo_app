@@ -76,3 +76,27 @@ export const UpdateTodoRequestSchema = z.object({
   title: z.string().trim().min(1).max(200).optional(),
   completed: z.boolean().optional(),
 });
+
+/**
+ * Auth result DTO Zod schema.
+ */
+export const AuthResultDtoSchema = z.object({
+  userId: z.string(),
+  email: z.string(),
+});
+
+/**
+ * Signup request body schema.
+ */
+export const SignupRequestSchema = z.object({
+  email: z.string().trim().email().max(255),
+  password: z.string().min(8).max(100),
+});
+
+/**
+ * Login request body schema.
+ */
+export const LoginRequestSchema = z.object({
+  email: z.string().trim().email(),
+  password: z.string().min(1),
+});
