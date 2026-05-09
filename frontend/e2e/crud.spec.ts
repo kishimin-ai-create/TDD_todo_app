@@ -30,7 +30,19 @@ async function registerApiStub(page: Page) {
     const segments = url.pathname.split('/').filter(Boolean);
     const method = request.method();
 
-    if (segments[0] !== 'api' || segments[1] !== 'v1' || segments[2] !== 'apps') {
+    if (segments[0] !== 'api' || segments[1] !== 'v1') {
+      await route.continue();
+      return;
+    }
+
+    // Intercept auth routes so they never fall through to a real backend.
+    if (segments[2] === 'auth') {
+      const authUser = { id: 'user-1', email: 'test@example.com' };
+      await fulfillJson(route, 200, { success: true, data: { token: 'test-token', user: authUser } });
+      return;
+    }
+
+    if (segments[2] !== 'apps') {
       await route.continue();
       return;
     }
@@ -147,6 +159,14 @@ async function fulfillJson(route: Route, status: number, body: unknown) {
 }
 
 test('app and todo CRUD happy path @smoke', async ({ page }) => {
+  // Seed auth state in localStorage so auth-gated routes are accessible.
+  // authAtom uses jotai atomWithStorage with key 'auth'; setting it before
+  // navigation prevents a redirect to the login page when auth is required.
+  await page.addInitScript(() => {
+    const authState = { token: 'test-token', user: { id: 'user-1', email: 'test@example.com' } };
+    localStorage.setItem('auth', JSON.stringify(authState));
+  });
+
   await registerApiStub(page);
 
   await page.goto('/');
