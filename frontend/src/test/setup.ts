@@ -14,6 +14,7 @@ afterEach(() => {
   // @testing-library/react cannot auto-register cleanup via globalThis.afterEach.
   cleanup();
   server.resetHandlers();
+  sessionStorage.clear();
 });
 
 afterAll(() => {

@@ -4,6 +4,8 @@ import { AppCreatePage } from './features/app-create/pages/AppCreatePage'
 import { AppDetailPage } from './features/app-detail/pages/AppDetailPage'
 import { AppEditPage } from './features/app-edit/pages/AppEditPage'
 import { AppListPage } from './features/app-list/pages/AppListPage'
+import { LoginPage } from './features/login/pages/LoginPage'
+import { useAuth } from './shared/auth'
 import { currentPageAtom } from './shared/navigation'
 
 /**
@@ -11,6 +13,11 @@ import { currentPageAtom } from './shared/navigation'
  */
 function App() {
   const [currentPage] = useAtom(currentPageAtom)
+  const { isLoggedIn } = useAuth()
+
+  if (!isLoggedIn) {
+    return <LoginPage />
+  }
 
   return (
     <div>
