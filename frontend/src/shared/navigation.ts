@@ -1,6 +1,9 @@
 import { atom, useAtom } from 'jotai'
 
 export type Page =
+  | { name: 'landing' }
+  | { name: 'login' }
+  | { name: 'signup' }
   | { name: 'app-list' }
   | { name: 'app-detail'; appId: string }
   | { name: 'app-create' }
@@ -16,6 +19,9 @@ export function useNavigation() {
 
   return {
     currentPage,
+    goToLanding: () => setPage({ name: 'landing' }),
+    goToLogin: () => setPage({ name: 'login' }),
+    goToSignup: () => setPage({ name: 'signup' }),
     goToAppList: () => setPage({ name: 'app-list' }),
     goToAppDetail: (appId: string) => setPage({ name: 'app-detail', appId }),
     goToAppCreate: () => setPage({ name: 'app-create' }),

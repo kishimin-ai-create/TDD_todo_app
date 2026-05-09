@@ -4,10 +4,10 @@ import { createStore } from 'jotai'
 import { http, HttpResponse } from 'msw'
 import { beforeEach, describe, expect, it } from 'vitest'
 
-import { renderWithProviders } from '../../../test/renderWithProviders'
-import { server } from '../../../test/server'
 import { authAtom } from '../../../shared/auth'
 import { currentPageAtom } from '../../../shared/navigation'
+import { renderWithProviders } from '../../../test/renderWithProviders'
+import { server } from '../../../test/server'
 import { LoginPage } from './LoginPage'
 
 describe('LoginPage', () => {

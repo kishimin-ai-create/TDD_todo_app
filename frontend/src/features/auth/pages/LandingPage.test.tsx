@@ -3,8 +3,8 @@ import userEvent from '@testing-library/user-event'
 import { createStore } from 'jotai'
 import { describe, expect, it } from 'vitest'
 
-import { renderWithProviders } from '../../../test/renderWithProviders'
 import { currentPageAtom } from '../../../shared/navigation'
+import { renderWithProviders } from '../../../test/renderWithProviders'
 import { LandingPage } from './LandingPage'
 
 describe('LandingPage', () => {
