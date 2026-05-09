@@ -20,6 +20,55 @@ type UseAuthFormOptions = {
   onSuccess: (auth: AuthState) => void
 }
 
+const isRecord = (value: unknown): value is Record<string, unknown> =>
+  typeof value === 'object' && value !== null
+
+const extractErrorMessage = (value: unknown): string | null => {
+  if (!isRecord(value)) return null
+
+  if (typeof value.error === 'string' && value.error.trim().length > 0) {
+    return value.error
+  }
+
+  if (isRecord(value.error) && typeof value.error.message === 'string') {
+    const message = value.error.message.trim()
+    return message.length > 0 ? message : null
+  }
+
+  return null
+}
+
+const parseAuthResponse = (value: unknown): AuthResponse | null => {
+  if (!isRecord(value) || typeof value.success !== 'boolean') return null
+
+  if (value.success) {
+    if (!isRecord(value.data)) return null
+    if (
+      typeof value.data.token !== 'string' ||
+      !isRecord(value.data.user) ||
+      typeof value.data.user.id !== 'string' ||
+      typeof value.data.user.email !== 'string'
+    ) {
+      return null
+    }
+
+    return {
+      success: true,
+      data: {
+        token: value.data.token,
+        user: {
+          id: value.data.user.id,
+          email: value.data.user.email,
+        },
+      },
+    }
+  }
+
+  if (typeof value.error !== 'string') return null
+
+  return { success: false, error: value.error }
+}
+
 /**
  * Shared hook for authentication form state and submission logic.
  * Used by both LoginPage and SignupPage.
@@ -38,21 +87,45 @@ export function useAuthForm({ endpoint, fallbackErrorMessage, onSuccess }: UseAu
       return
     }
 
+    setError(null)
     setIsSubmitting(true)
+
     try {
       const response = await fetch(endpoint, {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({ email, password }),
       })
-      const data = (await response.json()) as AuthResponse
-      if (!response.ok || !data.success) {
-        setError(data.success ? fallbackErrorMessage : data.error)
+
+      let responseBody: unknown = null
+      const responseText = await response.text()
+      if (responseText.trim().length > 0) {
+        try {
+          responseBody = JSON.parse(responseText) as unknown
+        } catch {
+          responseBody = null
+        }
+      }
+
+      if (!response.ok) {
+        setError(extractErrorMessage(responseBody) ?? fallbackErrorMessage)
         return
       }
-      onSuccess(data.data)
+
+      const authResponse = parseAuthResponse(responseBody)
+      if (!authResponse) {
+        setError(fallbackErrorMessage)
+        return
+      }
+
+      if (!authResponse.success) {
+        setError(authResponse.error)
+        return
+      }
+
+      onSuccess(authResponse.data)
     } catch {
-      setError('An unexpected error occurred')
+      setError('Unable to reach the server. Please try again.')
     } finally {
       setIsSubmitting(false)
     }

@@ -172,5 +172,25 @@ describe('SignupPage', () => {
       // Assert
       expect(await screen.findByRole('alert')).toBeInTheDocument()
     })
+
+    it('when auth API returns non-JSON error body, then fallback error is displayed', async () => {
+      // Arrange
+      const user = userEvent.setup()
+      server.use(
+        http.post('/api/v1/auth/signup', () => new HttpResponse('Not Found', { status: 404 })),
+      )
+      renderWithProviders(<SignupPage />)
+
+      // Act
+      await user.type(
+        screen.getByRole('textbox', { name: /email/i }),
+        'test@example.com',
+      )
+      await user.type(screen.getByLabelText(/password/i), 'password123')
+      await user.click(screen.getByRole('button', { name: /sign up/i }))
+
+      // Assert
+      expect(await screen.findByRole('alert')).toHaveTextContent('Sign up failed')
+    })
   })
 })
