@@ -431,6 +431,87 @@ describe('TodoForm - create mode', () => {
       await waitFor(() => expect(onSuccess).toHaveBeenCalledOnce())
     })
 
+    it('when completed checkbox is checked and Save clicked, then POST API receives completed: true', async () => {
+      // Arrange
+      const user = userEvent.setup()
+      let requestBody: Record<string, unknown> = {}
+      server.use(
+        http.post('/api/v1/apps/app-1/todos', async ({ request }) => {
+          requestBody = await request.json() as Record<string, unknown>
+          return HttpResponse.json(
+            {
+              success: true,
+              data: {
+                id: 'new-todo',
+                appId: 'app-1',
+                title: 'Completed Todo',
+                completed: true,
+                createdAt: '2026-04-12T10:00:00Z',
+                updatedAt: '2026-04-12T10:00:00Z',
+              },
+            },
+            { status: 201 },
+          )
+        }),
+      )
+      renderWithProviders(
+        <TodoForm
+          mode="create"
+          appId="app-1"
+          onCancel={vi.fn()}
+          onSuccess={vi.fn()}
+        />,
+      )
+
+      // Act
+      await user.type(screen.getByRole('textbox', { name: /title/i }), 'Completed Todo')
+      await user.click(screen.getByLabelText(/completed/i))
+      await user.click(screen.getByRole('button', { name: /save|create/i }))
+
+      // Assert
+      await waitFor(() => expect(requestBody.completed).toBe(true))
+    })
+
+    it('when completed checkbox is unchecked and Save clicked, then POST API receives completed: false', async () => {
+      // Arrange
+      const user = userEvent.setup()
+      let requestBody: Record<string, unknown> = {}
+      server.use(
+        http.post('/api/v1/apps/app-1/todos', async ({ request }) => {
+          requestBody = await request.json() as Record<string, unknown>
+          return HttpResponse.json(
+            {
+              success: true,
+              data: {
+                id: 'new-todo',
+                appId: 'app-1',
+                title: 'Pending Todo',
+                completed: false,
+                createdAt: '2026-04-12T10:00:00Z',
+                updatedAt: '2026-04-12T10:00:00Z',
+              },
+            },
+            { status: 201 },
+          )
+        }),
+      )
+      renderWithProviders(
+        <TodoForm
+          mode="create"
+          appId="app-1"
+          onCancel={vi.fn()}
+          onSuccess={vi.fn()}
+        />,
+      )
+
+      // Act
+      await user.type(screen.getByRole('textbox', { name: /title/i }), 'Pending Todo')
+      await user.click(screen.getByRole('button', { name: /save|create/i }))
+
+      // Assert
+      await waitFor(() => expect(requestBody.completed).toBe(false))
+    })
+
     it('when POST is in flight in create mode, then Save button is disabled', async () => {
       // Arrange
       const user = userEvent.setup()

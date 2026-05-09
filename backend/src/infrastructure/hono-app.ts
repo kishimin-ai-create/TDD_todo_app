@@ -216,6 +216,7 @@ export function createHonoApp(dependencies: HonoAppDependencies): Hono {
               required: ['title'],
               properties: {
                 title: { type: 'string', minLength: 1, maxLength: 200 },
+                completed: { type: 'boolean' },
               },
             },
           },

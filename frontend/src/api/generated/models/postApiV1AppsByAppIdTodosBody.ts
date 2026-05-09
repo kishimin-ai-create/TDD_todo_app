@@ -12,4 +12,5 @@ export type PostApiV1AppsByAppIdTodosBody = {
      * @maxLength 200
      */
   title: string;
+  completed?: boolean;
 };

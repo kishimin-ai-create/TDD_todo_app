@@ -3,7 +3,7 @@ import type { TodoEntity } from '../models/todo';
 /**
  * Input type for creating a todo.
  */
-export type CreateTodoInput = { appId: string; title: string };
+export type CreateTodoInput = { appId: string; title: string; completed?: boolean };
 /**
  * Input for listing todos.
  */

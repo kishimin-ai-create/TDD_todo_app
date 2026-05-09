@@ -212,7 +212,8 @@ This document describes the REST API specifications for the TDD Todo Application
 
 ```json
 {
-  "title": "string (required, max 200 chars)"
+  "title": "string (required, max 200 chars)",
+  "completed": "boolean (optional, defaults to false)"
 }
 ```
 

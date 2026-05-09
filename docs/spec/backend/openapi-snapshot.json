@@ -81,7 +81,7 @@
             }
           },
           "409": {
-            "description": "Conflict ΓÇö unique constraint violated.",
+            "description": "Conflict \u0393\u00c7\u00f6 unique constraint violated.",
             "content": {
               "application/json": {
                 "schema": {
@@ -533,7 +533,7 @@
             }
           },
           "409": {
-            "description": "Conflict ΓÇö unique constraint violated.",
+            "description": "Conflict \u0393\u00c7\u00f6 unique constraint violated.",
             "content": {
               "application/json": {
                 "schema": {
@@ -817,6 +817,9 @@
                     "type": "string",
                     "minLength": 1,
                     "maxLength": 200
+                  },
+                  "completed": {
+                    "type": "boolean"
                   }
                 }
               }

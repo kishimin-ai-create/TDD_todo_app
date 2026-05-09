@@ -52,7 +52,7 @@ export function createTodoInteractor(
       id: generateId(),
       appId: input.appId,
       title: input.title,
-      completed: false,
+      completed: input.completed ?? false,
       createdAt: timestamp,
       updatedAt: timestamp,
       deletedAt: null,

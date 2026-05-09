@@ -6,6 +6,7 @@ import { usePostApiV1AppsByAppIdTodos, usePutApiV1AppsByAppIdTodosByTodoId } fro
 
 const schema = z.object({
   title: z.string().min(1, 'Title is required').max(200, 'Title must not exceed 200 characters'),
+  completed: z.boolean(),
 })
 
 type FormValues = z.infer<typeof schema>
@@ -29,7 +30,7 @@ type Props =
 export function TodoForm({ mode, todo, appId, onCancel, onSuccess }: Props) {
   const { register, handleSubmit, formState: { errors } } = useForm<FormValues>({
     resolver: zodResolver(schema),
-    defaultValues: { title: mode === 'edit' ? todo?.title ?? '' : '' },
+    defaultValues: { title: mode === 'edit' ? todo?.title ?? '' : '', completed: false },
   })
 
   const createMutation = usePostApiV1AppsByAppIdTodos()
@@ -45,7 +46,7 @@ export function TodoForm({ mode, todo, appId, onCancel, onSuccess }: Props) {
         onSuccess()
       }
     } else {
-      const result = await createMutation.mutateAsync({ appId, data: { title: values.title } }) as unknown
+      const result = await createMutation.mutateAsync({ appId, data: { title: values.title, completed: values.completed } }) as unknown
       const typedResult = result as { status?: number }
       if (typedResult?.status && typedResult.status >= 200 && typedResult.status < 300) {
         onSuccess()
@@ -92,7 +93,7 @@ export function TodoForm({ mode, todo, appId, onCancel, onSuccess }: Props) {
           <input
             id="todo-completed"
             type="checkbox"
-            defaultChecked={false}
+            {...register('completed')}
             aria-label="Completed"
           />
         </div>

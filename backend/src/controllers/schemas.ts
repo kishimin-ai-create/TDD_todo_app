@@ -67,6 +67,7 @@ export const UpdateAppRequestSchema = z.object({
  */
 export const CreateTodoRequestSchema = z.object({
   title: z.string().trim().min(1).max(200),
+  completed: z.boolean().optional(),
 });
 
 /**

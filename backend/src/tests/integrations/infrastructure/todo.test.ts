@@ -35,6 +35,39 @@ describe('POST /api/v1/apps/:appId/todos', () => {
     expect(json.data.deletedAt).toBeUndefined();
   });
 
+  it('201: creates a todo with completed: true when provided', async () => {
+    const createdApp = await createApp('Completed Todo Owner');
+    const res = await request('POST', `/api/v1/apps/${createdApp.id}/todos`, { title: 'Done Todo', completed: true });
+
+    expect(res.status).toBe(201);
+
+    const json = await res.json() as { data: { completed: boolean }; success: boolean };
+    expect(json.success).toBe(true);
+    expect(json.data.completed).toBe(true);
+  });
+
+  it('201: creates a todo with completed: false when explicitly set to false', async () => {
+    const createdApp = await createApp('Not Completed Owner');
+    const res = await request('POST', `/api/v1/apps/${createdApp.id}/todos`, { title: 'Pending Todo', completed: false });
+
+    expect(res.status).toBe(201);
+
+    const json = await res.json() as { data: { completed: boolean }; success: boolean };
+    expect(json.success).toBe(true);
+    expect(json.data.completed).toBe(false);
+  });
+
+  it('201: creates a todo with completed: false by default when not provided', async () => {
+    const createdApp = await createApp('Default Completed App');
+    const res = await request('POST', `/api/v1/apps/${createdApp.id}/todos`, { title: 'Default Todo' });
+
+    expect(res.status).toBe(201);
+
+    const json = await res.json() as { data: { completed: boolean }; success: boolean };
+    expect(json.success).toBe(true);
+    expect(json.data.completed).toBe(false);
+  });
+
   it('422: missing title field', async () => {
     const createdApp = await createApp('App For Missing Title');
     const res = await request('POST', `/api/v1/apps/${createdApp.id}/todos`, {});
