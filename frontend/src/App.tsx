@@ -4,13 +4,24 @@ import { AppCreatePage } from './features/app-create/pages/AppCreatePage'
 import { AppDetailPage } from './features/app-detail/pages/AppDetailPage'
 import { AppEditPage } from './features/app-edit/pages/AppEditPage'
 import { AppListPage } from './features/app-list/pages/AppListPage'
+import { LandingPage } from './features/auth/pages/LandingPage'
+import { LoginPage } from './features/auth/pages/LoginPage'
+import { SignupPage } from './features/auth/pages/SignupPage'
+import { isAuthenticatedAtom } from './shared/auth'
 import { currentPageAtom } from './shared/navigation'
 
 /**
- * Main app component that manages page routing state.
+ * Main app component that manages page routing state with authentication guard.
  */
 function App() {
   const [currentPage] = useAtom(currentPageAtom)
+  const [isAuthenticated] = useAtom(isAuthenticatedAtom)
+
+  if (!isAuthenticated) {
+    if (currentPage.name === 'login') return <LoginPage />
+    if (currentPage.name === 'signup') return <SignupPage />
+    return <LandingPage />
+  }
 
   return (
     <div>
