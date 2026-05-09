@@ -9,11 +9,16 @@ import { AppList } from '../components/AppList'
  */
 export function AppListPage() {
   const { currentPage, goToAppCreate } = useNavigation()
+  const shouldShowAppList =
+    currentPage.name === 'app-list' ||
+    currentPage.name === 'landing' ||
+    currentPage.name === 'login' ||
+    currentPage.name === 'signup'
   const { data, isLoading, isError } = useGetApiV1Apps({
-    query: { enabled: currentPage.name === 'app-list' },
+    query: { enabled: shouldShowAppList },
   })
 
-  if (currentPage.name !== 'app-list') return null
+  if (!shouldShowAppList) return null
 
   const responseData = data as unknown
   const typedData = responseData as { data?: { data?: unknown; success?: boolean } } | null
