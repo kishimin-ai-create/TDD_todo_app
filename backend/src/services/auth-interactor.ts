@@ -1,9 +1,12 @@
-import { createHash } from 'node:crypto';
+import { randomBytes, scryptSync, timingSafeEqual } from 'node:crypto';
 
 import { AppError } from '../models/app-error';
 import type { UserEntity } from '../models/user';
 import type { UserRepository } from '../repositories/user-repository';
 import type { AuthUsecase, LoginInput, SignupInput, AuthResult } from './auth-usecase';
+
+const SALT_LENGTH = 16;
+const KEY_LENGTH = 64;
 
 type AuthInteractorDependencies = {
   userRepository: UserRepository;
@@ -12,7 +15,19 @@ type AuthInteractorDependencies = {
 };
 
 function hashPassword(password: string): string {
-  return createHash('sha256').update(password).digest('hex');
+  const salt = randomBytes(SALT_LENGTH).toString('hex');
+  const key = scryptSync(password, salt, KEY_LENGTH).toString('hex');
+  return `${salt}:${key}`;
+}
+
+function verifyPassword(password: string, storedHash: string): boolean {
+  const separatorIndex = storedHash.indexOf(':');
+  if (separatorIndex === -1) return false;
+  const salt = storedHash.slice(0, separatorIndex);
+  const key = storedHash.slice(separatorIndex + 1);
+  const keyBuffer = Buffer.from(key, 'hex');
+  const derivedKey = scryptSync(password, salt, KEY_LENGTH);
+  return timingSafeEqual(keyBuffer, derivedKey);
 }
 
 /**
@@ -40,7 +55,7 @@ export function createAuthInteractor(
 
   async function login(input: LoginInput): Promise<AuthResult> {
     const user = await userRepository.findByEmail(input.email);
-    if (!user || user.passwordHash !== hashPassword(input.password)) {
+    if (!user || !verifyPassword(input.password, user.passwordHash)) {
       throw new AppError('UNAUTHORIZED', 'Invalid email or password');
     }
     return { userId: user.id, email: user.email };

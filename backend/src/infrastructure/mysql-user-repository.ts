@@ -1,7 +1,5 @@
 import type { RowDataPacket } from 'mysql2';
 
-// eslint-disable-next-line no-console
-const logError = (context: string, err: unknown) => console.error(`[mysql-user-repository] ${context}`, err);
 import { AppError } from '../models/app-error';
 import type { UserEntity } from '../models/user';
 import type { UserRepository } from '../repositories/user-repository';
@@ -38,7 +36,6 @@ export function createMysqlUserRepository(pool: MysqlPool): UserRepository {
         [user.id, user.email, user.passwordHash, new Date(user.createdAt)],
       );
     } catch (err: unknown) {
-      logError('save', err);
       throw new AppError('REPOSITORY_ERROR', 'Repository operation failed', { cause: err });
     }
   }
@@ -52,7 +49,6 @@ export function createMysqlUserRepository(pool: MysqlPool): UserRepository {
       const row = rows[0];
       return row ? rowToUser(row) : null;
     } catch (err: unknown) {
-      logError('findByEmail', err);
       throw new AppError('REPOSITORY_ERROR', 'Repository operation failed', { cause: err });
     }
   }
