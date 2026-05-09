@@ -78,7 +78,7 @@ describe('App', () => {
       })
 
       // Act
-      renderWithProviders(<App />, { store })
+      renderWithProviders(<App />, { store, initialPage: { name: 'app-list' } })
 
       // Assert
       expect(

@@ -1,8 +1,10 @@
 import { screen, waitFor } from '@testing-library/react'
 import userEvent from '@testing-library/user-event'
+import { createStore } from 'jotai'
 import { http, HttpResponse } from 'msw'
 import { describe, expect, it } from 'vitest'
 
+import { currentPageAtom } from '../../../shared/navigation'
 import { renderWithProviders } from '../../../test/renderWithProviders'
 import { server } from '../../../test/server'
 import { AppListPage } from './AppListPage'
@@ -11,7 +13,7 @@ describe('AppListPage', () => {
   describe('Happy Path - Loading & Rendering', () => {
     it('when page loads, then shows loading state initially', () => {
       // Arrange + Act
-      renderWithProviders(<AppListPage />)
+      renderWithProviders(<AppListPage />, { initialPage: { name: 'app-list' } })
 
       // Assert
       expect(screen.getByRole('status')).toBeInTheDocument()
@@ -36,7 +38,7 @@ describe('AppListPage', () => {
       )
 
       // Act
-      renderWithProviders(<AppListPage />)
+      renderWithProviders(<AppListPage />, { initialPage: { name: 'app-list' } })
 
       // Assert
       expect(await screen.findByText('My App')).toBeInTheDocument()
@@ -51,7 +53,7 @@ describe('AppListPage', () => {
       )
 
       // Act
-      renderWithProviders(<AppListPage />)
+      renderWithProviders(<AppListPage />, { initialPage: { name: 'app-list' } })
 
       // Assert — heading should appear once loading resolves
       await waitFor(() => {
@@ -72,7 +74,7 @@ describe('AppListPage', () => {
       )
 
       // Act
-      renderWithProviders(<AppListPage />)
+      renderWithProviders(<AppListPage />, { initialPage: { name: 'app-list' } })
 
       // Assert
       expect(await screen.findByText(/no apps/i)).toBeInTheDocument()
@@ -89,7 +91,7 @@ describe('AppListPage', () => {
       )
 
       // Act
-      renderWithProviders(<AppListPage />)
+      renderWithProviders(<AppListPage />, { initialPage: { name: 'app-list' } })
 
       // Assert
       expect(
@@ -105,7 +107,7 @@ describe('AppListPage', () => {
           HttpResponse.json({ success: true, data: [] }),
         ),
       )
-      renderWithProviders(<AppListPage />)
+      renderWithProviders(<AppListPage />, { initialPage: { name: 'app-list' } })
 
       // Act
       await user.click(screen.getByRole('button', { name: /create app/i }))
@@ -137,7 +139,7 @@ describe('AppListPage', () => {
           }),
         ),
       )
-      renderWithProviders(<AppListPage />)
+      renderWithProviders(<AppListPage />, { initialPage: { name: 'app-list' } })
       await screen.findByText('Clickable App')
 
       // Act
@@ -165,7 +167,7 @@ describe('AppListPage', () => {
       )
 
       // Act
-      renderWithProviders(<AppListPage />)
+      renderWithProviders(<AppListPage />, { initialPage: { name: 'app-list' } })
 
       // Assert
       expect(await screen.findByRole('alert')).toBeInTheDocument()
@@ -180,7 +182,7 @@ describe('AppListPage', () => {
       )
 
       // Act
-      renderWithProviders(<AppListPage />)
+      renderWithProviders(<AppListPage />, { initialPage: { name: 'app-list' } })
 
       // Assert
       expect(await screen.findByRole('alert')).toBeInTheDocument()
@@ -195,7 +197,7 @@ describe('AppListPage', () => {
       )
 
       // Act
-      renderWithProviders(<AppListPage />)
+      renderWithProviders(<AppListPage />, { initialPage: { name: 'app-list' } })
 
       // Assert — network errors are detected via React Query isError state
       expect(await screen.findByRole('alert')).toBeInTheDocument()
@@ -210,7 +212,7 @@ describe('AppListPage', () => {
       )
 
       // Act
-      renderWithProviders(<AppListPage />)
+      renderWithProviders(<AppListPage />, { initialPage: { name: 'app-list' } })
 
       // Assert
       expect(await screen.findByRole('alert')).toBeInTheDocument()
@@ -229,27 +231,23 @@ describe('AppListPage', () => {
       )
 
       // Act
-      renderWithProviders(<AppListPage />)
+      renderWithProviders(<AppListPage />, { initialPage: { name: 'app-list' } })
 
       // Assert — GET should be called when on app-list page
       await waitFor(() => expect(getWasCalled).toBe(true))
     })
 
     it('when currentPage.name is not "app-list", then component renders nothing', () => {
-      // Arrange — we need to render with a different page context
-      // Since AppListPage checks if currentPage.name !== 'app-list' and returns null,
-      // we verify that when rendered alone with default page (app-list), it shows content
-      server.use(
-        http.get('/api/v1/apps', () =>
-          HttpResponse.json({ success: true, data: [] }),
-        ),
-      )
+      // Arrange — render with a non-app-list page to confirm early return
+      const store = createStore()
+      store.set(currentPageAtom, { name: 'landing' })
 
       // Act
-      renderWithProviders(<AppListPage />)
+      renderWithProviders(<AppListPage />, { store })
 
-      // Assert — heading should be visible when on app-list page
-      expect(screen.getByText(/todo app tdd/i)).toBeInTheDocument()
+      // Assert — component should return null; no heading or buttons present
+      expect(screen.queryByText(/todo app tdd/i)).not.toBeInTheDocument()
+      expect(screen.queryByRole('button', { name: /create app/i })).not.toBeInTheDocument()
     })
 
     it('when apps loaded successfully, then Create button is visible', async () => {
@@ -261,7 +259,7 @@ describe('AppListPage', () => {
       )
 
       // Act
-      renderWithProviders(<AppListPage />)
+      renderWithProviders(<AppListPage />, { initialPage: { name: 'app-list' } })
 
       // Assert
       expect(await screen.findByRole('button', { name: /create app/i })).toBeInTheDocument()
@@ -278,7 +276,7 @@ describe('AppListPage', () => {
       )
 
       // Act
-      renderWithProviders(<AppListPage />)
+      renderWithProviders(<AppListPage />, { initialPage: { name: 'app-list' } })
       await waitFor(() => expect(getCallCount).toBeGreaterThan(0))
       const firstCallCount = getCallCount
 

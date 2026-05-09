@@ -11,7 +11,7 @@ export function SignupPage() {
   const [, setAuth] = useAtom(authAtom)
   const { goToLogin, goToAppList } = useNavigation()
 
-  const { email, setEmail, password, setPassword, error, handleSubmit } = useAuthForm({
+  const { email, setEmail, password, setPassword, error, isSubmitting, handleSubmit } = useAuthForm({
     endpoint: '/api/v1/auth/signup',
     fallbackErrorMessage: 'Sign up failed',
     onSuccess: (auth) => { setAuth(auth); goToAppList() },
@@ -48,12 +48,14 @@ export function SignupPage() {
         )}
         <button
           type="submit"
-          className="px-4 py-2 bg-green-500 text-white rounded hover:bg-green-600 w-full"
+          disabled={isSubmitting}
+          className="px-4 py-2 bg-green-500 text-white rounded hover:bg-green-600 w-full disabled:opacity-50"
         >
-          Sign Up
+          {isSubmitting ? 'Signing up…' : 'Sign Up'}
         </button>
       </form>
       <button
+        type="button"
         onClick={goToLogin}
         className="mt-4 px-4 py-2 border rounded w-full"
       >

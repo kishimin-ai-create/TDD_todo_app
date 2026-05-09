@@ -9,7 +9,7 @@ export type Page =
   | { name: 'app-create' }
   | { name: 'app-edit'; appId: string }
 
-export const currentPageAtom = atom<Page>({ name: 'app-list' })
+export const currentPageAtom = atom<Page>({ name: 'landing' })
 
 /**
  * Hook providing navigation functionality for app routing.

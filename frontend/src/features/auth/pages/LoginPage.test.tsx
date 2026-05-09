@@ -47,7 +47,7 @@ describe('LoginPage', () => {
   })
 
   describe('Happy Path - Successful Login', () => {
-    it('when valid credentials are submitted, then authAtom is set with the returned token', async () => {
+    it('when valid credentials are submitted, then authAtom is populated and page navigates to app-list', async () => {
       // Arrange
       const user = userEvent.setup()
       server.use(
@@ -74,40 +74,11 @@ describe('LoginPage', () => {
 
       // Assert
       await waitFor(() => {
-        const auth = store.get(authAtom)
-        expect(auth?.token).toBe('test-token')
-      })
-    })
-
-    it('when valid credentials are submitted, then authAtom contains the correct user email', async () => {
-      // Arrange
-      const user = userEvent.setup()
-      server.use(
-        http.post('/api/v1/auth/login', () =>
-          HttpResponse.json({
-            success: true,
-            data: {
-              token: 'test-token',
-              user: { id: 'user-1', email: 'test@example.com' },
-            },
-          }),
-        ),
-      )
-      const store = createStore()
-      renderWithProviders(<LoginPage />, { store })
-
-      // Act
-      await user.type(
-        screen.getByRole('textbox', { name: /email/i }),
-        'test@example.com',
-      )
-      await user.type(screen.getByLabelText(/password/i), 'password123')
-      await user.click(screen.getByRole('button', { name: /login/i }))
-
-      // Assert
-      await waitFor(() => {
-        const auth = store.get(authAtom)
-        expect(auth?.user.email).toBe('test@example.com')
+        expect(store.get(authAtom)).toEqual({
+          token: 'test-token',
+          user: { id: 'user-1', email: 'test@example.com' },
+        })
+        expect(store.get(currentPageAtom)).toEqual({ name: 'app-list' })
       })
     })
   })
@@ -180,6 +151,26 @@ describe('LoginPage', () => {
         expect(screen.getByRole('alert')).toBeInTheDocument()
       })
       expect(store.get(authAtom)).toBeNull()
+    })
+
+    it('when the network request fails, then an error alert is displayed', async () => {
+      // Arrange
+      const user = userEvent.setup()
+      server.use(
+        http.post('/api/v1/auth/login', () => HttpResponse.error()),
+      )
+      renderWithProviders(<LoginPage />)
+
+      // Act
+      await user.type(
+        screen.getByRole('textbox', { name: /email/i }),
+        'test@example.com',
+      )
+      await user.type(screen.getByLabelText(/password/i), 'password123')
+      await user.click(screen.getByRole('button', { name: /login/i }))
+
+      // Assert
+      expect(await screen.findByRole('alert')).toBeInTheDocument()
     })
   })
 })

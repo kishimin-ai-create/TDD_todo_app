@@ -42,10 +42,11 @@ return { ..., isSubmitting, handleSubmit }
 
 Useful? React with 👍 / 👎.
 
----
+Fixed. Added `isSubmitting` state to `useAuthForm`. The guard (`if (isSubmitting) return`) prevents re-entry, `setIsSubmitting(true)` fires before the fetch, and `setIsSubmitting(false)` runs in a `finally` block. Both `LoginPage` and `SignupPage` now destructure `isSubmitting` and pass `disabled={isSubmitting}` to their submit buttons. The button label also switches to `'Logging in…'` / `'Signing up…'` while in flight, giving the user clear visual feedback.
 
-**<sub><sub>![P1 Badge](https://img.shields.io/badge/P1-orange?style=flat)</sub></sub>
-Navigation buttons missing `type="button"` — implicit `type="submit"` risk**
+Disposition: **fixed** — `useAuthForm.ts`, `LoginPage.tsx`, `SignupPage.tsx`
+
+---
 
 Both `LoginPage.tsx` (line 56) and `SignupPage.tsx` (line 57) render a navigation button **outside** the `<form>` element, but without an explicit `type` attribute:
 
@@ -64,6 +65,10 @@ The HTML specification defaults `<button>` to `type="submit"`. While a button ou
 
 Useful? React with 👍 / 👎.
 
+Fixed. Added `type="button"` to the navigation button in `LoginPage.tsx` (the "Sign Up" link) and `SignupPage.tsx` (the "Login" link). Both buttons were outside `<form>`, but the explicit attribute eliminates the risk entirely and makes intent unambiguous for future layout changes.
+
+Disposition: **fixed** — `LoginPage.tsx`, `SignupPage.tsx`
+
 ---
 
 **<sub><sub>![P2 Badge](https://img.shields.io/badge/P2-yellow?style=flat)</sub></sub>
@@ -78,6 +83,10 @@ The spec explicitly requires `atomWithStorage` for E2E seed compatibility, so a 
 3. Tokens have short expiry times to limit the blast radius of theft.
 
 Useful? React with 👍 / 👎.
+
+Acknowledged. The spec requires `atomWithStorage` for E2E seed compatibility, so migration to `httpOnly` cookies is deferred. The three mitigations listed (content sanitisation, CSP header, short token expiry) have been noted for the team. No code change applied here — this is a tracked risk.
+
+Disposition: **reply only** — spec constraint prevents full mitigation; risk acknowledged and documented.
 
 ---
 
@@ -104,6 +113,10 @@ The auth gate already renders `<LandingPage />` as the final fallback, so this c
 
 Useful? React with 👍 / 👎.
 
+Fixed. `currentPageAtom` initial value changed from `{ name: 'app-list' }` to `{ name: 'landing' }` in `navigation.ts`. Since `AppListPage` gates its own render on `currentPage.name === 'app-list'`, the downstream `AppListPage.test.tsx` tests (which relied on the old default) were updated to pass `initialPage: { name: 'app-list' }` explicitly. `App.test.tsx`'s authenticated route test was updated similarly. The `renderWithProviders` helper now implements the previously declared `initialPage` option using the `Page` type from navigation.
+
+Disposition: **fixed** — `navigation.ts`, `renderWithProviders.tsx`, `AppListPage.test.tsx`, `App.test.tsx`
+
 ---
 
 **<sub><sub>![P2 Badge](https://img.shields.io/badge/P2-yellow?style=flat)</sub></sub>
@@ -124,6 +137,10 @@ if (!email.trim() || !password) {
 
 Useful? React with 👍 / 👎.
 
+Fixed. Added minimal guards at the top of `submitAuthRequest` in `useAuthForm.ts`: if `email.trim()` is empty or `password` is empty, `setError('Email and password are required')` is called and the function returns immediately — no fetch is made. This sits alongside the `isSubmitting` re-entry guard added for the P1 finding.
+
+Disposition: **fixed** — `useAuthForm.ts`
+
 ---
 
 **<sub><sub>![P3 Badge](https://img.shields.io/badge/P3-blue?style=flat)</sub></sub>
@@ -140,6 +157,10 @@ await waitFor(() => {
 ```
 
 Useful? React with 👍 / 👎.
+
+Fixed. The two separate happy-path tests in both `LoginPage.test.tsx` and `SignupPage.test.tsx` were merged into a single test that (a) asserts the full `authAtom` object with `toEqual` and (b) asserts `currentPageAtom` equals `{ name: 'app-list' }` in the same `waitFor` block, directly addressing this finding and the navigation coverage gap.
+
+Disposition: **fixed** — `LoginPage.test.tsx`, `SignupPage.test.tsx`
 
 ---
 
@@ -158,6 +179,10 @@ server.use(
 Without this test, a regression in the catch handler (e.g. a thrown expression that re-throws instead of setting state) would go undetected.
 
 Useful? React with 👍 / 👎.
+
+Fixed. Added a `'when the network request fails, then an error alert is displayed'` test to both `LoginPage.test.tsx` and `SignupPage.test.tsx`. Each test uses `HttpResponse.error()` via MSW to force a fetch rejection, then asserts that `role="alert"` appears, exercising the `catch` branch of `submitAuthRequest`.
+
+Disposition: **fixed** — `LoginPage.test.tsx`, `SignupPage.test.tsx`
 
 ---
 
@@ -178,3 +203,7 @@ await waitFor(() => {
 The same duplication exists in `SignupPage.test.tsx`. Splitting by sub-property provides no additional safety coverage and doubles the maintenance cost.
 
 Useful? React with 👍 / 👎.
+
+Fixed. The two separate happy-path tests in `LoginPage.test.tsx` (`'authAtom is set with token'` and `'authAtom contains the correct user email'`) were merged into a single test `'when valid credentials are submitted, then authAtom is populated and page navigates to app-list'`. It asserts the complete `authAtom` value with `toEqual` and also asserts `currentPageAtom` becomes `{ name: 'app-list' }`. The same merge was applied to `SignupPage.test.tsx`. This eliminates the duplicated Arrange/Act sections while simultaneously covering the navigation gap (P3 above).
+
+Disposition: **fixed** — `LoginPage.test.tsx`, `SignupPage.test.tsx`

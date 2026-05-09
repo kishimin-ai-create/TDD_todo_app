@@ -28,8 +28,17 @@ export function useAuthForm({ endpoint, fallbackErrorMessage, onSuccess }: UseAu
   const [email, setEmail] = useState('')
   const [password, setPassword] = useState('')
   const [error, setError] = useState<string | null>(null)
+  const [isSubmitting, setIsSubmitting] = useState(false)
 
   async function submitAuthRequest() {
+    if (isSubmitting) return
+
+    if (!email.trim() || !password) {
+      setError('Email and password are required')
+      return
+    }
+
+    setIsSubmitting(true)
     try {
       const response = await fetch(endpoint, {
         method: 'POST',
@@ -44,6 +53,8 @@ export function useAuthForm({ endpoint, fallbackErrorMessage, onSuccess }: UseAu
       onSuccess(data.data)
     } catch {
       setError('An unexpected error occurred')
+    } finally {
+      setIsSubmitting(false)
     }
   }
 
@@ -52,5 +63,5 @@ export function useAuthForm({ endpoint, fallbackErrorMessage, onSuccess }: UseAu
     void submitAuthRequest()
   }
 
-  return { email, setEmail, password, setPassword, error, handleSubmit }
+  return { email, setEmail, password, setPassword, error, isSubmitting, handleSubmit }
 }

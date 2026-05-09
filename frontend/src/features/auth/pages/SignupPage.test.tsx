@@ -47,7 +47,7 @@ describe('SignupPage', () => {
   })
 
   describe('Happy Path - Successful Signup', () => {
-    it('when valid registration info is submitted, then authAtom is set with the returned token', async () => {
+    it('when valid registration info is submitted, then authAtom is populated and page navigates to app-list', async () => {
       // Arrange
       const user = userEvent.setup()
       server.use(
@@ -74,40 +74,11 @@ describe('SignupPage', () => {
 
       // Assert
       await waitFor(() => {
-        const auth = store.get(authAtom)
-        expect(auth?.token).toBe('test-token')
-      })
-    })
-
-    it('when valid registration info is submitted, then authAtom contains the correct user email', async () => {
-      // Arrange
-      const user = userEvent.setup()
-      server.use(
-        http.post('/api/v1/auth/signup', () =>
-          HttpResponse.json({
-            success: true,
-            data: {
-              token: 'test-token',
-              user: { id: 'user-1', email: 'test@example.com' },
-            },
-          }),
-        ),
-      )
-      const store = createStore()
-      renderWithProviders(<SignupPage />, { store })
-
-      // Act
-      await user.type(
-        screen.getByRole('textbox', { name: /email/i }),
-        'test@example.com',
-      )
-      await user.type(screen.getByLabelText(/password/i), 'password123')
-      await user.click(screen.getByRole('button', { name: /sign up/i }))
-
-      // Assert
-      await waitFor(() => {
-        const auth = store.get(authAtom)
-        expect(auth?.user.email).toBe('test@example.com')
+        expect(store.get(authAtom)).toEqual({
+          token: 'test-token',
+          user: { id: 'user-1', email: 'test@example.com' },
+        })
+        expect(store.get(currentPageAtom)).toEqual({ name: 'app-list' })
       })
     })
   })
@@ -180,6 +151,26 @@ describe('SignupPage', () => {
         expect(screen.getByRole('alert')).toBeInTheDocument()
       })
       expect(store.get(authAtom)).toBeNull()
+    })
+
+    it('when the network request fails, then an error alert is displayed', async () => {
+      // Arrange
+      const user = userEvent.setup()
+      server.use(
+        http.post('/api/v1/auth/signup', () => HttpResponse.error()),
+      )
+      renderWithProviders(<SignupPage />)
+
+      // Act
+      await user.type(
+        screen.getByRole('textbox', { name: /email/i }),
+        'test@example.com',
+      )
+      await user.type(screen.getByLabelText(/password/i), 'password123')
+      await user.click(screen.getByRole('button', { name: /sign up/i }))
+
+      // Assert
+      expect(await screen.findByRole('alert')).toBeInTheDocument()
     })
   })
 })
