@@ -27,12 +27,28 @@ describe('SignupPage', () => {
       ).toBeInTheDocument()
     })
 
+    it('when rendered, then email input field is empty', () => {
+      // Arrange + Act
+      renderWithProviders(<SignupPage />)
+
+      // Assert
+      expect(screen.getByRole('textbox', { name: /email/i })).toHaveValue('')
+    })
+
     it('when rendered, then password input field is displayed', () => {
       // Arrange + Act
       renderWithProviders(<SignupPage />)
 
       // Assert
       expect(screen.getByLabelText(/password/i)).toBeInTheDocument()
+    })
+
+    it('when rendered, then password input field is empty', () => {
+      // Arrange + Act
+      renderWithProviders(<SignupPage />)
+
+      // Assert
+      expect(screen.getByLabelText(/password/i)).toHaveValue('')
     })
 
     it('when rendered, then Sign Up button is displayed', () => {

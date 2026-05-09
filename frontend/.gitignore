@@ -26,6 +26,9 @@ dist-ssr
 *storybook.log
 storybook-static
 
+# Test output
+test-result.json
+
 # Playwright
 /test-results/
 /playwright-report/
