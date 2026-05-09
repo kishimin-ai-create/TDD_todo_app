@@ -14,6 +14,8 @@ afterEach(() => {
   // @testing-library/react cannot auto-register cleanup via globalThis.afterEach.
   cleanup();
   server.resetHandlers();
+  // Clear persisted auth state so tests start with a fresh authentication context.
+  localStorage.clear();
 });
 
 afterAll(() => {
