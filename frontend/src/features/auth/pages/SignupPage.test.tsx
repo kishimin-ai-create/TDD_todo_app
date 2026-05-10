@@ -81,6 +81,36 @@ describe('SignupPage', () => {
         expect(store.get(currentPageAtom)).toEqual({ name: 'app-list' })
       })
     })
+
+    it('when valid registration info is submitted, then email and password input fields are cleared', async () => {
+      // Arrange
+      const user = userEvent.setup()
+      server.use(
+        http.post('/api/v1/auth/signup', () =>
+          HttpResponse.json({
+            success: true,
+            data: {
+              token: 'test-token',
+              user: { id: 'user-1', email: 'test@example.com' },
+            },
+          }),
+        ),
+      )
+      renderWithProviders(<SignupPage />)
+
+      // Act
+      const emailInput = screen.getByRole('textbox', { name: /email/i })
+      const passwordInput = screen.getByLabelText(/password/i)
+      await user.type(emailInput, 'test@example.com')
+      await user.type(passwordInput, 'password123')
+      await user.click(screen.getByRole('button', { name: /sign up/i }))
+
+      // Assert
+      await waitFor(() => {
+        expect((emailInput as HTMLInputElement).value).toBe('')
+        expect((passwordInput as HTMLInputElement).value).toBe('')
+      })
+    })
   })
 
   describe('Navigation - Login Link', () => {

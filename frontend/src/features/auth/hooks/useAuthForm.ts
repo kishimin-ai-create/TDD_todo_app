@@ -124,6 +124,8 @@ export function useAuthForm({ endpoint, fallbackErrorMessage, onSuccess }: UseAu
       }
 
       onSuccess(authResponse.data)
+      setEmail('')
+      setPassword('')
     } catch {
       setError('Unable to reach the server. Please try again.')
     } finally {
