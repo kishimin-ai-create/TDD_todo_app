@@ -28,6 +28,7 @@ export function SignupPage() {
             type="email"
             value={email}
             onChange={(e) => setEmail(e.target.value)}
+            autoComplete="off"
             className="block w-full border rounded px-3 py-2 mt-1"
           />
         </div>
@@ -38,6 +39,7 @@ export function SignupPage() {
             type="password"
             value={password}
             onChange={(e) => setPassword(e.target.value)}
+            autoComplete="new-password"
             className="block w-full border rounded px-3 py-2 mt-1"
           />
         </div>
