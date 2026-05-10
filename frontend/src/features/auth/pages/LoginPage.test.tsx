@@ -44,6 +44,24 @@ describe('LoginPage', () => {
         screen.getByRole('button', { name: /login/i }),
       ).toBeInTheDocument()
     })
+
+    it('when rendered, then email input has autoComplete set to off to prevent browser autofill', () => {
+      // Arrange + Act
+      renderWithProviders(<LoginPage />)
+
+      // Assert
+      const emailInput = screen.getByRole('textbox', { name: /email/i })
+      expect(emailInput).toHaveAttribute('autocomplete', 'off')
+    })
+
+    it('when rendered, then password input has autoComplete set to off to prevent browser autofill', () => {
+      // Arrange + Act
+      renderWithProviders(<LoginPage />)
+
+      // Assert
+      const passwordInput = screen.getByLabelText(/password/i)
+      expect(passwordInput).toHaveAttribute('autocomplete', 'off')
+    })
   })
 
   describe('Happy Path - Successful Login', () => {
