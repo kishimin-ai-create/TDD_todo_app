@@ -44,6 +44,24 @@ describe('SignupPage', () => {
         screen.getByRole('button', { name: /sign up/i }),
       ).toBeInTheDocument()
     })
+
+    it('when rendered, then email input value is empty initially', () => {
+      // Arrange + Act
+      renderWithProviders(<SignupPage />)
+
+      // Assert
+      const emailInput = screen.getByRole('textbox', { name: /email/i })
+      expect((emailInput as HTMLInputElement).value).toBe('')
+    })
+
+    it('when rendered, then password input value is empty initially', () => {
+      // Arrange + Act
+      renderWithProviders(<SignupPage />)
+
+      // Assert
+      const passwordInput = screen.getByLabelText(/password/i)
+      expect((passwordInput as HTMLInputElement).value).toBe('')
+    })
   })
 
   describe('Happy Path - Successful Signup', () => {
@@ -221,6 +239,64 @@ describe('SignupPage', () => {
 
       // Assert
       expect(await screen.findByRole('alert')).toHaveTextContent('Sign up failed')
+    })
+
+    it('when password is whitespace only, then error is displayed without calling API', async () => {
+      // Arrange
+      const user = userEvent.setup()
+      let apiWasCalled = false
+      server.use(
+        http.post('/api/v1/auth/signup', () => {
+          apiWasCalled = true
+          return HttpResponse.json({ success: false, error: 'Should not be called' })
+        }),
+      )
+      renderWithProviders(<SignupPage />)
+
+      // Act
+      await user.type(
+        screen.getByRole('textbox', { name: /email/i }),
+        'test@example.com',
+      )
+      await user.type(screen.getByLabelText(/password/i), '        ')
+      await user.click(screen.getByRole('button', { name: /sign up/i }))
+
+      // Assert
+      expect(await screen.findByRole('alert')).toBeInTheDocument()
+      expect(apiWasCalled).toBe(false)
+    })
+
+    it('when password has leading and trailing whitespace, then password is trimmed before sending to API', async () => {
+      // Arrange
+      const user = userEvent.setup()
+      let capturedPassword: string | null = null
+      server.use(
+        http.post('/api/v1/auth/signup', async (req) => {
+          const body = await req.request.json() as { password?: string }
+          capturedPassword = body.password ?? null
+          return HttpResponse.json({
+            success: true,
+            data: {
+              token: 'test-token',
+              user: { id: 'user-1', email: 'test@example.com' },
+            },
+          })
+        }),
+      )
+      renderWithProviders(<SignupPage />)
+
+      // Act
+      await user.type(
+        screen.getByRole('textbox', { name: /email/i }),
+        'test@example.com',
+      )
+      await user.type(screen.getByLabelText(/password/i), ' password123 ')
+      await user.click(screen.getByRole('button', { name: /sign up/i }))
+
+      // Assert
+      await waitFor(() => {
+        expect(capturedPassword).toBe('password123')
+      })
     })
   })
 })

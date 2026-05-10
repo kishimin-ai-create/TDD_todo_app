@@ -82,7 +82,7 @@ export function useAuthForm({ endpoint, fallbackErrorMessage, onSuccess }: UseAu
   async function submitAuthRequest() {
     if (isSubmitting) return
 
-    if (!email.trim() || !password) {
+    if (!email.trim() || !password.trim()) {
       setError('Email and password are required')
       return
     }
@@ -94,7 +94,7 @@ export function useAuthForm({ endpoint, fallbackErrorMessage, onSuccess }: UseAu
       const response = await fetch(endpoint, {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ email, password }),
+        body: JSON.stringify({ email: email.trim(), password: password.trim() }),
       })
 
       let responseBody: unknown = null
