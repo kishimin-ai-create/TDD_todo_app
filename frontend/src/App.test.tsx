@@ -1,4 +1,5 @@
-import { screen } from '@testing-library/react'
+import { screen, waitFor } from '@testing-library/react'
+import userEvent from '@testing-library/user-event'
 import { createStore } from 'jotai'
 import { http, HttpResponse } from 'msw'
 import { beforeEach, describe, expect, it } from 'vitest'
@@ -60,6 +61,58 @@ describe('App', () => {
       expect(
         screen.getByRole('button', { name: /sign up/i }),
       ).toBeInTheDocument()
+    })
+
+    it('when switched between Signup and Login pages, then form fields remain independent', async () => {
+      // Arrange
+      const user = userEvent.setup()
+      const store = createStore()
+      store.set(currentPageAtom, { name: 'signup' })
+
+      // Act: Render SignupPage
+      renderWithProviders(<App />, { store })
+      
+      // Fill in SignupPage form
+      const signupEmailInput = screen.getByRole('textbox', { name: /email/i })
+      const signupPasswordInput = screen.getByLabelText(/password/i)
+      
+      await user.type(signupEmailInput, 'signup@example.com')
+      await user.type(signupPasswordInput, 'signuppassword123')
+      
+      expect(signupEmailInput).toHaveValue('signup@example.com')
+      expect(signupPasswordInput).toHaveValue('signuppassword123')
+      
+      // Switch to LoginPage
+      store.set(currentPageAtom, { name: 'login' })
+      
+      // Wait for React to re-render and update DOM
+      await waitFor(() => {
+        const loginEmailInput = screen.getByRole('textbox', { name: /email/i })
+        const loginPasswordInput = screen.getByLabelText(/password/i)
+        expect(loginEmailInput).toHaveValue('')
+        expect(loginPasswordInput).toHaveValue('')
+      })
+      
+      // Fill in LoginPage form
+      const loginEmailInput = screen.getByRole('textbox', { name: /email/i })
+      const loginPasswordInput = screen.getByLabelText(/password/i)
+      
+      await user.type(loginEmailInput, 'login@example.com')
+      await user.type(loginPasswordInput, 'loginpassword123')
+      
+      expect(loginEmailInput).toHaveValue('login@example.com')
+      expect(loginPasswordInput).toHaveValue('loginpassword123')
+      
+      // Switch back to SignupPage
+      store.set(currentPageAtom, { name: 'signup' })
+      
+      // Wait for React to re-render and update DOM
+      await waitFor(() => {
+        const backToSignupEmailInput = screen.getByRole('textbox', { name: /email/i })
+        const backToSignupPasswordInput = screen.getByLabelText(/password/i)
+        expect(backToSignupEmailInput).toHaveValue('')
+        expect(backToSignupPasswordInput).toHaveValue('')
+      })
     })
   })
 

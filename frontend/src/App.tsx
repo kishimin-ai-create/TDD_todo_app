@@ -18,8 +18,8 @@ function App() {
   const [currentPage] = useAtom(currentPageAtom)
 
   if (!auth) {
-    if (currentPage.name === 'signup') return <SignupPage />
-    if (currentPage.name === 'login') return <LoginPage />
+    if (currentPage.name === 'signup') return <SignupPage key="signup" />
+    if (currentPage.name === 'login') return <LoginPage key="login" />
     return <LandingPage />
   }
 
