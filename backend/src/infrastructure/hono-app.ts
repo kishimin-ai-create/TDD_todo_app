@@ -2,6 +2,7 @@ import { Hono, type Context } from 'hono';
 import { cors } from 'hono/cors';
 import type { ContentfulStatusCode } from 'hono/utils/http-status';
 import { describeRoute, openAPIRouteHandler, resolver } from 'hono-openapi';
+import { randomUUID } from 'node:crypto';
 import type { AppController } from '../controllers/app-controller';
 import type { TodoController } from '../controllers/todo-controller';
 import type { JsonHttpResponse } from '../controllers/http-presenter';
@@ -17,6 +18,7 @@ const AppSuccessSchema = SuccessResponseSchema(AppDtoSchema);
 const AppListSuccessSchema = SuccessResponseSchema(z.array(AppDtoSchema));
 const TodoSuccessSchema = SuccessResponseSchema(TodoDtoSchema);
 const TodoListSuccessSchema = SuccessResponseSchema(z.array(TodoDtoSchema));
+const EMAIL_RE = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
 
 const errorResponses = {
   404: {
@@ -57,13 +59,45 @@ export function createHonoApp(dependencies: HonoAppDependencies): Hono {
     }),
   );
 
-  // eslint-disable-next-line no-console
   app.onError((err, c) => {
+    // eslint-disable-next-line no-console
     console.error('[unhandled error]', err);
     return c.json({ data: null, success: false, error: { code: 'INTERNAL_ERROR', message: 'Internal server error' } }, 500);
   });
 
   app.get('/', c => c.text('Hello Hono!'));
+
+  app.post('/api/v1/auth/signup', async c => {
+    const parsed = parseSignupInput(await readRequestBody(c));
+
+    if (!parsed.success) {
+      return c.json(
+        {
+          data: null,
+          success: false,
+          error: {
+            code: 'VALIDATION_ERROR',
+            message: parsed.message,
+          },
+        },
+        422,
+      );
+    }
+
+    return c.json(
+      {
+        success: true,
+        data: {
+          token: randomUUID(),
+          user: {
+            id: randomUUID(),
+            email: parsed.email,
+          },
+        },
+      },
+      201,
+    );
+  });
 
   app.post(
     '/api/v1/apps',
@@ -384,4 +418,32 @@ async function readRequestBody(context: Context): Promise<unknown> {
 function toJsonResponse(context: Context, response: JsonHttpResponse) {
   // status values are produced by http-presenter which only emits valid HTTP codes
   return context.json(response.body, response.status as ContentfulStatusCode);
+}
+
+function parseSignupInput(body: unknown):
+  | { success: true; email: string }
+  | { success: false; message: string } {
+  if (typeof body !== 'object' || body === null) {
+    return { success: false, message: 'Email and password are required.' };
+  }
+
+  const { email, password } = body as {
+    email?: unknown;
+    password?: unknown;
+  };
+
+  if (typeof email !== 'string' || typeof password !== 'string') {
+    return { success: false, message: 'Email and password are required.' };
+  }
+
+  const normalizedEmail = email.trim();
+  if (!EMAIL_RE.test(normalizedEmail)) {
+    return { success: false, message: 'Please enter a valid email address.' };
+  }
+
+  if (password.length < 8) {
+    return { success: false, message: 'Password must be at least 8 characters.' };
+  }
+
+  return { success: true, email: normalizedEmail };
 }
