@@ -1,6 +1,7 @@
 import { useState } from 'react'
 
 import type { AuthState } from '../../../shared/auth'
+import { API_BASE_URL } from '../../../shared/config'
 
 type AuthSuccessResponse = {
   success: true
@@ -97,7 +98,7 @@ export function useAuthForm({ endpoint, fallbackErrorMessage, onSuccess }: UseAu
     setIsSubmitting(true)
 
     try {
-      const response = await fetch(endpoint, {
+      const response = await fetch(`${API_BASE_URL}${endpoint}`, {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({ email: email.trim(), password: password.trim() }),
