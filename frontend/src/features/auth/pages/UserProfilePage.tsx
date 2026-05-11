@@ -77,7 +77,7 @@ export function UserProfilePage() {
             type="text"
             value={email}
             onChange={(e) => setEmail(e.target.value)}
-            autoComplete="off"
+            autoComplete="email"
             className="block w-full border rounded px-3 py-2 mt-1"
           />
         </div>
@@ -88,7 +88,7 @@ export function UserProfilePage() {
             type="password"
             value={newPassword}
             onChange={(e) => setNewPassword(e.target.value)}
-            autoComplete="off"
+            autoComplete="new-password"
             className="block w-full border rounded px-3 py-2 mt-1"
           />
         </div>
@@ -100,7 +100,7 @@ export function UserProfilePage() {
               type="password"
               value={currentPassword}
               onChange={(e) => setCurrentPassword(e.target.value)}
-              autoComplete="off"
+              autoComplete="current-password"
               className="block w-full border rounded px-3 py-2 mt-1"
             />
           </div>
