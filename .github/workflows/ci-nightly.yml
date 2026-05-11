@@ -85,6 +85,7 @@ jobs:
           PLAYWRIGHT_BASE_URL: http://localhost:4173
 
       - name: Run large E2E tests
+        if: always()
         run: npm run test:e2e:large
         env:
           RUN_VISUAL_TESTS: 1

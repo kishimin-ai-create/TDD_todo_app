@@ -1,5 +1,5 @@
-import { useState } from 'react'
 import { useAtom } from 'jotai'
+import { useState } from 'react'
 
 import { authAtom } from '../../../shared/auth'
 import { useNavigation } from '../../../shared/navigation'
@@ -69,7 +69,7 @@ export function UserProfilePage() {
         ← 戻る
       </button>
       <h1 className="text-2xl font-bold mb-6">プロフィール編集</h1>
-      <form onSubmit={handleSubmit}>
+      <form onSubmit={(e) => { handleSubmit(e).catch(() => { /* handled inside */ }) }}>
         <div className="mb-4">
           <label htmlFor="email">Email</label>
           <input
