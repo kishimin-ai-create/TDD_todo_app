@@ -8,8 +8,9 @@ import { LogoutButton } from './features/auth/components/LogoutButton'
 import { LandingPage } from './features/auth/pages/LandingPage'
 import { LoginPage } from './features/auth/pages/LoginPage'
 import { SignupPage } from './features/auth/pages/SignupPage'
+import { UserProfilePage } from './features/auth/pages/UserProfilePage'
 import { authAtom } from './shared/auth'
-import { currentPageAtom } from './shared/navigation'
+import { currentPageAtom, useNavigation } from './shared/navigation'
 
 /**
  * Main app component that manages page routing and authentication state.
@@ -17,6 +18,7 @@ import { currentPageAtom } from './shared/navigation'
 function App() {
   const [auth] = useAtom(authAtom)
   const [currentPage] = useAtom(currentPageAtom)
+  const { goToUserProfile } = useNavigation()
 
   if (!auth) {
     if (currentPage.name === 'signup') return <SignupPage key="signup" />
@@ -24,9 +26,16 @@ function App() {
     return <LandingPage />
   }
 
+  if (currentPage.name === 'user-profile') {
+    return <UserProfilePage />
+  }
+
   return (
     <div>
       <LogoutButton />
+      <button type="button" onClick={goToUserProfile}>
+        プロフィール
+      </button>
       <AppListPage />
       {currentPage.name === 'app-detail' && (
         <AppDetailPage appId={currentPage.appId} />

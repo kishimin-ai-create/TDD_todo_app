@@ -13,6 +13,7 @@ import {
   TodoDtoSchema,
 } from '../controllers/schemas';
 import { z } from 'zod';
+import { parseUpdateUserProfileInput } from './user-profile-validation';
 
 const AppSuccessSchema = SuccessResponseSchema(AppDtoSchema);
 const AppListSuccessSchema = SuccessResponseSchema(z.array(AppDtoSchema));
@@ -67,8 +68,7 @@ export function createHonoApp(dependencies: HonoAppDependencies): Hono {
 
   app.get('/', c => c.text('Hello Hono!'));
 
-  app.post('/api/v1/auth/signup', async c => {
-    const parsed = parseSignupInput(await readRequestBody(c));
+  app.post('/api/v1/auth/signup', async c => {    const parsed = parseSignupInput(await readRequestBody(c));
 
     if (!parsed.success) {
       return c.json(
@@ -96,6 +96,30 @@ export function createHonoApp(dependencies: HonoAppDependencies): Hono {
         },
       },
       201,
+    );
+  });
+
+  app.put('/api/v1/users/:userId', async c => {
+    const parsed = parseUpdateUserProfileInput(await readRequestBody(c));
+    const userId = c.req.param('userId');
+
+    if (!parsed.success) {
+      return c.json(
+        {
+          success: false,
+          data: null,
+          error: { code: 'VALIDATION_ERROR', message: parsed.message },
+        },
+        422,
+      );
+    }
+
+    return c.json(
+      {
+        success: true,
+        data: { id: userId, email: parsed.email },
+      },
+      200,
     );
   });
 
