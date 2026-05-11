@@ -5,7 +5,7 @@ import { http, HttpResponse } from 'msw'
 import { beforeEach, describe, expect, it } from 'vitest'
 
 import { authAtom } from '../../../shared/auth'
-import { currentPageAtom } from '../../../shared/navigation'
+import { currentPageAtom, type Page } from '../../../shared/navigation'
 import { renderWithProviders } from '../../../test/renderWithProviders'
 import { server } from '../../../test/server'
 import { UserProfilePage } from './UserProfilePage'
@@ -328,7 +328,7 @@ describe('UserProfilePage', () => {
       // Arrange
       const user = userEvent.setup()
       const store = createStore()
-      store.set(currentPageAtom, { name: 'user-profile' } as Parameters<typeof store.set>[1])
+      store.set(currentPageAtom, { name: 'user-profile' } as Page)
       store.set(authAtom, MOCK_AUTH)
       renderWithProviders(<UserProfilePage />, { store })
 
