@@ -7,7 +7,7 @@ services:
     staticPublishPath: frontend/dist
     envVars:
       - key: VITE_API_BASE_URL
-        value: https://tdd-todo-app-backend.onrender.com
+        sync: false
     routes:
       - type: rewrite
         source: /*
