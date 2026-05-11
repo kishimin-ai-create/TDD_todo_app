@@ -71,7 +71,7 @@ export function createHonoApp(dependencies: HonoAppDependencies): Hono {
   app.get('/', c => c.text('Hello Hono!'));
 
   app.post('/api/v1/auth/signup', async c => {
-    const parsed = parseSignupInput(await readRequestBody(c));
+    const parsed = parseAuthCredentials(await readRequestBody(c));
 
     if (!parsed.success) {
       return c.json(
@@ -117,7 +117,7 @@ export function createHonoApp(dependencies: HonoAppDependencies): Hono {
   });
 
   app.post('/api/v1/auth/login', async c => {
-    const parsed = parseSignupInput(await readRequestBody(c));
+    const parsed = parseAuthCredentials(await readRequestBody(c));
 
     if (!parsed.success) {
       return c.json(
@@ -493,7 +493,7 @@ function toJsonResponse(context: Context, response: JsonHttpResponse) {
   return context.json(response.body, response.status as ContentfulStatusCode);
 }
 
-function parseSignupInput(body: unknown):
+function parseAuthCredentials(body: unknown):
   | { success: true; email: string }
   | { success: false; message: string } {
   if (typeof body !== 'object' || body === null) {
