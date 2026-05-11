@@ -21,6 +21,8 @@ const TodoSuccessSchema = SuccessResponseSchema(TodoDtoSchema);
 const TodoListSuccessSchema = SuccessResponseSchema(z.array(TodoDtoSchema));
 const EMAIL_RE = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
 
+type UserRecord = { id: string; email: string };
+
 const errorResponses = {
   404: {
     description: 'Resource not found.',
@@ -43,7 +45,7 @@ const errorResponses = {
 type HonoAppDependencies = {
   appController: AppController;
   todoController: TodoController;
-  userStore: Map<string, { id: string; email: string }>;
+  userStore: Map<string, UserRecord>;
 };
 
 /**
@@ -101,7 +103,7 @@ export function createHonoApp(dependencies: HonoAppDependencies): Hono {
       );
     }
 
-    const newUser = { id: randomUUID(), email: parsed.email };
+    const newUser: UserRecord = { id: randomUUID(), email: parsed.email };
     userStore.set(parsed.email, newUser);
 
     return c.json(
