@@ -24,6 +24,8 @@
   },
   "include": [
     "vite.config.ts",
+    "vitest.small.config.ts",
+    "vitest.medium.config.ts",
     "orval.config.ts",
     "playwright.config.ts",
     "vitest.shims.d.ts",
