@@ -29,12 +29,19 @@ jobs:
       - name: Build app
         run: npm run build
 
-      # Playwright フル（全ブラウザ・全テスト）
+      # Playwright を実行するためのブラウザを事前インストール
       - name: Install Playwright Browsers
         run: npx playwright install --with-deps
 
-      - name: Run Playwright (full suite, all browsers)
-        run: npx playwright test --grep-invert "@visual"
+      # API通信系の最低保証（auth + app/todo CRUD の happy path）
+      - name: Run Playwright API happy paths (minimum)
+        run: npx playwright test --grep "@api" --project=chromium
+        env:
+          PLAYWRIGHT_BASE_URL: http://localhost:4173
+
+      # Playwright 非ビジュアルの残り（全ブラウザ）
+      - name: Run Playwright (remaining non-visual suite, all browsers)
+        run: npx playwright test --grep-invert "@visual|@api"
         env:
           PLAYWRIGHT_BASE_URL: http://localhost:4173
 

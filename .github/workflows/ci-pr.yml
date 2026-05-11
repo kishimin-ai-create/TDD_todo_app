@@ -43,12 +43,12 @@ jobs:
       - name: Build frontend
         run: npm run build
 
-      # Playwright（@smoke タグのみ・Chromium のみ）
+      # Playwright merge gate（auth + app/todo CRUD happy paths, Chromium のみ）
       - name: Install Playwright Browsers
         run: npx playwright install --with-deps chromium
 
-      - name: Run Playwright smoke tests
-        run: npx playwright test --grep "@smoke" --project=chromium
+      - name: Run Playwright merge-gate tests
+        run: npx playwright test --grep "@merge" --project=chromium
 
       - name: Upload Playwright report
         if: always()

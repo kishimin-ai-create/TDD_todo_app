@@ -158,7 +158,7 @@ async function fulfillJson(route: Route, status: number, body: unknown) {
   });
 }
 
-test('app and todo CRUD happy path @smoke', async ({ page }) => {
+test('app and todo CRUD happy path @merge @api', async ({ page }) => {
   // Seed auth state in localStorage so auth-gated routes are accessible.
   // authAtom uses jotai atomWithStorage with key 'auth'; setting it before
   // navigation prevents a redirect to the login page when auth is required.

@@ -42,7 +42,7 @@ async function expectAuthenticatedAppList(page: Page) {
   await expect(page.getByText('No apps yet. Create your first app!')).toBeVisible();
 }
 
-test('login happy path', async ({ page }) => {
+test('login happy path @merge @api', async ({ page }) => {
   await registerAuthSuccessStub(page, '/api/v1/auth/login');
   await registerAppsListStub(page);
 
@@ -58,7 +58,7 @@ test('login happy path', async ({ page }) => {
   await expectAuthenticatedAppList(page);
 });
 
-test('signup happy path', async ({ page }) => {
+test('signup happy path @merge @api', async ({ page }) => {
   await registerAuthSuccessStub(page, '/api/v1/auth/signup');
   await registerAppsListStub(page);
 
