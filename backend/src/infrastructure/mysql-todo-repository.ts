@@ -1,10 +1,12 @@
-import type { RowDataPacket } from 'mysql2';
+import { sql } from 'kysely';
+import type { Kysely } from 'kysely';
+
 import { AppError } from '../models/app-error';
 import type { TodoEntity } from '../models/todo';
 import type { TodoRepository } from '../repositories/todo-repository';
-import type { MysqlPool } from './mysql-client';
+import type { Database } from './db';
 
-type TodoRow = RowDataPacket & {
+function rowToTodo(row: {
   id: string;
   appId: string;
   title: string;
@@ -12,9 +14,7 @@ type TodoRow = RowDataPacket & {
   createdAt: Date;
   updatedAt: Date;
   deletedAt: Date | null;
-};
-
-function rowToTodo(row: TodoRow): TodoEntity {
+}): TodoEntity {
   return {
     id: row.id,
     appId: row.appId,
@@ -29,19 +29,27 @@ function rowToTodo(row: TodoRow): TodoEntity {
 /**
  * Creates the MySQL implementation of the todo repository port.
  */
-export function createMysqlTodoRepository(pool: MysqlPool): TodoRepository {
+export function createMysqlTodoRepository(db: Kysely<Database>): TodoRepository {
   async function save(todo: TodoEntity): Promise<void> {
     try {
-      await pool.execute(
-        `INSERT INTO Todo (id, appId, title, completed, createdAt, updatedAt, deletedAt)
-         VALUES (?, ?, ?, ?, ?, ?, ?)
-         ON DUPLICATE KEY UPDATE
-           title     = VALUES(title),
-           completed = VALUES(completed),
-           updatedAt = VALUES(updatedAt),
-           deletedAt = VALUES(deletedAt)`,
-        [todo.id, todo.appId, todo.title, todo.completed, new Date(todo.createdAt), new Date(todo.updatedAt), todo.deletedAt ? new Date(todo.deletedAt) : null],
-      );
+      await db
+        .insertInto('Todo')
+        .values({
+          id: todo.id,
+          appId: todo.appId,
+          title: todo.title,
+          completed: todo.completed ? 1 : 0,
+          createdAt: new Date(todo.createdAt),
+          updatedAt: new Date(todo.updatedAt),
+          deletedAt: todo.deletedAt ? new Date(todo.deletedAt) : null,
+        })
+        .onDuplicateKeyUpdate({
+          title: sql`VALUES(title)`,
+          completed: sql`VALUES(completed)`,
+          updatedAt: sql`VALUES(updatedAt)`,
+          deletedAt: sql`VALUES(deletedAt)`,
+        })
+        .execute();
     } catch (err: unknown) {
       throw new AppError('REPOSITORY_ERROR', 'Repository operation failed', { cause: err });
     }
@@ -49,10 +57,12 @@ export function createMysqlTodoRepository(pool: MysqlPool): TodoRepository {
 
   async function listActiveByAppId(appId: string): Promise<TodoEntity[]> {
     try {
-      const [rows] = await pool.execute<TodoRow[]>(
-        'SELECT id, appId, title, completed, createdAt, updatedAt, deletedAt FROM Todo WHERE appId = ? AND deletedAt IS NULL',
-        [appId],
-      );
+      const rows = await db
+        .selectFrom('Todo')
+        .selectAll()
+        .where('appId', '=', appId)
+        .where('deletedAt', 'is', null)
+        .execute();
       return rows.map(rowToTodo);
     } catch (err: unknown) {
       throw new AppError('REPOSITORY_ERROR', 'Repository operation failed', { cause: err });
@@ -61,11 +71,13 @@ export function createMysqlTodoRepository(pool: MysqlPool): TodoRepository {
 
   async function findActiveById(appId: string, todoId: string): Promise<TodoEntity | null> {
     try {
-      const [rows] = await pool.execute<TodoRow[]>(
-        'SELECT id, appId, title, completed, createdAt, updatedAt, deletedAt FROM Todo WHERE id = ? AND appId = ? AND deletedAt IS NULL',
-        [todoId, appId],
-      );
-      const row = rows[0];
+      const row = await db
+        .selectFrom('Todo')
+        .selectAll()
+        .where('id', '=', todoId)
+        .where('appId', '=', appId)
+        .where('deletedAt', 'is', null)
+        .executeTakeFirst();
       return row ? rowToTodo(row) : null;
     } catch (err: unknown) {
       throw new AppError('REPOSITORY_ERROR', 'Repository operation failed', { cause: err });
