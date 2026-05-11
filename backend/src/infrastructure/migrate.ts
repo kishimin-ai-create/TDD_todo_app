@@ -12,8 +12,14 @@ type MigrationRow = RowDataPacket & { name: string };
 
 /**
  * Runs pending SQL migration files against the configured MySQL database.
+ * If no database configuration is present, migration is skipped.
  */
 async function migrate(): Promise<void> {
+  if (!process.env.DATABASE_URL && !process.env.DB_USERNAME) {
+    console.log('No database configured. Skipping migration.');
+    return;
+  }
+
   const config = getMysqlConnectionConfig();
   const dbName = config.database;
 
