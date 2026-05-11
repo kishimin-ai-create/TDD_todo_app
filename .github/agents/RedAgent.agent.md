@@ -525,6 +525,16 @@ Before acting, read the following rule files and apply them throughout all work:
 | [`.github/rules/git.rules.md`](../rules/git.rules.md) | Git workflow rules |
 | [`.github/rules/commit-message.rules.md`](../rules/commit-message.rules.md) | Commit message format |
 
+## 🔚 Post-Completion Required Steps
+
+When all work is complete, you MUST call the following agents in order:
+
+1. `@ArticleWriterAgent` — Save the changes as a technical article under `blog/`
+2. `@WorkSummaryAgent` — Save the work as a diary entry to `diary/YYYYMMDD.md`
+
+These calls are mandatory and are included as part of the Definition of Done.
+Do not recursively invoke them if the current task is already `@ArticleWriterAgent` or `@WorkSummaryAgent`.
+
 ---
 
 **Last Updated**: April 12, 2026 **Version**: 1.0.0 Red Agent Specification
