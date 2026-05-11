@@ -8,6 +8,7 @@ import { createInMemoryStorage } from './in-memory-storage';
 import { createAppInteractor } from '../services/app-interactor';
 import { createTodoInteractor } from '../services/todo-interactor';
 import { createHonoApp } from './hono-app';
+import type { UserRecord } from './hono-app';
 import type { Hono } from 'hono';
 
 type BackendRegistry = {
@@ -32,7 +33,7 @@ export function createBackendRegistry(): BackendRegistry {
   });
   const appController = createAppController(appUsecase);
   const todoController = createTodoController(todoUsecase);
-  const userStore = new Map<string, { id: string; email: string }>();
+  const userStore = new Map<string, UserRecord>();
   const app = createHonoApp({
     appController,
     todoController,

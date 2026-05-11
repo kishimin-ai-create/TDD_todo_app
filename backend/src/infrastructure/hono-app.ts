@@ -21,7 +21,7 @@ const TodoSuccessSchema = SuccessResponseSchema(TodoDtoSchema);
 const TodoListSuccessSchema = SuccessResponseSchema(z.array(TodoDtoSchema));
 const EMAIL_RE = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
 
-type UserRecord = { id: string; email: string };
+export type UserRecord = { id: string; email: string; token: string };
 
 const errorResponses = {
   404: {
@@ -93,15 +93,15 @@ export function createHonoApp(dependencies: HonoAppDependencies): Hono {
       );
     }
 
-    const newUser: UserRecord = { id: randomUUID(), email: parsed.email };
+    const newUser: UserRecord = { id: randomUUID(), email: parsed.email, token: randomUUID() };
     userStore.set(parsed.email, newUser);
 
     return c.json(
       {
         success: true,
         data: {
-          token: randomUUID(),
-          user: newUser,
+          token: newUser.token,
+          user: { id: newUser.id, email: newUser.email },
         },
       },
       201,
@@ -115,15 +115,24 @@ export function createHonoApp(dependencies: HonoAppDependencies): Hono {
       return c.json(buildValidationErrorBody(parsed.message), 422);
     }
 
+    const existingUser = userStore.get(parsed.email);
+    if (!existingUser) {
+      return c.json(
+        {
+          success: false,
+          data: null,
+          error: { code: 'INVALID_CREDENTIALS', message: 'Invalid email or password.' },
+        },
+        401,
+      );
+    }
+
     return c.json(
       {
         success: true,
         data: {
-          token: randomUUID(),
-          user: {
-            id: randomUUID(),
-            email: parsed.email,
-          },
+          token: existingUser.token,
+          user: { id: existingUser.id, email: existingUser.email },
         },
       },
       200,
@@ -495,7 +504,7 @@ function parseAuthCredentials(body: unknown):
     return { success: false, message: 'Email and password are required.' };
   }
 
-  const normalizedEmail = email.trim();
+  const normalizedEmail = email.trim().toLowerCase();
   if (!EMAIL_RE.test(normalizedEmail)) {
     return { success: false, message: 'Please enter a valid email address.' };
   }

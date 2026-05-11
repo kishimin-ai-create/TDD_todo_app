@@ -114,9 +114,7 @@ describe('POST /api/v1/auth/signup', () => {
       password: 'password123',
     });
 
-    // clearStorage() is invoked by beforeEach before every test, so by the
-    // time this test runs the store is already empty — this sub-step
-    // simulates a fresh store by calling it explicitly again.
+    // Explicitly clear the store to simulate re-registration after an account is deleted.
     clearStorage();
 
     // Act — signup with the same email should now succeed
@@ -142,7 +140,13 @@ describe('POST /api/v1/auth/signup', () => {
 });
 
 describe('POST /api/v1/auth/login', () => {
-  it('200: returns token and user with valid email and password', async () => {
+  it('200: returns token and user when credentials match a registered account', async () => {
+    // Arrange — sign up first so the user exists in the store
+    await request('POST', '/api/v1/auth/signup', {
+      email: 'test@example.com',
+      password: 'password123',
+    });
+
     const res = await request('POST', '/api/v1/auth/login', {
       email: 'test@example.com',
       password: 'password123',
@@ -160,6 +164,27 @@ describe('POST /api/v1/auth/login', () => {
     expect(json.data.token.length).toBeGreaterThan(0);
     expect(UUID_RE.test(json.data.user.id)).toBe(true);
     expect(json.data.user.email).toBe('test@example.com');
+  });
+
+  it('401: returns INVALID_CREDENTIALS when the email is not registered', async () => {
+    const res = await request('POST', '/api/v1/auth/login', {
+      email: 'nobody@example.com',
+      password: 'password123',
+    });
+
+    expect(res.status).toBe(401);
+
+    const json = await res.json() as {
+      success: boolean;
+      data: null;
+      error: { code: string; message: string };
+    };
+
+    expect(json.success).toBe(false);
+    expect(json.data).toBeNull();
+    expect(json.error.code).toBe('INVALID_CREDENTIALS');
+    expect(typeof json.error.message).toBe('string');
+    expect(json.error.message.length).toBeGreaterThan(0);
   });
 
   it('422: returns VALIDATION_ERROR when email is invalid', async () => {
