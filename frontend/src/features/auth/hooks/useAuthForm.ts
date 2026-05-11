@@ -64,9 +64,15 @@ const parseAuthResponse = (value: unknown): AuthResponse | null => {
     }
   }
 
-  if (typeof value.error !== 'string') return null
+  if (typeof value.error === 'string') {
+    return { success: false, error: value.error }
+  }
 
-  return { success: false, error: value.error }
+  if (isRecord(value.error) && typeof value.error.message === 'string') {
+    return { success: false, error: value.error.message }
+  }
+
+  return null
 }
 
 /**

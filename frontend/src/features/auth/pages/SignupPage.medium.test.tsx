@@ -221,6 +221,73 @@ describe('SignupPage', () => {
       expect(await screen.findByRole('alert')).toBeInTheDocument()
     })
 
+    it('when signup succeeds with 201 status, then authAtom is populated and page navigates to app-list', async () => {
+      // Arrange
+      const user = userEvent.setup()
+      server.use(
+        http.post('/api/v1/auth/signup', () =>
+          HttpResponse.json(
+            {
+              success: true,
+              data: {
+                token: 'test-token',
+                user: { id: 'user-1', email: 'test@example.com' },
+              },
+            },
+            { status: 201 },
+          ),
+        ),
+      )
+      const store = createStore()
+      renderWithProviders(<SignupPage />, { store })
+
+      // Act
+      await user.type(
+        screen.getByRole('textbox', { name: /email/i }),
+        'test@example.com',
+      )
+      await user.type(screen.getByLabelText(/password/i), 'password123')
+      await user.click(screen.getByRole('button', { name: /sign up/i }))
+
+      // Assert
+      await waitFor(() => {
+        expect(store.get(authAtom)).toEqual({
+          token: 'test-token',
+          user: { id: 'user-1', email: 'test@example.com' },
+        })
+        expect(store.get(currentPageAtom)).toEqual({ name: 'app-list' })
+      })
+    })
+
+    it('when signup API returns 200 with object-style error body, then error message from body is displayed', async () => {
+      // Arrange — simulates a proxy that converts backend 4xx to 200, preserving the JSON body
+      // { success: false, error: { code, message } } is the backend's validation error shape
+      const user = userEvent.setup()
+      server.use(
+        http.post('/api/v1/auth/signup', () =>
+          HttpResponse.json(
+            {
+              success: false,
+              error: { code: 'VALIDATION_ERROR', message: 'Password must be at least 8 characters.' },
+            },
+            { status: 200 },
+          ),
+        ),
+      )
+      renderWithProviders(<SignupPage />)
+
+      // Act
+      await user.type(
+        screen.getByRole('textbox', { name: /email/i }),
+        'test@example.com',
+      )
+      await user.type(screen.getByLabelText(/password/i), 'password123')
+      await user.click(screen.getByRole('button', { name: /sign up/i }))
+
+      // Assert
+      expect(await screen.findByRole('alert')).toHaveTextContent('Password must be at least 8 characters.')
+    })
+
     it('when auth API returns non-JSON error body, then fallback error is displayed', async () => {
       // Arrange
       const user = userEvent.setup()
