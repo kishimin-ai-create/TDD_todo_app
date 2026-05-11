@@ -2,7 +2,6 @@ import { Hono, type Context } from 'hono';
 import { cors } from 'hono/cors';
 import type { ContentfulStatusCode } from 'hono/utils/http-status';
 import { describeRoute, openAPIRouteHandler, resolver } from 'hono-openapi';
-import { randomUUID } from 'node:crypto';
 import type { AppController } from '../controllers/app-controller';
 import type { TodoController } from '../controllers/todo-controller';
 import type { JsonHttpResponse } from '../controllers/http-presenter';
@@ -14,14 +13,14 @@ import {
 } from '../controllers/schemas';
 import { z } from 'zod';
 import { parseUpdateUserProfileInput } from './user-profile-validation';
+import type { AuthUsecase } from '../services/auth-usecase';
+import { isAppError } from '../models/app-error';
 
 const AppSuccessSchema = SuccessResponseSchema(AppDtoSchema);
 const AppListSuccessSchema = SuccessResponseSchema(z.array(AppDtoSchema));
 const TodoSuccessSchema = SuccessResponseSchema(TodoDtoSchema);
 const TodoListSuccessSchema = SuccessResponseSchema(z.array(TodoDtoSchema));
 const EMAIL_RE = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
-
-export type UserRecord = { id: string; email: string; token: string };
 
 const errorResponses = {
   404: {
@@ -45,14 +44,14 @@ const errorResponses = {
 type HonoAppDependencies = {
   appController: AppController;
   todoController: TodoController;
-  userStore?: Map<string, UserRecord>;
+  authUsecase?: AuthUsecase;
 };
 
 /**
  * Creates the Hono application and binds thin HTTP handlers to controllers.
  */
 export function createHonoApp(dependencies: HonoAppDependencies): Hono {
-  const { userStore = new Map<string, UserRecord>() } = dependencies;
+  const { authUsecase } = dependencies;
   const app = new Hono();
 
   app.use(
@@ -79,33 +78,34 @@ export function createHonoApp(dependencies: HonoAppDependencies): Hono {
       return c.json(buildValidationErrorBody(parsed.message), 422);
     }
 
-    if (userStore.has(parsed.email)) {
+    try {
+      const output = await authUsecase!.signup({ email: parsed.email, password: parsed.password });
       return c.json(
         {
-          success: false,
-          data: null,
-          error: {
-            code: 'EMAIL_ALREADY_EXISTS',
-            message: 'This email address is already registered.',
+          success: true,
+          data: {
+            token: output.token,
+            user: { id: output.id, email: output.email },
           },
         },
-        409,
+        201,
+      );
+    } catch (err) {
+      if (isAppError(err) && err.code === 'CONFLICT') {
+        return c.json(
+          {
+            success: false,
+            data: null,
+            error: { code: 'EMAIL_ALREADY_EXISTS', message: err.message },
+          },
+          409,
+        );
+      }
+      return c.json(
+        { success: false, data: null, error: { code: 'INTERNAL_ERROR', message: 'Internal server error' } },
+        500,
       );
     }
-
-    const newUser: UserRecord = { id: randomUUID(), email: parsed.email, token: randomUUID() };
-    userStore.set(parsed.email, newUser);
-
-    return c.json(
-      {
-        success: true,
-        data: {
-          token: newUser.token,
-          user: { id: newUser.id, email: newUser.email },
-        },
-      },
-      201,
-    );
   });
 
   app.post('/api/v1/auth/login', async c => {
@@ -115,28 +115,34 @@ export function createHonoApp(dependencies: HonoAppDependencies): Hono {
       return c.json(buildValidationErrorBody(parsed.message), 422);
     }
 
-    const existingUser = userStore.get(parsed.email);
-    if (!existingUser) {
+    try {
+      const output = await authUsecase!.login({ email: parsed.email, password: parsed.password });
       return c.json(
         {
-          success: false,
-          data: null,
-          error: { code: 'INVALID_CREDENTIALS', message: 'Invalid email or password.' },
+          success: true,
+          data: {
+            token: output.token,
+            user: { id: output.id, email: output.email },
+          },
         },
-        401,
+        200,
+      );
+    } catch (err) {
+      if (isAppError(err) && err.code === 'UNAUTHORIZED') {
+        return c.json(
+          {
+            success: false,
+            data: null,
+            error: { code: 'INVALID_CREDENTIALS', message: err.message },
+          },
+          401,
+        );
+      }
+      return c.json(
+        { success: false, data: null, error: { code: 'INTERNAL_ERROR', message: 'Internal server error' } },
+        500,
       );
     }
-
-    return c.json(
-      {
-        success: true,
-        data: {
-          token: existingUser.token,
-          user: { id: existingUser.id, email: existingUser.email },
-        },
-      },
-      200,
-    );
   });
 
   app.put('/api/v1/users/:userId', async c => {
@@ -489,7 +495,7 @@ function buildValidationErrorBody(message: string) {
 }
 
 function parseAuthCredentials(body: unknown):
-  | { success: true; email: string }
+  | { success: true; email: string; password: string }
   | { success: false; message: string } {
   if (typeof body !== 'object' || body === null) {
     return { success: false, message: 'Email and password are required.' };
@@ -513,5 +519,5 @@ function parseAuthCredentials(body: unknown):
     return { success: false, message: 'Password must be at least 8 characters.' };
   }
 
-  return { success: true, email: normalizedEmail };
+  return { success: true, email: normalizedEmail, password };
 }
