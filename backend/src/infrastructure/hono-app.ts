@@ -45,14 +45,14 @@ const errorResponses = {
 type HonoAppDependencies = {
   appController: AppController;
   todoController: TodoController;
-  userStore: Map<string, UserRecord>;
+  userStore?: Map<string, UserRecord>;
 };
 
 /**
  * Creates the Hono application and binds thin HTTP handlers to controllers.
  */
 export function createHonoApp(dependencies: HonoAppDependencies): Hono {
-  const { userStore } = dependencies;
+  const { userStore = new Map<string, UserRecord>() } = dependencies;
   const app = new Hono();
 
   app.use(
@@ -76,17 +76,7 @@ export function createHonoApp(dependencies: HonoAppDependencies): Hono {
     const parsed = parseAuthCredentials(await readRequestBody(c));
 
     if (!parsed.success) {
-      return c.json(
-        {
-          data: null,
-          success: false,
-          error: {
-            code: 'VALIDATION_ERROR',
-            message: parsed.message,
-          },
-        },
-        422,
-      );
+      return c.json(buildValidationErrorBody(parsed.message), 422);
     }
 
     if (userStore.has(parsed.email)) {
@@ -122,17 +112,7 @@ export function createHonoApp(dependencies: HonoAppDependencies): Hono {
     const parsed = parseAuthCredentials(await readRequestBody(c));
 
     if (!parsed.success) {
-      return c.json(
-        {
-          data: null,
-          success: false,
-          error: {
-            code: 'VALIDATION_ERROR',
-            message: parsed.message,
-          },
-        },
-        422,
-      );
+      return c.json(buildValidationErrorBody(parsed.message), 422);
     }
 
     return c.json(
@@ -493,6 +473,10 @@ async function readRequestBody(context: Context): Promise<unknown> {
 function toJsonResponse(context: Context, response: JsonHttpResponse) {
   // status values are produced by http-presenter which only emits valid HTTP codes
   return context.json(response.body, response.status as ContentfulStatusCode);
+}
+
+function buildValidationErrorBody(message: string) {
+  return { data: null, success: false, error: { code: 'VALIDATION_ERROR', message } } as const;
 }
 
 function parseAuthCredentials(body: unknown):
