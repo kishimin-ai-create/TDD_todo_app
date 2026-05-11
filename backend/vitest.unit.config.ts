@@ -4,10 +4,10 @@ export default defineConfig({
   test: {
     globals: true,
     environment: 'node',
+    include: ['src/**/*.small.test.ts'],
     exclude: [
       '**/node_modules/**',
       '**/dist/**',
-      'src/tests/integrations/**',
     ],
     coverage: {
       provider: 'v8',

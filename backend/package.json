@@ -9,6 +9,8 @@
     "build:migrate": "esbuild src/infrastructure/migrate.ts --bundle --platform=node --packages=external --outfile=dist/infrastructure/migrate.mjs --format=esm",
     "lint": "eslint .",
     "test": "vitest run --reporter=default --reporter=json --outputFile=test-result.json",
+    "test:small": "npm run test:unit",
+    "test:medium": "npm run test:integration",
     "test:unit": "vitest run --config vitest.unit.config.ts --reporter=default",
     "test:integration": "vitest run --config vitest.integration.config.ts --reporter=default",
     "typecheck": "tsc --noEmit",
