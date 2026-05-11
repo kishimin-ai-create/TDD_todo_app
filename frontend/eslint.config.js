@@ -128,7 +128,6 @@ export default defineConfig([
       "vitest/max-nested-describe": ["error", { max: 3 }],
       "vitest/no-focused-tests": "error",
       "vitest/no-disabled-tests": "warn",
-      "import/order": "off",
     },
     settings: {
       vitest: { typecheck: true },

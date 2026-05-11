@@ -8,7 +8,7 @@ vi.mock('../hooks/useLogout', () => ({
   useLogout: vi.fn(),
 }))
 
-// Import after mock registration so the mocked version is used everywhere.
+// eslint-disable-next-line import/order -- placed here for readability; vi.mock is hoisted by Vitest regardless
 import { useLogout } from '../hooks/useLogout'
 
 describe('LogoutButton', () => {
@@ -26,16 +26,6 @@ describe('LogoutButton', () => {
 
       // Assert
       expect(screen.getByRole('button', { name: 'ログアウト' })).toBeInTheDocument()
-    })
-  })
-
-  describe('Rendering - Accessible Role', () => {
-    it('when rendered, then the element has the button role', () => {
-      // Arrange + Act
-      render(<LogoutButton />)
-
-      // Assert
-      expect(screen.getByRole('button')).toBeInTheDocument()
     })
   })
 
@@ -64,7 +54,7 @@ describe('LogoutButton', () => {
       expect(mockLogout).toHaveBeenCalledTimes(2)
     })
 
-    it('when the button is clicked, then the logout function is called with no arguments', () => {
+    it('when the button is clicked, then the logout function is called', () => {
       // Arrange
       render(<LogoutButton />)
 
@@ -72,7 +62,7 @@ describe('LogoutButton', () => {
       fireEvent.click(screen.getByRole('button', { name: 'ログアウト' }))
 
       // Assert
-      expect(mockLogout).toHaveBeenCalledWith()
+      expect(mockLogout).toHaveBeenCalled()
     })
   })
 })

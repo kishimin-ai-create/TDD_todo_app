@@ -43,10 +43,11 @@ export function LogoutButton() { ... }
 
 Useful? React with 👍 / 👎.
 
----
+The JSDoc comment was already present in `LogoutButton.tsx` as part of a prior refactor commit (`refactor: improve logout feature code quality`). No additional code change was needed.
 
-**<sub><sub>![P2 Badge](https://img.shields.io/badge/P2-yellow?style=flat)</sub></sub>
-No server-side token revocation — JWT remains valid on the backend after logout**
+Disposition: **already fixed** — `frontend/src/features/auth/components/LogoutButton.tsx`
+
+---
 
 `useLogout` only clears client-side state. There is no call to a backend `/logout` endpoint, and a search of `backend/src/` confirms none exists. The JWT token stored under `localStorage['auth']` continues to be accepted by the server until its expiry.
 
@@ -59,10 +60,11 @@ Concrete mitigations (in priority order):
 
 Useful? React with 👍 / 👎.
 
----
+Acknowledged. No backend `/logout` endpoint exists today, and implementing one is outside the scope of this TDD cycle. The residual risk is noted: the JWT issued at login remains valid on the server until its natural expiry even after the client clears local state. As mitigation, token expiry should be kept short (≤ 15 min). A follow-up task will be opened to implement `POST /api/v1/auth/logout` with server-side token revocation before the app goes to production.
 
-**<sub><sub>![P2 Badge](https://img.shields.io/badge/P2-yellow?style=flat)</sub></sub>
-`import/order: "off"` applied globally to all test files — justification is technically incorrect**
+Disposition: **reply only** — no code change; risk accepted as a tracked follow-up
+
+---
 
 `eslint.config.js` disables `import/order` for the entire test suite. The comment in `LogoutButton.small.test.tsx` explains the reason:
 
@@ -86,10 +88,11 @@ import { useLogout } from '../hooks/useLogout'
 
 Useful? React with 👍 / 👎.
 
----
+Fixed. Removed the blanket `"import/order": "off"` override from the test files block in `eslint.config.js`. In `LogoutButton.small.test.tsx`, replaced the misleading comment with a targeted `// eslint-disable-next-line import/order` on the specific `useLogout` import line, with an updated explanation: `"placed here for readability; vi.mock is hoisted by Vitest regardless"`. Import ordering discipline is now enforced across the full test suite.
 
-**<sub><sub>![P3 Badge](https://img.shields.io/badge/P3-blue?style=flat)</sub></sub>
-Redundant "Accessible Role" test — fully covered by the "Button Text" test**
+Disposition: **fixed** — `frontend/eslint.config.js`, `frontend/src/features/auth/components/LogoutButton.small.test.tsx`
+
+---
 
 `LogoutButton.small.test.tsx` contains two separate describe blocks:
 
@@ -113,10 +116,11 @@ describe('Rendering - Accessible Role', () => {
 
 Useful? React with 👍 / 👎.
 
----
+Fixed. Removed the `'Rendering - Accessible Role'` describe block from `LogoutButton.small.test.tsx`. The `getByRole('button', { name: 'ログアウト' })` query in the "Button Text" test already implicitly asserts the accessible role. All 93 small tests continue to pass.
 
-**<sub><sub>![P3 Badge](https://img.shields.io/badge/P3-blue?style=flat)</sub></sub>
-Unnecessary inline arrow wrapper on `onClick`**
+Disposition: **fixed** — `frontend/src/features/auth/components/LogoutButton.small.test.tsx`
+
+---
 
 `LogoutButton.tsx` line 13:
 
@@ -133,3 +137,7 @@ onClick={logout}
 If `logout` were ever made async, the wrapper would silently swallow the returned Promise rather than surfacing it (a subtle future footgun). Passing `logout` directly makes intent clear and avoids the closure allocation.
 
 Useful? React with 👍 / 👎.
+
+Fixed. Changed `onClick={() => { logout() }}` to `onClick={logout}` in `LogoutButton.tsx`. The arrow wrapper was also causing the "called with no arguments" test to pass for the wrong reason — with direct assignment React passes the SyntheticEvent to the handler — so the corresponding test assertion was updated from `toHaveBeenCalledWith()` (zero-args check) to `toHaveBeenCalled()` (presence check), which correctly captures the intent. All 93 small tests and 108 medium tests pass.
+
+Disposition: **fixed** — `frontend/src/features/auth/components/LogoutButton.tsx`, `frontend/src/features/auth/components/LogoutButton.small.test.tsx`
