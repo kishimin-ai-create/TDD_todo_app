@@ -44,7 +44,7 @@ const errorResponses = {
 type HonoAppDependencies = {
   appController: AppController;
   todoController: TodoController;
-  authUsecase?: AuthUsecase;
+  authUsecase: AuthUsecase;
 };
 
 /**
@@ -79,7 +79,7 @@ export function createHonoApp(dependencies: HonoAppDependencies): Hono {
     }
 
     try {
-      const output = await authUsecase!.signup({ email: parsed.email, password: parsed.password });
+      const output = await authUsecase.signup({ email: parsed.email, password: parsed.password });
       return c.json(
         {
           success: true,
@@ -116,7 +116,7 @@ export function createHonoApp(dependencies: HonoAppDependencies): Hono {
     }
 
     try {
-      const output = await authUsecase!.login({ email: parsed.email, password: parsed.password });
+      const output = await authUsecase.login({ email: parsed.email, password: parsed.password });
       return c.json(
         {
           success: true,

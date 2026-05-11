@@ -25,6 +25,7 @@ export function createAuthInteractor(
       id: generateId(),
       email: input.email,
       token: generateId(),
+      passwordHash: input.password,
     };
     await userRepository.save(user);
     return { id: user.id, email: user.email, token: user.token };
@@ -33,6 +34,9 @@ export function createAuthInteractor(
   async function login(input: LoginInput): Promise<AuthOutput> {
     const user = await userRepository.findByEmail(input.email);
     if (!user) {
+      throw new AppError('UNAUTHORIZED', 'Invalid email or password.');
+    }
+    if (user.passwordHash !== input.password) {
       throw new AppError('UNAUTHORIZED', 'Invalid email or password.');
     }
     return { id: user.id, email: user.email, token: user.token };

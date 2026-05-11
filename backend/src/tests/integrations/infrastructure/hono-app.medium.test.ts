@@ -5,19 +5,22 @@ import { createAppController } from '../../../controllers/app-controller';
 import { createTodoController } from '../../../controllers/todo-controller';
 import { createAppInteractor } from '../../../services/app-interactor';
 import { createTodoInteractor } from '../../../services/todo-interactor';
-import { createInMemoryAppRepository, createInMemoryTodoRepository } from '../../../infrastructure/in-memory-repositories';
+import { createAuthInteractor } from '../../../services/auth-interactor';
+import { createInMemoryAppRepository, createInMemoryTodoRepository, createInMemoryUserRepository } from '../../../infrastructure/in-memory-repositories';
 import { createInMemoryStorage } from '../../../infrastructure/in-memory-storage';
 
 function buildApp() {
   const storage = createInMemoryStorage();
   const appRepository = createInMemoryAppRepository(storage);
   const todoRepository = createInMemoryTodoRepository(storage);
+  const userRepository = createInMemoryUserRepository();
   const appUsecase = createAppInteractor({ appRepository, todoRepository });
   const todoUsecase = createTodoInteractor({ appRepository, todoRepository });
+  const authUsecase = createAuthInteractor({ userRepository });
   const appController = createAppController(appUsecase);
   const todoController = createTodoController(todoUsecase);
   return {
-    app: createHonoApp({ appController, todoController }),
+    app: createHonoApp({ appController, todoController, authUsecase }),
     clearStorage: () => storage.clear(),
   };
 }

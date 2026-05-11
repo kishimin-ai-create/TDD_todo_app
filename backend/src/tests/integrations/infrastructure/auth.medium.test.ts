@@ -224,4 +224,42 @@ describe('POST /api/v1/auth/login', () => {
     expect(typeof json.error.message).toBe('string');
     expect(json.error.message.length).toBeGreaterThan(0);
   });
+
+  it('401: returns INVALID_CREDENTIALS when password is wrong', async () => {
+    await request('POST', '/api/v1/auth/signup', {
+      email: 'user@example.com',
+      password: 'correctPass1',
+    });
+    const res = await request('POST', '/api/v1/auth/login', {
+      email: 'user@example.com',
+      password: 'wrongPassword',
+    });
+    expect(res.status).toBe(401);
+    const json = await res.json() as {
+      success: boolean;
+      data: null;
+      error: { code: string; message: string };
+    };
+    expect(json.success).toBe(false);
+    expect(json.data).toBeNull();
+    expect(json.error.code).toBe('INVALID_CREDENTIALS');
+  });
+
+  it('200: returns token when both email and password are correct', async () => {
+    await request('POST', '/api/v1/auth/signup', {
+      email: 'user2@example.com',
+      password: 'myPassword1',
+    });
+    const res = await request('POST', '/api/v1/auth/login', {
+      email: 'user2@example.com',
+      password: 'myPassword1',
+    });
+    expect(res.status).toBe(200);
+    const json = await res.json() as {
+      success: boolean;
+      data: { token: string; user: { id: string; email: string } };
+    };
+    expect(json.success).toBe(true);
+    expect(json.data.token).toBeDefined();
+  });
 });
