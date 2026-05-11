@@ -99,6 +99,38 @@ export function createHonoApp(dependencies: HonoAppDependencies): Hono {
     );
   });
 
+  app.post('/api/v1/auth/login', async c => {
+    const parsed = parseSignupInput(await readRequestBody(c));
+
+    if (!parsed.success) {
+      return c.json(
+        {
+          data: null,
+          success: false,
+          error: {
+            code: 'VALIDATION_ERROR',
+            message: parsed.message,
+          },
+        },
+        422,
+      );
+    }
+
+    return c.json(
+      {
+        success: true,
+        data: {
+          token: randomUUID(),
+          user: {
+            id: randomUUID(),
+            email: parsed.email,
+          },
+        },
+      },
+      200,
+    );
+  });
+
   app.put('/api/v1/users/:userId', async c => {
     const parsed = parseUpdateUserProfileInput(await readRequestBody(c));
     const userId = c.req.param('userId');

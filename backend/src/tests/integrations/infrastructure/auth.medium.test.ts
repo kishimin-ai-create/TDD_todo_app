@@ -78,4 +78,125 @@ describe('POST /api/v1/auth/signup', () => {
     expect(typeof json.error.message).toBe('string');
     expect(json.error.message.length).toBeGreaterThan(0);
   });
+
+  it('409: returns EMAIL_ALREADY_EXISTS when the same email is registered twice', async () => {
+    // Arrange — first signup succeeds (store is clean from beforeEach)
+    await request('POST', '/api/v1/auth/signup', {
+      email: 'duplicate@example.com',
+      password: 'password123',
+    });
+
+    // Act — second signup with the identical email
+    const res = await request('POST', '/api/v1/auth/signup', {
+      email: 'duplicate@example.com',
+      password: 'password123',
+    });
+
+    // Assert
+    expect(res.status).toBe(409);
+
+    const json = await res.json() as {
+      success: boolean;
+      data: null;
+      error: { code: string; message: string };
+    };
+
+    expect(json.success).toBe(false);
+    expect(json.data).toBeNull();
+    expect(json.error.code).toBe('EMAIL_ALREADY_EXISTS');
+    expect(json.error.message).toBe('This email address is already registered.');
+  });
+
+  it('201: allows the same email to be registered again after storage is cleared', async () => {
+    // Arrange — register once (beforeEach has already cleared storage)
+    await request('POST', '/api/v1/auth/signup', {
+      email: 'reuse@example.com',
+      password: 'password123',
+    });
+
+    // clearStorage() is invoked by beforeEach before every test, so by the
+    // time this test runs the store is already empty — this sub-step
+    // simulates a fresh store by calling it explicitly again.
+    clearStorage();
+
+    // Act — signup with the same email should now succeed
+    const res = await request('POST', '/api/v1/auth/signup', {
+      email: 'reuse@example.com',
+      password: 'password123',
+    });
+
+    // Assert
+    expect(res.status).toBe(201);
+
+    const json = await res.json() as {
+      success: boolean;
+      data: { token: string; user: { id: string; email: string } };
+    };
+
+    expect(json.success).toBe(true);
+    expect(typeof json.data.token).toBe('string');
+    expect(json.data.token.length).toBeGreaterThan(0);
+    expect(UUID_RE.test(json.data.user.id)).toBe(true);
+    expect(json.data.user.email).toBe('reuse@example.com');
+  });
+});
+
+describe('POST /api/v1/auth/login', () => {
+  it('200: returns token and user with valid email and password', async () => {
+    const res = await request('POST', '/api/v1/auth/login', {
+      email: 'test@example.com',
+      password: 'password123',
+    });
+
+    expect(res.status).toBe(200);
+
+    const json = await res.json() as {
+      success: boolean;
+      data: { token: string; user: { id: string; email: string } };
+    };
+
+    expect(json.success).toBe(true);
+    expect(typeof json.data.token).toBe('string');
+    expect(json.data.token.length).toBeGreaterThan(0);
+    expect(UUID_RE.test(json.data.user.id)).toBe(true);
+    expect(json.data.user.email).toBe('test@example.com');
+  });
+
+  it('422: returns VALIDATION_ERROR when email is invalid', async () => {
+    const res = await request('POST', '/api/v1/auth/login', {
+      email: 'not-an-email',
+      password: 'password123',
+    });
+
+    expect(res.status).toBe(422);
+
+    const json = await res.json() as {
+      success: boolean;
+      error: { code: string; message: string };
+    };
+
+    expect(json.success).toBe(false);
+    expect(json.error.code).toBe('VALIDATION_ERROR');
+    expect(typeof json.error.message).toBe('string');
+    expect(json.error.message.length).toBeGreaterThan(0);
+  });
+
+  it('422: returns VALIDATION_ERROR when password is less than 8 characters', async () => {
+    const res = await request('POST', '/api/v1/auth/login', {
+      email: 'test@example.com',
+      password: 'short',
+    });
+
+    expect(res.status).toBe(422);
+
+    const json = await res.json() as {
+      success: boolean;
+      error: { code: string; message: string };
+    };
+
+    expect(json.success).toBe(false);
+    expect(json.error.code).toBe('VALIDATION_ERROR');
+    expect(typeof json.error.message).toBe('string');
+    expect(json.error.message.length).toBeGreaterThan(0);
+  });
 });
