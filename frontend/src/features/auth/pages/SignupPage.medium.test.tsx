@@ -288,6 +288,35 @@ describe('SignupPage', () => {
       expect(await screen.findByRole('alert')).toHaveTextContent('Password must be at least 8 characters.')
     })
 
+    it('when signup API returns 422 with object-style error body, then error message from body is displayed', async () => {
+      // Arrange — the actual backend validation error shape: 422 + { success: false, error: { code, message } }
+      // This exercises the extractErrorMessage path (response.ok is false for 422).
+      const user = userEvent.setup()
+      server.use(
+        http.post('/api/v1/auth/signup', () =>
+          HttpResponse.json(
+            {
+              success: false,
+              error: { code: 'VALIDATION_ERROR', message: 'Password must be at least 8 characters.' },
+            },
+            { status: 422 },
+          ),
+        ),
+      )
+      renderWithProviders(<SignupPage />)
+
+      // Act
+      await user.type(
+        screen.getByRole('textbox', { name: /email/i }),
+        'test@example.com',
+      )
+      await user.type(screen.getByLabelText(/password/i), 'short')
+      await user.click(screen.getByRole('button', { name: /sign up/i }))
+
+      // Assert
+      expect(await screen.findByRole('alert')).toHaveTextContent('Password must be at least 8 characters.')
+    })
+
     it('when auth API returns non-JSON error body, then fallback error is displayed', async () => {
       // Arrange
       const user = userEvent.setup()
