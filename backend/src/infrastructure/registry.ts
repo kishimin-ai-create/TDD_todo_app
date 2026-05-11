@@ -32,15 +32,18 @@ export function createBackendRegistry(): BackendRegistry {
   });
   const appController = createAppController(appUsecase);
   const todoController = createTodoController(todoUsecase);
+  const userStore = new Map<string, { id: string; email: string }>();
   const app = createHonoApp({
     appController,
     todoController,
+    userStore,
   });
 
   return {
     app,
     clearStorage: () => {
       storage.clear();
+      userStore.clear();
     },
   };
 }

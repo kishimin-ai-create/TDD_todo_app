@@ -43,12 +43,14 @@ const errorResponses = {
 type HonoAppDependencies = {
   appController: AppController;
   todoController: TodoController;
+  userStore: Map<string, { id: string; email: string }>;
 };
 
 /**
  * Creates the Hono application and binds thin HTTP handlers to controllers.
  */
 export function createHonoApp(dependencies: HonoAppDependencies): Hono {
+  const { userStore } = dependencies;
   const app = new Hono();
 
   app.use(
@@ -84,15 +86,29 @@ export function createHonoApp(dependencies: HonoAppDependencies): Hono {
       );
     }
 
+    if (userStore.has(parsed.email)) {
+      return c.json(
+        {
+          success: false,
+          data: null,
+          error: {
+            code: 'EMAIL_ALREADY_EXISTS',
+            message: 'This email address is already registered.',
+          },
+        },
+        409,
+      );
+    }
+
+    const newUser = { id: randomUUID(), email: parsed.email };
+    userStore.set(parsed.email, newUser);
+
     return c.json(
       {
         success: true,
         data: {
           token: randomUUID(),
-          user: {
-            id: randomUUID(),
-            email: parsed.email,
-          },
+          user: newUser,
         },
       },
       201,
