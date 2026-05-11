@@ -70,7 +70,8 @@ export function createHonoApp(dependencies: HonoAppDependencies): Hono {
 
   app.get('/', c => c.text('Hello Hono!'));
 
-  app.post('/api/v1/auth/signup', async c => {    const parsed = parseSignupInput(await readRequestBody(c));
+  app.post('/api/v1/auth/signup', async c => {
+    const parsed = parseSignupInput(await readRequestBody(c));
 
     if (!parsed.success) {
       return c.json(
