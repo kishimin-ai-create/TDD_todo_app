@@ -44,6 +44,9 @@ const errorResponses = {
 /**
  * Determines if a request path should be logged.
  * Only logs /api/* paths, skips other routes like /, /doc, etc.
+ * 
+ * @param path The request path to check
+ * @returns true if the path should be logged, false otherwise
  */
 function shouldLogPath(path: string): boolean {
   return path.startsWith('/api/');
@@ -51,6 +54,9 @@ function shouldLogPath(path: string): boolean {
 
 /**
  * Determines if a status code represents a successful response (2xx).
+ * 
+ * @param status HTTP status code
+ * @returns true if status is in the 200-299 range, false otherwise
  */
 function isSuccessStatus(status: number): boolean {
   return status >= 200 && status < 300;
@@ -58,6 +64,9 @@ function isSuccessStatus(status: number): boolean {
 
 /**
  * Determines if a status code represents an error response (4xx or 5xx).
+ * 
+ * @param status HTTP status code
+ * @returns true if status is in the 400-599 range, false otherwise
  */
 function isErrorStatus(status: number): boolean {
   return status >= 400 && status < 600;
@@ -65,19 +74,47 @@ function isErrorStatus(status: number): boolean {
 
 /**
  * Logs a successful API request with format: [METHOD] path → status (Xms)
+ * Only logs if LOG_API_REQUESTS environment variable is set to 'true'.
+ * 
+ * @param method HTTP method (GET, POST, etc.)
+ * @param path Request path
+ * @param status HTTP status code
+ * @param elapsedTimeMs Response time in milliseconds
  */
 function logSuccessRequest(method: string, path: string, status: number, elapsedTimeMs: number): void {
+  if (process.env.LOG_API_REQUESTS !== 'true') {
+    return;
+  }
   // eslint-disable-next-line no-console
   console.log(`[${method}] ${path} → ${status} (${elapsedTimeMs}ms)`);
 }
 
 /**
- * Extracts error code and message from the response body.
- * Returns null if the response body doesn't have the expected error structure.
+ * Extracts error code and message from the response body JSON.
+ * Expects response to follow structure: { error: { code: string, message: string } }
+ * Returns null if the response body cannot be parsed, lacks an error property,
+ * or the error property does not have the expected shape.
+ * 
+ * Side effects:
+ * - Clones the response body (does not affect the original response)
+ * - Logs warnings to console.warn() when extraction fails
+ * 
+ * Performance considerations:
+ * - Response body is fully parsed for every error response
+ * - Skipped if response body exceeds 10KB to prevent performance degradation
  */
 async function extractErrorDetails(context: Context): Promise<{ code: string; message: string } | null> {
   try {
-    const responseText = await context.res.clone().text();
+    const clonedResponse = context.res.clone();
+    const responseText = await clonedResponse.text();
+
+    // Guard: Skip parsing if response is too large
+    if (responseText.length > 10240) { // 10KB limit
+      // eslint-disable-next-line no-console
+      console.warn('[logging] Response body too large for error extraction:', responseText.length, 'bytes');
+      return null;
+    }
+
     const responseBody = JSON.parse(responseText) as unknown;
 
     // Type guard: check if responseBody is a valid error response object
@@ -97,10 +134,23 @@ async function extractErrorDetails(context: Context): Promise<{ code: string; me
         typeof errorObj.message === 'string'
       ) {
         return { code: errorObj.code, message: errorObj.message };
+      } else {
+        // Log warning when error object has wrong structure
+        // eslint-disable-next-line no-console
+        console.warn('[logging] Error object has unexpected structure or non-string code/message');
       }
+    } else {
+      // Log warning when response doesn't have error object
+      // eslint-disable-next-line no-console
+      console.warn('[logging] Response body missing "error" property');
     }
-  } catch {
-    // If we can't parse the response body, return null
+  } catch (error) {
+    // Log warning when JSON parsing or cloning fails
+    // eslint-disable-next-line no-console
+    console.warn(
+      '[logging] Failed to extract error details from response body:',
+      error instanceof Error ? error.message : String(error)
+    );
   }
 
   return null;
@@ -109,8 +159,18 @@ async function extractErrorDetails(context: Context): Promise<{ code: string; me
 /**
  * Logs an error API request with format: [METHOD] path → ERROR status — code: message
  * If error details cannot be extracted, falls back to: [METHOD] path → ERROR status
+ * Only logs if LOG_API_REQUESTS environment variable is set to 'true'.
+ * 
+ * @param method HTTP method (GET, POST, etc.)
+ * @param path Request path
+ * @param status HTTP error status code (4xx or 5xx)
+ * @param context Hono context for response body extraction
  */
 async function logErrorRequest(method: string, path: string, status: number, context: Context): Promise<void> {
+  if (process.env.LOG_API_REQUESTS !== 'true') {
+    return;
+  }
+
   const errorDetails = await extractErrorDetails(context);
 
   if (errorDetails) {

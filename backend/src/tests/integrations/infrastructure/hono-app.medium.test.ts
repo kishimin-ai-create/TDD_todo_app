@@ -166,11 +166,15 @@ describe('HonoApp integration', () => {
     let consoleLogSpy: ReturnType<typeof vi.spyOn>;
 
     beforeEach(() => {
+      // Enable API logging for tests
+      process.env.LOG_API_REQUESTS = 'true';
       consoleLogSpy = vi.spyOn(console, 'log').mockImplementation(() => {});
     });
 
     afterEach(() => {
       consoleLogSpy.mockRestore();
+      // Disable API logging after tests
+      delete process.env.LOG_API_REQUESTS;
     });
 
     describe('Happy Path - Successful API requests logging', () => {
