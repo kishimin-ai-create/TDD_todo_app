@@ -167,3 +167,4 @@ Before acting, read the following rule files and apply them throughout all work:
 | [`.github/rules/git.rules.md`](../rules/git.rules.md) | Git workflow rules |
 | [`.github/rules/commit-message.rules.md`](../rules/commit-message.rules.md) | Commit message format — reference for PR title style |
 | [`.github/rules/no-local-paths.rules.md`](../rules/no-local-paths.rules.md) | No absolute local filesystem paths in committed files |
+| [` .github/rules/security.rules.md` `](../rules/security.rules.md) | Security — password hashing, token handling, input validation |

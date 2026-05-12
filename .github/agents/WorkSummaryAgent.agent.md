@@ -168,3 +168,4 @@ Before acting, read the following rule files and apply them throughout all work:
 | [`.github/rules/protected-paths.rules.md`](../rules/protected-paths.rules.md) | Files that must not be modified without explicit user instruction |
 | [`.github/rules/git.rules.md`](../rules/git.rules.md) | Git workflow rules — reading history and diffs for diary content |
 | [`.github/rules/no-local-paths.rules.md`](../rules/no-local-paths.rules.md) | No absolute local filesystem paths in committed files |
+| [` .github/rules/security.rules.md` `](../rules/security.rules.md) | Security — password hashing, token handling, input validation |

@@ -135,6 +135,7 @@ Before acting, read the following rule files and apply them throughout all work:
 | [`.github/rules/commit-message.rules.md`](../rules/commit-message.rules.md) | Commit message format |
 | [`.github/rules/no-hardcoded-urls.rules.md`](../rules/no-hardcoded-urls.rules.md) | No hardcoded URLs in source code |
 | [`.github/rules/no-local-paths.rules.md`](../rules/no-local-paths.rules.md) | No absolute local filesystem paths in committed files |
+| [` .github/rules/security.rules.md` `](../rules/security.rules.md) | Security — password hashing, token handling, input validation |
 
 ---
 
@@ -244,6 +245,7 @@ Before acting, read the following rule files and apply them throughout all work:
 | [`.github/rules/commit-message.rules.md`](../rules/commit-message.rules.md) | Commit message format |
 | [`.github/rules/no-hardcoded-urls.rules.md`](../rules/no-hardcoded-urls.rules.md) | No hardcoded URLs in source code |
 | [`.github/rules/no-local-paths.rules.md`](../rules/no-local-paths.rules.md) | No absolute local filesystem paths in committed files |
+| [` .github/rules/security.rules.md` `](../rules/security.rules.md) | Security — password hashing, token handling, input validation |
 
 ---
 
