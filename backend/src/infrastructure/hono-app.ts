@@ -108,7 +108,7 @@ async function extractErrorDetails(context: Context): Promise<{ code: string; me
     const responseText = await clonedResponse.text();
 
     // Guard: Skip parsing if response is too large
-    if (responseText.length > 10240) { // 10KB limit
+    if (responseText.length > 10240) {
       // eslint-disable-next-line no-console
       console.warn('[logging] Response body too large for error extraction:', responseText.length, 'bytes');
       return null;
@@ -116,35 +116,33 @@ async function extractErrorDetails(context: Context): Promise<{ code: string; me
 
     const responseBody = JSON.parse(responseText) as unknown;
 
-    // Type guard: check if responseBody is a valid error response object
     if (
-      typeof responseBody === 'object' &&
-      responseBody !== null &&
-      'error' in responseBody
+      typeof responseBody !== 'object' ||
+      responseBody === null ||
+      !('error' in responseBody)
     ) {
-      const errorObj = responseBody.error;
-      // Type guard: check if error object has the expected structure
-      if (
-        typeof errorObj === 'object' &&
-        errorObj !== null &&
-        'code' in errorObj &&
-        'message' in errorObj &&
-        typeof errorObj.code === 'string' &&
-        typeof errorObj.message === 'string'
-      ) {
-        return { code: errorObj.code, message: errorObj.message };
-      } else {
-        // Log warning when error object has wrong structure
-        // eslint-disable-next-line no-console
-        console.warn('[logging] Error object has unexpected structure or non-string code/message');
-      }
-    } else {
-      // Log warning when response doesn't have error object
       // eslint-disable-next-line no-console
       console.warn('[logging] Response body missing "error" property');
+      return null;
     }
+
+    const errorObj = responseBody.error;
+
+    if (
+      typeof errorObj !== 'object' ||
+      errorObj === null ||
+      !('code' in errorObj) ||
+      !('message' in errorObj) ||
+      typeof errorObj.code !== 'string' ||
+      typeof errorObj.message !== 'string'
+    ) {
+      // eslint-disable-next-line no-console
+      console.warn('[logging] Error object has unexpected structure or non-string code/message');
+      return null;
+    }
+
+    return { code: errorObj.code, message: errorObj.message };
   } catch (error) {
-    // Log warning when JSON parsing or cloning fails
     // eslint-disable-next-line no-console
     console.warn(
       '[logging] Failed to extract error details from response body:',
