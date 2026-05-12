@@ -963,15 +963,18 @@ describe('HonoApp integration', () => {
   /* eslint-disable @typescript-eslint/no-unsafe-member-access */
   describe('Error logging always-on behavior (no LOG_API_REQUESTS env var)', () => {
     let consoleLogSpy: ReturnType<typeof vi.spyOn>;
+    let consoleWarnSpy: ReturnType<typeof vi.spyOn>;
 
     beforeEach(() => {
       // Ensure LOG_API_REQUESTS is NOT set — tests here verify always-on error logging
       delete process.env.LOG_API_REQUESTS;
       consoleLogSpy = vi.spyOn(console, 'log').mockImplementation(() => {});
+      consoleWarnSpy = vi.spyOn(console, 'warn').mockImplementation(() => {});
     });
 
     afterEach(() => {
       consoleLogSpy.mockRestore();
+      consoleWarnSpy.mockRestore();
       delete process.env.LOG_API_REQUESTS;
     });
 
@@ -990,6 +993,8 @@ describe('HonoApp integration', () => {
         call[0].includes('422')
       );
       expect(errorLogCall).toBeDefined();
+      const logMessage = errorLogCall![0] as string;
+      expect(logMessage).toMatch(/\[POST\].*→ ERROR 422/);
     });
 
     it('should log 401 error response even when LOG_API_REQUESTS is not set', async () => {
@@ -1023,7 +1028,7 @@ describe('HonoApp integration', () => {
         email: 'always-on@example.com',
         password: 'password123',
       });
-      consoleLogSpy.mockClear();
+      // 201 success is not logged without LOG_API_REQUESTS — no mockClear() needed here
 
       // Act — sign up again with the same email triggers 409
       const res = await req(app, 'POST', '/api/v1/auth/signup', {

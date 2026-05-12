@@ -36,6 +36,15 @@ expect(logMessage).toMatch(/\[POST\].*→ ERROR 422/);
 
 Useful? React with 👍 / 👎.
 
+**Disposition:** Fixed. Added a format assertion after the presence check in test 1:
+
+```typescript
+const logMessage = errorLogCall![0] as string;
+expect(logMessage).toMatch(/\[POST\].*→ ERROR 422/);
+```
+
+This makes the assertion consistent with the pattern used by sibling tests 2–5. All 56 tests continue to pass.
+
 ---
 
 **<sub><sub>![P3 Badge](https://img.shields.io/badge/P3-blue?style=flat)</sub></sub>
@@ -71,6 +80,8 @@ afterEach(() => {
 
 Useful? React with 👍 / 👎.
 
+**Disposition:** Fixed. Added `consoleWarnSpy` to the `beforeEach`/`afterEach` of the new always-on describe block, mirroring the suggested snippet exactly. The spy suppresses any `console.warn` output that `extractErrorDetails()` might emit on malformed response bodies, keeping CI output clean and preventing false noise from obscuring future failures. All 56 tests continue to pass.
+
 ---
 
 **<sub><sub>![P3 Badge](https://img.shields.io/badge/P3-blue?style=flat)</sub></sub>
@@ -93,3 +104,11 @@ Options:
 2. Keep `mockClear()` but add the same comment so the intent is explicit.
 
 Useful? React with 👍 / 👎.
+
+**Disposition:** Fixed (option 1). Removed the `mockClear()` call and replaced it with a comment:
+
+```typescript
+// 201 success is not logged without LOG_API_REQUESTS — no mockClear() needed here
+```
+
+This makes the intent explicit for future readers: the spy holds zero calls at this point because `logSuccessRequest()` returns early when the env var is absent, so clearing it would be meaningless. All 56 tests continue to pass.
