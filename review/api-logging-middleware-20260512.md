@@ -80,7 +80,7 @@ ESLint Type Safety Error - Unsafe Argument Assignment in Middleware**
 Line 172 in `hono-app.ts` has an ESLint error for unsafe argument assignment:
 
 ```
-C:\Users\Kazum\Desktop\programming\AI\website\tddTodoApp\backend\src\infrastructure\hono-app.ts
+backend/src/infrastructure/hono-app.ts
   172:51  error  Unsafe argument of type `Context<BlankEnv, "*", any>` 
   assigned to a parameter of type `Context<any, any, {}>`  @typescript-eslint/no-unsafe-argument
 ```

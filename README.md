@@ -21,7 +21,7 @@ Development (TDD).
 ## Setup
 
 ```bash
-git clone git@github.com:Kazuma-Ishimine/TDD_todo_app.git
+git clone git@github.com:kishimin-ai-create/TDD_todo_app.git
 cd TDDTodoApp
 
 # Backend

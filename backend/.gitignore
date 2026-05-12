@@ -5,3 +5,8 @@ coverage/
 
 # build output
 dist/
+
+# test output
+test-result.json
+test_output.txt
+temp.ts
