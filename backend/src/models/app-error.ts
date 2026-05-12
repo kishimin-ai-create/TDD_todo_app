@@ -6,6 +6,7 @@ export type AppErrorCode =
   | 'CONFLICT'
   | 'NOT_FOUND'
   | 'UNAUTHORIZED'
+  | 'FORBIDDEN'
   | 'REPOSITORY_ERROR';
 
 /**

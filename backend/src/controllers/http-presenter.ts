@@ -102,6 +102,8 @@ function statusForErrorCode(code: AppError['code']): number {
       return 404;
     case 'UNAUTHORIZED':
       return 401;
+    case 'FORBIDDEN':
+      return 403;
     case 'REPOSITORY_ERROR':
       return 500;
     default:

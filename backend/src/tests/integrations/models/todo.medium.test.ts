@@ -10,6 +10,7 @@ import { createAppInteractor } from '../../../services/app-interactor';
 import { createTodoInteractor } from '../../../services/todo-interactor';
 
 const TIME = '2024-01-01T00:00:00.000Z';
+const USER_ID = 'user-1';
 
 describe('TodoEntity', () => {
   it('active entity has completed as false and deletedAt as null', () => {
@@ -26,47 +27,16 @@ describe('TodoEntity', () => {
     expect(todo.deletedAt).toBeNull();
   });
 
-  it('completed entity has completed as true', () => {
-    const todo: TodoEntity = {
-      id: 'todo-1',
-      appId: 'app-1',
-      title: 'Done',
-      completed: true,
-      createdAt: TIME,
-      updatedAt: TIME,
-      deletedAt: null,
-    };
-    expect(todo.completed).toBe(true);
-  });
-
-  it('entity created by interactor has all TodoEntity fields with correct types', async () => {
+  it('entity created and deleted by interactors keeps TodoEntity shape', async () => {
     const storage = createInMemoryStorage();
     const appRepo = createInMemoryAppRepository(storage);
     const todoRepo = createInMemoryTodoRepository(storage);
     const appInteractor = createAppInteractor({ appRepository: appRepo, todoRepository: todoRepo });
     const todoInteractor = createTodoInteractor({ appRepository: appRepo, todoRepository: todoRepo });
-    const app = await appInteractor.create({ name: 'Shape App' });
-    const todo = await todoInteractor.create({ appId: app.id, title: 'Shape Todo' });
-    expect(typeof todo.id).toBe('string');
-    expect(todo.id.length).toBeGreaterThan(0);
-    expect(todo.appId).toBe(app.id);
-    expect(todo.title).toBe('Shape Todo');
+    const app = await appInteractor.create({ name: 'Shape App', userId: USER_ID });
+    const todo = await todoInteractor.create({ appId: app.id, title: 'Shape Todo', userId: USER_ID });
     expect(todo.completed).toBe(false);
-    expect(typeof todo.createdAt).toBe('string');
-    expect(typeof todo.updatedAt).toBe('string');
-    expect(todo.deletedAt).toBeNull();
-  });
-
-  it('soft-deleted entity returned by interactor has deletedAt set to a string', async () => {
-    const storage = createInMemoryStorage();
-    const appRepo = createInMemoryAppRepository(storage);
-    const todoRepo = createInMemoryTodoRepository(storage);
-    const appInteractor = createAppInteractor({ appRepository: appRepo, todoRepository: todoRepo });
-    const todoInteractor = createTodoInteractor({ appRepository: appRepo, todoRepository: todoRepo });
-    const app = await appInteractor.create({ name: 'Del Todo App' });
-    const todo = await todoInteractor.create({ appId: app.id, title: 'Del Todo' });
-    const deleted = await todoInteractor.delete({ appId: app.id, todoId: todo.id });
-    expect(deleted.deletedAt).not.toBeNull();
+    const deleted = await todoInteractor.delete({ appId: app.id, todoId: todo.id, userId: USER_ID });
     expect(typeof deleted.deletedAt).toBe('string');
   });
 

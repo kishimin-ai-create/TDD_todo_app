@@ -1,5 +1,3 @@
-import type { Hono } from 'hono';
-
 import { createAppController } from '../controllers/app-controller';
 import { createTodoController } from '../controllers/todo-controller';
 import { createAppInteractor } from '../services/app-interactor';
@@ -12,7 +10,7 @@ import { createMysqlTodoRepository } from './mysql-todo-repository';
 import { createInMemoryUserRepository } from './in-memory-repositories';
 
 type MysqlBackendRegistry = {
-  app: Hono;
+  app: ReturnType<typeof createHonoApp>;
 };
 
 /**
@@ -28,7 +26,7 @@ export function createMysqlBackendRegistry(): MysqlBackendRegistry {
   const authUsecase = createAuthInteractor({ userRepository });
   const appController = createAppController(appUsecase);
   const todoController = createTodoController(todoUsecase);
-  const app = createHonoApp({ appController, todoController, authUsecase });
+  const app = createHonoApp({ appController, todoController, authUsecase, userRepository });
 
   return { app };
 }

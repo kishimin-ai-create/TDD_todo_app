@@ -14,23 +14,23 @@ export type TodoController = {
   /**
    * Creates a new todo.
    */
-  create(appId: string, body: unknown): Promise<JsonHttpResponse>;
+  create(appId: string, body: unknown, userId: string): Promise<JsonHttpResponse>;
   /**
    * Lists todos.
    */
-  list(appId: string): Promise<JsonHttpResponse>;
+  list(appId: string, userId: string): Promise<JsonHttpResponse>;
   /**
    * Retrieves a todo by ID.
    */
-  get(appId: string, todoId: string): Promise<JsonHttpResponse>;
+  get(appId: string, todoId: string, userId: string): Promise<JsonHttpResponse>;
   /**
    * Updates a todo.
    */
-  update(appId: string, todoId: string, body: unknown): Promise<JsonHttpResponse>;
+  update(appId: string, todoId: string, body: unknown, userId: string): Promise<JsonHttpResponse>;
   /**
    * Deletes a todo.
    */
-  delete(appId: string, todoId: string): Promise<JsonHttpResponse>;
+  delete(appId: string, todoId: string, userId: string): Promise<JsonHttpResponse>;
 };
 
 /**
@@ -40,27 +40,35 @@ export function createTodoController(todoUsecase: TodoUsecase): TodoController {
   async function create(
     appId: string,
     body: unknown,
+    userId: string,
   ): Promise<JsonHttpResponse> {
     try {
-      const todo = await todoUsecase.create(parseCreateTodoInput(appId, body));
+      const todo = await todoUsecase.create({
+        ...parseCreateTodoInput(appId, body),
+        userId,
+      });
       return presentSuccess(presentTodo(todo), 201);
     } catch (error) {
       return handleControllerError(error);
     }
   }
 
-  async function list(appId: string): Promise<JsonHttpResponse> {
+  async function list(appId: string, userId: string): Promise<JsonHttpResponse> {
     try {
-      const todos = await todoUsecase.list({ appId });
+      const todos = await todoUsecase.list({ appId, userId });
       return presentSuccess(todos.map(presentTodo));
     } catch (error) {
       return handleControllerError(error);
     }
   }
 
-  async function get(appId: string, todoId: string): Promise<JsonHttpResponse> {
+  async function get(
+    appId: string,
+    todoId: string,
+    userId: string,
+  ): Promise<JsonHttpResponse> {
     try {
-      const todo = await todoUsecase.get({ appId, todoId });
+      const todo = await todoUsecase.get({ appId, todoId, userId });
       return presentSuccess(presentTodo(todo));
     } catch (error) {
       return handleControllerError(error);
@@ -71,11 +79,13 @@ export function createTodoController(todoUsecase: TodoUsecase): TodoController {
     appId: string,
     todoId: string,
     body: unknown,
+    userId: string,
   ): Promise<JsonHttpResponse> {
     try {
-      const todo = await todoUsecase.update(
-        parseUpdateTodoInput(appId, todoId, body),
-      );
+      const todo = await todoUsecase.update({
+        ...parseUpdateTodoInput(appId, todoId, body),
+        userId,
+      });
       return presentSuccess(presentTodo(todo));
     } catch (error) {
       return handleControllerError(error);
@@ -85,9 +95,10 @@ export function createTodoController(todoUsecase: TodoUsecase): TodoController {
   async function remove(
     appId: string,
     todoId: string,
+    userId: string,
   ): Promise<JsonHttpResponse> {
     try {
-      const todo = await todoUsecase.delete({ appId, todoId });
+      const todo = await todoUsecase.delete({ appId, todoId, userId });
       return presentSuccess(presentTodo(todo));
     } catch (error) {
       return handleControllerError(error);

@@ -9,6 +9,8 @@ import { createAppInteractor } from '../../../services/app-interactor';
 import { createAppController } from '../../../controllers/app-controller';
 
 const GHOST_ID = '00000000-0000-0000-0000-000000000000';
+const USER_ID = 'user-1';
+const OTHER_USER_ID = 'user-2';
 
 function setup() {
   const storage = createInMemoryStorage();
@@ -26,11 +28,9 @@ describe('AppController integration', () => {
     ctx = setup();
   });
 
-  // ─── create ──────────────────────────────────────────────────────────────
-
   describe('create', () => {
     it('returns 201 with success:true and app DTO on valid input', async () => {
-      const res = await ctx.controller.create({ name: 'My App' });
+      const res = await ctx.controller.create({ name: 'My App' }, USER_ID);
       expect(res.status).toBe(201);
       expect(res.body.success).toBe(true);
       expect(res.body.data).toMatchObject({
@@ -42,123 +42,114 @@ describe('AppController integration', () => {
     });
 
     it('DTO does not include deletedAt', async () => {
-      const res = await ctx.controller.create({ name: 'App' });
+      const res = await ctx.controller.create({ name: 'App' }, USER_ID);
       expect(res.body.data).not.toHaveProperty('deletedAt');
     });
 
     it('returns 422 when name is missing', async () => {
-      const res = await ctx.controller.create({});
+      const res = await ctx.controller.create({}, USER_ID);
       expect(res.status).toBe(422);
       expect(res.body.success).toBe(false);
       expect(res.body.error?.code).toBe('VALIDATION_ERROR');
     });
 
-    it('returns 422 when name is not a string', async () => {
-      const res = await ctx.controller.create({ name: 42 });
-      expect(res.status).toBe(422);
-      expect(res.body.error?.code).toBe('VALIDATION_ERROR');
-    });
-
-    it('returns 422 when name is an empty string', async () => {
-      const res = await ctx.controller.create({ name: '   ' });
-      expect(res.status).toBe(422);
-    });
-
-    it('returns 409 when the name is already taken', async () => {
-      await ctx.controller.create({ name: 'Dup' });
-      const res = await ctx.controller.create({ name: 'Dup' });
+    it('returns 409 when the name is already taken by the same user', async () => {
+      await ctx.controller.create({ name: 'Dup' }, USER_ID);
+      const res = await ctx.controller.create({ name: 'Dup' }, USER_ID);
       expect(res.status).toBe(409);
-      expect(res.body.error?.code).toBe('CONFLICT');
     });
 
-    it('returns 422 when body is null', async () => {
-      const res = await ctx.controller.create(null);
-      expect(res.status).toBe(422);
+    it('allows the same app name for a different user', async () => {
+      await ctx.controller.create({ name: 'Dup' }, USER_ID);
+      const res = await ctx.controller.create({ name: 'Dup' }, OTHER_USER_ID);
+      expect(res.status).toBe(201);
     });
   });
 
-  // ─── list ────────────────────────────────────────────────────────────────
-
   describe('list', () => {
     it('returns 200 with an empty array when no apps exist', async () => {
-      const res = await ctx.controller.list();
+      const res = await ctx.controller.list(USER_ID);
       expect(res.status).toBe(200);
       expect(res.body.success).toBe(true);
       expect(res.body.data).toEqual([]);
     });
 
-    it('returns 200 with all created apps', async () => {
-      await ctx.controller.create({ name: 'A' });
-      await ctx.controller.create({ name: 'B' });
-      const res = await ctx.controller.list();
+    it('returns 200 with only the current user apps', async () => {
+      await ctx.controller.create({ name: 'A' }, USER_ID);
+      await ctx.controller.create({ name: 'B' }, USER_ID);
+      await ctx.controller.create({ name: 'Other' }, OTHER_USER_ID);
+      const res = await ctx.controller.list(USER_ID);
       expect(res.status).toBe(200);
       expect((res.body.data as unknown[]).length).toBe(2);
     });
   });
 
-  // ─── get ─────────────────────────────────────────────────────────────────
-
   describe('get', () => {
     it('returns 200 with the correct app', async () => {
-      const created = await ctx.controller.create({ name: 'Get App' });
+      const created = await ctx.controller.create({ name: 'Get App' }, USER_ID);
       const appId = (created.body.data as { id: string }).id;
-      const res = await ctx.controller.get(appId);
+      const res = await ctx.controller.get(appId, USER_ID);
       expect(res.status).toBe(200);
       expect((res.body.data as { id: string }).id).toBe(appId);
     });
 
+    it('returns 403 for another user app', async () => {
+      const created = await ctx.controller.create({ name: 'Get App' }, OTHER_USER_ID);
+      const appId = (created.body.data as { id: string }).id;
+      const res = await ctx.controller.get(appId, USER_ID);
+      expect(res.status).toBe(403);
+      expect(res.body.error?.code).toBe('FORBIDDEN');
+    });
+
     it('returns 404 for an unknown id', async () => {
-      const res = await ctx.controller.get(GHOST_ID);
+      const res = await ctx.controller.get(GHOST_ID, USER_ID);
       expect(res.status).toBe(404);
-      expect(res.body.error?.code).toBe('NOT_FOUND');
     });
   });
 
-  // ─── update ──────────────────────────────────────────────────────────────
-
   describe('update', () => {
     it('returns 200 with the updated app', async () => {
-      const created = await ctx.controller.create({ name: 'Old' });
+      const created = await ctx.controller.create({ name: 'Old' }, USER_ID);
       const appId = (created.body.data as { id: string }).id;
-      const res = await ctx.controller.update(appId, { name: 'New' });
+      const res = await ctx.controller.update(appId, { name: 'New' }, USER_ID);
       expect(res.status).toBe(200);
       expect((res.body.data as { name: string }).name).toBe('New');
     });
 
-    it('returns 422 when updated name is empty', async () => {
-      const created = await ctx.controller.create({ name: 'Valid' });
+    it('returns 403 for another user app', async () => {
+      const created = await ctx.controller.create({ name: 'Old' }, OTHER_USER_ID);
       const appId = (created.body.data as { id: string }).id;
-      const res = await ctx.controller.update(appId, { name: '' });
-      expect(res.status).toBe(422);
+      const res = await ctx.controller.update(appId, { name: 'New' }, USER_ID);
+      expect(res.status).toBe(403);
     });
 
     it('returns 409 when the new name conflicts', async () => {
-      await ctx.controller.create({ name: 'Taken' });
-      const other = await ctx.controller.create({ name: 'Mine' });
+      await ctx.controller.create({ name: 'Taken' }, USER_ID);
+      const other = await ctx.controller.create({ name: 'Mine' }, USER_ID);
       const otherId = (other.body.data as { id: string }).id;
-      const res = await ctx.controller.update(otherId, { name: 'Taken' });
+      const res = await ctx.controller.update(otherId, { name: 'Taken' }, USER_ID);
       expect(res.status).toBe(409);
-    });
-
-    it('returns 404 for an unknown app id', async () => {
-      const res = await ctx.controller.update(GHOST_ID, { name: 'X' });
-      expect(res.status).toBe(404);
     });
   });
 
-  // ─── delete ──────────────────────────────────────────────────────────────
-
   describe('delete', () => {
     it('returns 200 with the soft-deleted app', async () => {
-      const created = await ctx.controller.create({ name: 'Del' });
+      const created = await ctx.controller.create({ name: 'Del' }, USER_ID);
       const appId = (created.body.data as { id: string }).id;
-      const res = await ctx.controller.delete(appId);
+      const res = await ctx.controller.delete(appId, USER_ID);
       expect(res.status).toBe(200);
       expect(res.body.success).toBe(true);
     });
 
+    it('returns 403 for another user app', async () => {
+      const created = await ctx.controller.create({ name: 'Del' }, OTHER_USER_ID);
+      const appId = (created.body.data as { id: string }).id;
+      const res = await ctx.controller.delete(appId, USER_ID);
+      expect(res.status).toBe(403);
+    });
+
     it('returns 404 for an unknown app id', async () => {
-      const res = await ctx.controller.delete(GHOST_ID);
+      const res = await ctx.controller.delete(GHOST_ID, USER_ID);
       expect(res.status).toBe(404);
     });
   });

@@ -1,4 +1,4 @@
-import { Hono, type Context } from 'hono';
+import { Hono, type Context, type Next } from 'hono';
 import { cors } from 'hono/cors';
 import type { ContentfulStatusCode } from 'hono/utils/http-status';
 import { describeRoute, openAPIRouteHandler, resolver } from 'hono-openapi';
@@ -15,6 +15,7 @@ import { z } from 'zod';
 import { parseUpdateUserProfileInput } from './user-profile-validation';
 import type { AuthUsecase } from '../services/auth-usecase';
 import { isAppError } from '../models/app-error';
+import type { UserRepository } from '../repositories/user-repository';
 
 const AppSuccessSchema = SuccessResponseSchema(AppDtoSchema);
 const AppListSuccessSchema = SuccessResponseSchema(z.array(AppDtoSchema));
@@ -23,6 +24,14 @@ const TodoListSuccessSchema = SuccessResponseSchema(z.array(TodoDtoSchema));
 const EMAIL_RE = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
 
 const errorResponses = {
+  401: {
+    description: 'Authentication required or token is invalid.',
+    content: { 'application/json': { schema: resolver(ErrorResponseSchema) } },
+  },
+  403: {
+    description: 'Authenticated user does not own the requested resource.',
+    content: { 'application/json': { schema: resolver(ErrorResponseSchema) } },
+  },
   404: {
     description: 'Resource not found.',
     content: { 'application/json': { schema: resolver(ErrorResponseSchema) } },
@@ -40,6 +49,12 @@ const errorResponses = {
     content: { 'application/json': { schema: resolver(ErrorResponseSchema) } },
   },
 } as const;
+
+type AppEnv = {
+  Variables: {
+    userId: string;
+  };
+};
 
 /**
  * Determines if a request path should be logged.
@@ -180,6 +195,7 @@ type HonoAppDependencies = {
   appController: AppController;
   todoController: TodoController;
   authUsecase: AuthUsecase;
+  userRepository: UserRepository;
 };
 
 /**
@@ -187,16 +203,49 @@ type HonoAppDependencies = {
  * @param {HonoAppDependencies} dependencies Object containing controllers and use cases
  * @returns {Hono} Configured Hono application instance
  */
-export function createHonoApp(dependencies: HonoAppDependencies): Hono {
-  const { authUsecase } = dependencies;
-  const app = new Hono();
+export function createHonoApp(dependencies: HonoAppDependencies): Hono<AppEnv> {
+  const { authUsecase, userRepository } = dependencies;
+  const app = new Hono<AppEnv>();
+
+  async function authMiddleware(
+    c: Context<AppEnv>,
+    next: Next,
+  ): Promise<Response | void> {
+    const authHeader = c.req.header('Authorization');
+    if (!authHeader?.startsWith('Bearer ')) {
+      return c.json(
+        {
+          success: false,
+          data: null,
+          error: { code: 'UNAUTHORIZED', message: 'Authentication required' },
+        },
+        401,
+      );
+    }
+
+    const token = authHeader.slice(7);
+    const user = await userRepository.findByToken(token);
+    if (!user) {
+      return c.json(
+        {
+          success: false,
+          data: null,
+          error: { code: 'UNAUTHORIZED', message: 'Invalid or expired token' },
+        },
+        401,
+      );
+    }
+
+    c.set('userId', user.id);
+    await next();
+  }
 
   app.use(
     '*',
     cors({
       origin: process.env.CORS_ORIGIN ?? '*',
       allowMethods: ['GET', 'POST', 'PUT', 'DELETE', 'OPTIONS'],
-      allowHeaders: ['Content-Type'],
+      allowHeaders: ['Content-Type', 'Authorization'],
     }),
   );
 
@@ -331,6 +380,7 @@ export function createHonoApp(dependencies: HonoAppDependencies): Hono {
 
   app.post(
     '/api/v1/apps',
+    authMiddleware,
     describeRoute({
       description: 'Create a new App.',
       requestBody: {
@@ -354,6 +404,7 @@ export function createHonoApp(dependencies: HonoAppDependencies): Hono {
             'application/json': { schema: resolver(AppSuccessSchema) },
           },
         },
+        401: errorResponses[401],
         409: errorResponses[409],
         422: errorResponses[422],
         500: errorResponses[500],
@@ -362,12 +413,16 @@ export function createHonoApp(dependencies: HonoAppDependencies): Hono {
     async c =>
       toJsonResponse(
         c,
-        await dependencies.appController.create(await readRequestBody(c)),
+        await dependencies.appController.create(
+          await readRequestBody(c),
+          c.get('userId'),
+        ),
       ),
   );
 
   app.get(
     '/api/v1/apps',
+    authMiddleware,
     describeRoute({
       description: 'List all active Apps.',
       responses: {
@@ -377,14 +432,16 @@ export function createHonoApp(dependencies: HonoAppDependencies): Hono {
             'application/json': { schema: resolver(AppListSuccessSchema) },
           },
         },
+        401: errorResponses[401],
         500: errorResponses[500],
       },
     }),
-    async c => toJsonResponse(c, await dependencies.appController.list()),
+    async c => toJsonResponse(c, await dependencies.appController.list(c.get('userId'))),
   );
 
   app.get(
     '/api/v1/apps/:appId',
+    authMiddleware,
     describeRoute({
       description: 'Get an App by ID.',
       responses: {
@@ -394,6 +451,8 @@ export function createHonoApp(dependencies: HonoAppDependencies): Hono {
             'application/json': { schema: resolver(AppSuccessSchema) },
           },
         },
+        401: errorResponses[401],
+        403: errorResponses[403],
         404: errorResponses[404],
         500: errorResponses[500],
       },
@@ -401,12 +460,13 @@ export function createHonoApp(dependencies: HonoAppDependencies): Hono {
     async c =>
       toJsonResponse(
         c,
-        await dependencies.appController.get(c.req.param('appId')),
+        await dependencies.appController.get(c.req.param('appId'), c.get('userId')),
       ),
   );
 
   app.put(
     '/api/v1/apps/:appId',
+    authMiddleware,
     describeRoute({
       description: 'Partially update an App.',
       requestBody: {
@@ -429,6 +489,8 @@ export function createHonoApp(dependencies: HonoAppDependencies): Hono {
             'application/json': { schema: resolver(AppSuccessSchema) },
           },
         },
+        401: errorResponses[401],
+        403: errorResponses[403],
         404: errorResponses[404],
         409: errorResponses[409],
         422: errorResponses[422],
@@ -441,12 +503,14 @@ export function createHonoApp(dependencies: HonoAppDependencies): Hono {
         await dependencies.appController.update(
           c.req.param('appId'),
           await readRequestBody(c),
+          c.get('userId'),
         ),
       ),
   );
 
   app.delete(
     '/api/v1/apps/:appId',
+    authMiddleware,
     describeRoute({
       description: 'Soft-delete an App and cascade to its Todos.',
       responses: {
@@ -456,6 +520,8 @@ export function createHonoApp(dependencies: HonoAppDependencies): Hono {
             'application/json': { schema: resolver(AppSuccessSchema) },
           },
         },
+        401: errorResponses[401],
+        403: errorResponses[403],
         404: errorResponses[404],
         500: errorResponses[500],
       },
@@ -463,12 +529,13 @@ export function createHonoApp(dependencies: HonoAppDependencies): Hono {
     async c =>
       toJsonResponse(
         c,
-        await dependencies.appController.delete(c.req.param('appId')),
+        await dependencies.appController.delete(c.req.param('appId'), c.get('userId')),
       ),
   );
 
   app.post(
     '/api/v1/apps/:appId/todos',
+    authMiddleware,
     describeRoute({
       description: 'Create a new Todo in an App.',
       requestBody: {
@@ -492,6 +559,8 @@ export function createHonoApp(dependencies: HonoAppDependencies): Hono {
             'application/json': { schema: resolver(TodoSuccessSchema) },
           },
         },
+        401: errorResponses[401],
+        403: errorResponses[403],
         404: errorResponses[404],
         422: errorResponses[422],
         500: errorResponses[500],
@@ -503,12 +572,14 @@ export function createHonoApp(dependencies: HonoAppDependencies): Hono {
         await dependencies.todoController.create(
           c.req.param('appId'),
           await readRequestBody(c),
+          c.get('userId'),
         ),
       ),
   );
 
   app.get(
     '/api/v1/apps/:appId/todos',
+    authMiddleware,
     describeRoute({
       description: 'List all active Todos for an App.',
       responses: {
@@ -518,6 +589,8 @@ export function createHonoApp(dependencies: HonoAppDependencies): Hono {
             'application/json': { schema: resolver(TodoListSuccessSchema) },
           },
         },
+        401: errorResponses[401],
+        403: errorResponses[403],
         404: errorResponses[404],
         500: errorResponses[500],
       },
@@ -525,12 +598,13 @@ export function createHonoApp(dependencies: HonoAppDependencies): Hono {
     async c =>
       toJsonResponse(
         c,
-        await dependencies.todoController.list(c.req.param('appId')),
+        await dependencies.todoController.list(c.req.param('appId'), c.get('userId')),
       ),
   );
 
   app.get(
     '/api/v1/apps/:appId/todos/:todoId',
+    authMiddleware,
     describeRoute({
       description: 'Get a Todo by ID.',
       responses: {
@@ -540,6 +614,8 @@ export function createHonoApp(dependencies: HonoAppDependencies): Hono {
             'application/json': { schema: resolver(TodoSuccessSchema) },
           },
         },
+        401: errorResponses[401],
+        403: errorResponses[403],
         404: errorResponses[404],
         500: errorResponses[500],
       },
@@ -550,12 +626,14 @@ export function createHonoApp(dependencies: HonoAppDependencies): Hono {
         await dependencies.todoController.get(
           c.req.param('appId'),
           c.req.param('todoId'),
+          c.get('userId'),
         ),
       ),
   );
 
   app.put(
     '/api/v1/apps/:appId/todos/:todoId',
+    authMiddleware,
     describeRoute({
       description: 'Partially update a Todo.',
       requestBody: {
@@ -579,6 +657,8 @@ export function createHonoApp(dependencies: HonoAppDependencies): Hono {
             'application/json': { schema: resolver(TodoSuccessSchema) },
           },
         },
+        401: errorResponses[401],
+        403: errorResponses[403],
         404: errorResponses[404],
         422: errorResponses[422],
         500: errorResponses[500],
@@ -591,12 +671,14 @@ export function createHonoApp(dependencies: HonoAppDependencies): Hono {
           c.req.param('appId'),
           c.req.param('todoId'),
           await readRequestBody(c),
+          c.get('userId'),
         ),
       ),
   );
 
   app.delete(
     '/api/v1/apps/:appId/todos/:todoId',
+    authMiddleware,
     describeRoute({
       description: 'Soft-delete a Todo.',
       responses: {
@@ -606,6 +688,8 @@ export function createHonoApp(dependencies: HonoAppDependencies): Hono {
             'application/json': { schema: resolver(TodoSuccessSchema) },
           },
         },
+        401: errorResponses[401],
+        403: errorResponses[403],
         404: errorResponses[404],
         500: errorResponses[500],
       },
@@ -616,6 +700,7 @@ export function createHonoApp(dependencies: HonoAppDependencies): Hono {
         await dependencies.todoController.delete(
           c.req.param('appId'),
           c.req.param('todoId'),
+          c.get('userId'),
         ),
       ),
   );
@@ -664,7 +749,7 @@ function toJsonResponse(context: Context, response: JsonHttpResponse) {
 /**
  * Builds a validation error response body.
  * @param {string} message Error message
- * @returns {Object} Validation error response object
+ * @returns {object} Validation error response object
  */
 function buildValidationErrorBody(message: string) {
   return { data: null, success: false, error: { code: 'VALIDATION_ERROR', message } } as const;
@@ -674,7 +759,7 @@ function buildValidationErrorBody(message: string) {
  * Parses and validates authentication credentials from request body.
  * Validates email format and password length.
  * @param {unknown} body Request body to parse
- * @returns {Object} Parsed credentials with success flag or error message
+ * @returns {object} Parsed credentials with success flag or error message
  */
 function parseAuthCredentials(body: unknown):
   | { success: true; email: string; password: string }

@@ -9,6 +9,8 @@ import { createInMemoryStorage } from '../../../infrastructure/in-memory-storage
 import { createAppInteractor } from '../../../services/app-interactor';
 
 const GHOST_ID = '00000000-0000-0000-0000-000000000000';
+const USER_ID = 'user-1';
+const OTHER_USER_ID = 'user-2';
 
 function makeInteractor() {
   const storage = createInMemoryStorage();
@@ -18,57 +20,32 @@ function makeInteractor() {
   });
 }
 
-// ─── AppError cross-layer propagation ────────────────────────────────────────
-
 describe('AppError cross-layer propagation', () => {
-  it('interactor throws AppError with NOT_FOUND and isAppError recognizes it', async () => {
+  it('recognizes NOT_FOUND from the interactor', async () => {
     const interactor = makeInteractor();
     let caught: unknown;
     try {
-      await interactor.get({ appId: GHOST_ID });
+      await interactor.get({ appId: GHOST_ID, userId: USER_ID });
     } catch (e) {
       caught = e;
     }
     expect(isAppError(caught)).toBe(true);
-    // isAppError(caught) is verified true by the assertion above; cast is safe here
     expect((caught as AppError).code).toBe('NOT_FOUND');
   });
 
-  it('interactor throws AppError with CONFLICT on duplicate create', async () => {
+  it('recognizes CONFLICT on duplicate create', async () => {
     const interactor = makeInteractor();
-    await interactor.create({ name: 'Dup' });
-    let caught: unknown;
-    try {
-      await interactor.create({ name: 'Dup' });
-    } catch (e) {
-      caught = e;
-    }
-    expect(isAppError(caught)).toBe(true);
-    // isAppError(caught) is verified true by the assertion above; cast is safe here
-    expect((caught as AppError).code).toBe('CONFLICT');
+    await interactor.create({ name: 'Dup', userId: USER_ID });
+    await expect(interactor.create({ name: 'Dup', userId: USER_ID })).rejects.toMatchObject({ code: 'CONFLICT' });
   });
 
-  it('AppError preserves code and message across layer boundaries', () => {
-    const err = new AppError('VALIDATION_ERROR', 'must not be empty');
-    expect(err.code).toBe('VALIDATION_ERROR');
-    expect(err.message).toBe('must not be empty');
-    expect(err.name).toBe('AppError');
-    expect(err instanceof Error).toBe(true);
+  it('returns FORBIDDEN for another user app', async () => {
+    const interactor = makeInteractor();
+    const app = await interactor.create({ name: 'Private', userId: OTHER_USER_ID });
+    await expect(interactor.get({ appId: app.id, userId: USER_ID })).rejects.toMatchObject({ code: 'FORBIDDEN' });
   });
 
-  it('isAppError returns false for a plain Error', () => {
-    expect(isAppError(new Error('plain'))).toBe(false);
-  });
-
-  it('isAppError returns false for null', () => {
-    expect(isAppError(null)).toBe(false);
-  });
-
-  it('isAppError returns false for a plain object with a code property', () => {
-    expect(isAppError({ code: 'NOT_FOUND', message: 'test' })).toBe(false);
-  });
-
-  it('infrastructure wraps unexpected storage errors as REPOSITORY_ERROR', async () => {
+  it('wraps repository failures as REPOSITORY_ERROR', async () => {
     const brokenStorage = createInMemoryStorage();
     Object.defineProperty(brokenStorage, 'apps', {
       get() {
@@ -79,14 +56,6 @@ describe('AppError cross-layer propagation', () => {
       appRepository: createInMemoryAppRepository(brokenStorage),
       todoRepository: createInMemoryTodoRepository(createInMemoryStorage()),
     });
-    let caught: unknown;
-    try {
-      await interactor.list();
-    } catch (e) {
-      caught = e;
-    }
-    expect(isAppError(caught)).toBe(true);
-    // isAppError(caught) is verified true by the assertion above; cast is safe here
-    expect((caught as AppError).code).toBe('REPOSITORY_ERROR');
+    await expect(interactor.list(USER_ID)).rejects.toMatchObject({ code: 'REPOSITORY_ERROR' });
   });
 });

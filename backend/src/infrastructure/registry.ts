@@ -10,10 +10,9 @@ import { createAppInteractor } from '../services/app-interactor';
 import { createTodoInteractor } from '../services/todo-interactor';
 import { createAuthInteractor } from '../services/auth-interactor';
 import { createHonoApp } from './hono-app';
-import type { Hono } from 'hono';
 
 type BackendRegistry = {
-  app: Hono;
+  app: ReturnType<typeof createHonoApp>;
   clearStorage: () => void;
 };
 
@@ -40,6 +39,7 @@ export function createBackendRegistry(): BackendRegistry {
     appController,
     todoController,
     authUsecase,
+    userRepository,
   });
 
   return {

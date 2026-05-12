@@ -1,9 +1,8 @@
 import { createBackendRegistry } from './infrastructure/registry';
 import { createMysqlBackendRegistry } from './infrastructure/mysql-registry';
-import type { Hono } from 'hono';
 
 type ResolvedApp = {
-  app: Hono;
+  app: ReturnType<typeof createBackendRegistry>['app'];
   clearStorage?: () => void;
 };
 

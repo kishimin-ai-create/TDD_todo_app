@@ -30,9 +30,13 @@ export function createTodoInteractor(
   const generateId = dependencies.generateId ?? (() => crypto.randomUUID());
   const now = dependencies.now ?? (() => new Date().toISOString());
 
-  async function ensureAppExists(appId: string): Promise<AppEntity> {
+  async function ensureAppBelongsToUser(
+    appId: string,
+    userId: string,
+  ): Promise<AppEntity> {
     const app = await appRepository.findActiveById(appId);
     if (!app) throw new AppError('NOT_FOUND', 'App not found');
+    if (app.userId !== userId) throw new AppError('FORBIDDEN', 'Access denied');
     return app;
   }
 
@@ -46,7 +50,7 @@ export function createTodoInteractor(
   }
 
   async function create(input: CreateTodoInput): Promise<TodoEntity> {
-    await ensureAppExists(input.appId);
+    await ensureAppBelongsToUser(input.appId, input.userId);
     const timestamp = now();
     const todo: TodoEntity = {
       id: generateId(),
@@ -62,17 +66,17 @@ export function createTodoInteractor(
   }
 
   async function list(input: ListTodosInput): Promise<TodoEntity[]> {
-    await ensureAppExists(input.appId);
+    await ensureAppBelongsToUser(input.appId, input.userId);
     return todoRepository.listActiveByAppId(input.appId);
   }
 
   async function get(input: GetTodoInput): Promise<TodoEntity> {
-    await ensureAppExists(input.appId);
+    await ensureAppBelongsToUser(input.appId, input.userId);
     return findExistingTodo(input.appId, input.todoId);
   }
 
   async function update(input: UpdateTodoInput): Promise<TodoEntity> {
-    await ensureAppExists(input.appId);
+    await ensureAppBelongsToUser(input.appId, input.userId);
     const todo = await findExistingTodo(input.appId, input.todoId);
     const updatedTodo: TodoEntity = {
       ...todo,
@@ -85,7 +89,7 @@ export function createTodoInteractor(
   }
 
   async function remove(input: DeleteTodoInput): Promise<TodoEntity> {
-    await ensureAppExists(input.appId);
+    await ensureAppBelongsToUser(input.appId, input.userId);
     const todo = await findExistingTodo(input.appId, input.todoId);
     const deletedAt = now();
     const deletedTodo: TodoEntity = { ...todo, updatedAt: deletedAt, deletedAt };

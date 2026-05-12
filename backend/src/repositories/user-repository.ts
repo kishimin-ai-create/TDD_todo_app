@@ -5,5 +5,6 @@ import type { UserEntity } from '../models/user';
  */
 export interface UserRepository {
   findByEmail(email: string): Promise<UserEntity | null>;
+  findByToken(token: string): Promise<UserEntity | null>;
   save(user: UserEntity): Promise<void>;
 }

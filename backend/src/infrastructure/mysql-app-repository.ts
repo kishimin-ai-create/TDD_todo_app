@@ -8,6 +8,7 @@ import type { Database } from './db';
 
 function rowToApp(row: {
   id: string;
+  userId: string;
   name: string;
   createdAt: Date;
   updatedAt: Date;
@@ -15,6 +16,7 @@ function rowToApp(row: {
 }): AppEntity {
   return {
     id: row.id,
+    userId: row.userId,
     name: row.name,
     createdAt: row.createdAt.toISOString(),
     updatedAt: row.updatedAt.toISOString(),
@@ -32,12 +34,14 @@ export function createMysqlAppRepository(db: Kysely<Database>): AppRepository {
         .insertInto('App')
         .values({
           id: app.id,
+          userId: app.userId,
           name: app.name,
           createdAt: new Date(app.createdAt),
           updatedAt: new Date(app.updatedAt),
           deletedAt: app.deletedAt ? new Date(app.deletedAt) : null,
         })
         .onDuplicateKeyUpdate({
+          userId: sql`VALUES(userId)`,
           name: sql`VALUES(name)`,
           updatedAt: sql`VALUES(updatedAt)`,
           deletedAt: sql`VALUES(deletedAt)`,
@@ -50,17 +54,18 @@ export function createMysqlAppRepository(db: Kysely<Database>): AppRepository {
     }
   }
 
-  async function listActive(): Promise<AppEntity[]> {
+  async function listActiveByUserId(userId: string): Promise<AppEntity[]> {
     try {
       const rows = await db
         .selectFrom('App')
         .selectAll()
+        .where('userId', '=', userId)
         .where('deletedAt', 'is', null)
         .execute();
       return rows.map(rowToApp);
     } catch (err: unknown) {
       // eslint-disable-next-line no-console
-      console.error(`[mysql-app-repository] listActive`, err);
+      console.error(`[mysql-app-repository] listActiveByUserId`, err);
       throw new AppError('REPOSITORY_ERROR', 'Repository operation failed', { cause: err });
     }
   }
@@ -81,12 +86,17 @@ export function createMysqlAppRepository(db: Kysely<Database>): AppRepository {
     }
   }
 
-  async function existsActiveByName(name: string, excludeId?: string): Promise<boolean> {
+  async function existsActiveByName(
+    name: string,
+    userId: string,
+    excludeId?: string,
+  ): Promise<boolean> {
     try {
       const result = await db
         .selectFrom('App')
         .select(({ fn }) => fn.count<number>('id').as('count'))
         .where('name', '=', name)
+        .where('userId', '=', userId)
         .where('deletedAt', 'is', null)
         .$if(excludeId !== undefined, qb => qb.where('id', '!=', excludeId!))
         .executeTakeFirst();
@@ -98,5 +108,5 @@ export function createMysqlAppRepository(db: Kysely<Database>): AppRepository {
     }
   }
 
-  return { save, listActive, findActiveById, existsActiveByName };
+  return { save, listActiveByUserId, findActiveById, existsActiveByName };
 }

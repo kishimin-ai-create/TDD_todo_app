@@ -21,11 +21,11 @@ export function createInMemoryAppRepository(
     );
   }
 
-  function listActive(): Promise<AppEntity[]> {
+  function listActiveByUserId(userId: string): Promise<AppEntity[]> {
     return Promise.resolve().then(() =>
       withRepositoryError(() =>
         [...storage.apps.values()]
-          .filter(app => app.deletedAt === null)
+          .filter(app => app.userId === userId && app.deletedAt === null)
           .map(cloneApp),
       ),
     );
@@ -42,13 +42,17 @@ export function createInMemoryAppRepository(
 
   function existsActiveByName(
     name: string,
+    userId: string,
     excludeId?: string,
   ): Promise<boolean> {
     return Promise.resolve().then(() =>
       withRepositoryError(() =>
         [...storage.apps.values()].some(
           app =>
-            app.deletedAt === null && app.name === name && app.id !== excludeId,
+            app.userId === userId &&
+            app.deletedAt === null &&
+            app.name === name &&
+            app.id !== excludeId,
         ),
       ),
     );
@@ -56,7 +60,7 @@ export function createInMemoryAppRepository(
 
   return {
     save,
-    listActive,
+    listActiveByUserId,
     findActiveById,
     existsActiveByName,
   };
@@ -143,6 +147,15 @@ export function createInMemoryUserRepository(): ClearableUserRepository {
     );
   }
 
+  function findByToken(token: string): Promise<UserEntity | null> {
+    return Promise.resolve().then(() =>
+      withRepositoryError(() => {
+        const user = [...store.values()].find(current => current.token === token);
+        return user ? { ...user } : null;
+      }),
+    );
+  }
+
   function save(user: UserEntity): Promise<void> {
     return Promise.resolve().then(() =>
       withRepositoryError(() => {
@@ -155,5 +168,5 @@ export function createInMemoryUserRepository(): ClearableUserRepository {
     store.clear();
   }
 
-  return { findByEmail, save, clear };
+  return { findByEmail, findByToken, save, clear };
 }

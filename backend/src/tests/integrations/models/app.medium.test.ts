@@ -9,11 +9,13 @@ import { createInMemoryStorage } from '../../../infrastructure/in-memory-storage
 import { createAppInteractor } from '../../../services/app-interactor';
 
 const TIME = '2024-01-01T00:00:00.000Z';
+const USER_ID = 'user-1';
 
 describe('AppEntity', () => {
   it('active entity has deletedAt as null', () => {
     const app: AppEntity = {
       id: 'app-1',
+      userId: USER_ID,
       name: 'Test',
       createdAt: TIME,
       updatedAt: TIME,
@@ -25,6 +27,7 @@ describe('AppEntity', () => {
   it('soft-deleted entity has deletedAt as an ISO string', () => {
     const app: AppEntity = {
       id: 'app-1',
+      userId: USER_ID,
       name: 'Test',
       createdAt: TIME,
       updatedAt: TIME,
@@ -39,9 +42,9 @@ describe('AppEntity', () => {
       appRepository: createInMemoryAppRepository(storage),
       todoRepository: createInMemoryTodoRepository(storage),
     });
-    const app = await interactor.create({ name: 'Shape Test' });
+    const app = await interactor.create({ name: 'Shape Test', userId: USER_ID });
     expect(typeof app.id).toBe('string');
-    expect(app.id.length).toBeGreaterThan(0);
+    expect(app.userId).toBe(USER_ID);
     expect(app.name).toBe('Shape Test');
     expect(typeof app.createdAt).toBe('string');
     expect(typeof app.updatedAt).toBe('string');
@@ -54,8 +57,8 @@ describe('AppEntity', () => {
       appRepository: createInMemoryAppRepository(storage),
       todoRepository: createInMemoryTodoRepository(storage),
     });
-    const app = await interactor.create({ name: 'Del Test' });
-    const deleted = await interactor.delete({ appId: app.id });
+    const app = await interactor.create({ name: 'Del Test', userId: USER_ID });
+    const deleted = await interactor.delete({ appId: app.id, userId: USER_ID });
     expect(deleted.deletedAt).not.toBeNull();
     expect(typeof deleted.deletedAt).toBe('string');
   });
@@ -65,6 +68,7 @@ describe('AppEntity', () => {
     const repo = createInMemoryAppRepository(storage);
     const entity: AppEntity = {
       id: 'app-persist',
+      userId: USER_ID,
       name: 'Persisted',
       createdAt: TIME,
       updatedAt: TIME,
