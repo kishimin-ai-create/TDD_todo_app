@@ -169,6 +169,7 @@ export function createHonoApp(dependencies: HonoAppDependencies): Hono {
     if (isSuccessStatus(status)) {
       logSuccessRequest(method, path, status, elapsedTime);
     } else if (isErrorStatus(status)) {
+      // eslint-disable-next-line @typescript-eslint/no-unsafe-argument
       await logErrorRequest(method, path, status, c);
     }
   });
