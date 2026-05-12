@@ -162,6 +162,7 @@ describe('HonoApp integration', () => {
     });
   });
 
+  /* eslint-disable @typescript-eslint/no-unsafe-member-access */
   describe('API request/response logging middleware', () => {
     let consoleLogSpy: ReturnType<typeof vi.spyOn>;
 
@@ -753,21 +754,19 @@ describe('HonoApp integration', () => {
 
         // Act
         const res = await req(app, 'POST', '/api/v1/auth/login', {
-          email: 'test@invalid.com',
-          password: 'short',
+          email: 'nonexistent@test.com',
+          password: 'validpassword123',
         });
 
         // Assert
-        // Should either return 422 (validation error) or 401 (invalid credentials)
-        if (res.status === 401) {
-          expect(consoleLogSpy).toHaveBeenCalled();
-          const logCall = consoleLogSpy.mock.calls.find((call: unknown[]) =>
-            typeof call[0] === 'string' && call[0].includes('ERROR')
-          );
-          expect(logCall).toBeDefined();
-          const logMessage = logCall![0] as string;
-          expect(logMessage).toMatch(/\[POST\].*→ ERROR 401.*INVALID_CREDENTIALS/);
-        }
+        expect(res.status).toBe(401);
+        expect(consoleLogSpy).toHaveBeenCalled();
+        const logCall = consoleLogSpy.mock.calls.find((call: unknown[]) =>
+          typeof call[0] === 'string' && call[0].includes('ERROR')
+        );
+        expect(logCall).toBeDefined();
+        const logMessage = logCall![0] as string;
+        expect(logMessage).toMatch(/\[POST\].*→ ERROR 401.*INVALID_CREDENTIALS/);
       });
 
       it('should log 404 error for GET /api/v1/apps/:id/todos with invalid app ID', async () => {
@@ -959,4 +958,135 @@ describe('HonoApp integration', () => {
       });
     });
   });
+  /* eslint-enable @typescript-eslint/no-unsafe-member-access */
+
+  /* eslint-disable @typescript-eslint/no-unsafe-member-access */
+  describe('Error logging always-on behavior (no LOG_API_REQUESTS env var)', () => {
+    let consoleLogSpy: ReturnType<typeof vi.spyOn>;
+
+    beforeEach(() => {
+      // Ensure LOG_API_REQUESTS is NOT set — tests here verify always-on error logging
+      delete process.env.LOG_API_REQUESTS;
+      consoleLogSpy = vi.spyOn(console, 'log').mockImplementation(() => {});
+    });
+
+    afterEach(() => {
+      consoleLogSpy.mockRestore();
+      delete process.env.LOG_API_REQUESTS;
+    });
+
+    it('should log 4xx error response even when LOG_API_REQUESTS is not set', async () => {
+      // Arrange
+      const { app } = buildApp();
+
+      // Act — POST with empty body triggers 422 validation error
+      const res = await req(app, 'POST', '/api/v1/apps', {});
+      expect(res.status).toBe(422);
+
+      // Assert — error log must be emitted even without LOG_API_REQUESTS
+      const errorLogCall = consoleLogSpy.mock.calls.find((call: unknown[]) =>
+        typeof call[0] === 'string' &&
+        call[0].includes('ERROR') &&
+        call[0].includes('422')
+      );
+      expect(errorLogCall).toBeDefined();
+    });
+
+    it('should log 401 error response even when LOG_API_REQUESTS is not set', async () => {
+      // Arrange
+      const { app } = buildApp();
+
+      // Act — login with non-existent credentials triggers 401
+      // Note: password must be long enough to pass validation (>=8 chars), but email doesn't exist → 401
+      const res = await req(app, 'POST', '/api/v1/auth/login', {
+        email: 'nobody@example.com',
+        password: 'wrongpassword',
+      });
+      expect(res.status).toBe(401);
+
+      // Assert — error log must be emitted and match the error format
+      const errorLogCall = consoleLogSpy.mock.calls.find((call: unknown[]) =>
+        typeof call[0] === 'string' &&
+        call[0].includes('[POST]') &&
+        call[0].includes('ERROR') &&
+        call[0].includes('401')
+      );
+      expect(errorLogCall).toBeDefined();
+      const logMessage = errorLogCall![0] as string;
+      expect(logMessage).toMatch(/\[POST\].*→ ERROR 401/);
+    });
+
+    it('should log 409 conflict error even when LOG_API_REQUESTS is not set', async () => {
+      // Arrange — sign up once so the email is taken
+      const { app } = buildApp();
+      await req(app, 'POST', '/api/v1/auth/signup', {
+        email: 'always-on@example.com',
+        password: 'password123',
+      });
+      consoleLogSpy.mockClear();
+
+      // Act — sign up again with the same email triggers 409
+      const res = await req(app, 'POST', '/api/v1/auth/signup', {
+        email: 'always-on@example.com',
+        password: 'password123',
+      });
+      expect(res.status).toBe(409);
+
+      // Assert — error log must be emitted with 409 and EMAIL_ALREADY_EXISTS
+      const errorLogCall = consoleLogSpy.mock.calls.find((call: unknown[]) =>
+        typeof call[0] === 'string' &&
+        call[0].includes('ERROR') &&
+        call[0].includes('409')
+      );
+      expect(errorLogCall).toBeDefined();
+      const logMessage = errorLogCall![0] as string;
+      expect(logMessage).toMatch(/→ ERROR 409/);
+      expect(logMessage).toContain('EMAIL_ALREADY_EXISTS');
+    });
+
+    it('should NOT log successful 2xx response when LOG_API_REQUESTS is not set', async () => {
+      // Arrange
+      const { app } = buildApp();
+
+      // Act — GET /api/v1/apps returns 200
+      const res = await req(app, 'GET', '/api/v1/apps');
+      expect(res.status).toBe(200);
+
+      // Assert — no log call should match the success format [GET] … → 200
+      const successLogCall = consoleLogSpy.mock.calls.find((call: unknown[]) =>
+        typeof call[0] === 'string' &&
+        call[0].match(/\[GET\].*→ 200/) !== null
+      );
+      expect(successLogCall).toBeUndefined();
+    });
+
+    it('should log 4xx error but NOT log 2xx success when LOG_API_REQUESTS is not set', async () => {
+      // Arrange
+      const { app } = buildApp();
+
+      // Act — success request (200)
+      const successRes = await req(app, 'GET', '/api/v1/apps');
+      expect(successRes.status).toBe(200);
+
+      // Act — error request (422)
+      const errorRes = await req(app, 'POST', '/api/v1/apps', {});
+      expect(errorRes.status).toBe(422);
+
+      // Assert — there IS a log call matching ERROR 422
+      const errorLogCall = consoleLogSpy.mock.calls.find((call: unknown[]) =>
+        typeof call[0] === 'string' &&
+        call[0].includes('ERROR') &&
+        call[0].includes('422')
+      );
+      expect(errorLogCall).toBeDefined();
+
+      // Assert — there is NO log call matching a 200 success entry
+      const successLogCall = consoleLogSpy.mock.calls.find((call: unknown[]) =>
+        typeof call[0] === 'string' &&
+        call[0].match(/→ 200/) !== null
+      );
+      expect(successLogCall).toBeUndefined();
+    });
+  });
+  /* eslint-enable @typescript-eslint/no-unsafe-member-access */
 });

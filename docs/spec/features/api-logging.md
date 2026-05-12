@@ -73,30 +73,42 @@ When error details cannot be extracted from the response body, use simplified fo
 
 ## Environment Control
 
-### Enabling/Disabling Logging
+### Logging Behavior by Response Type
 
-API logging is controlled via the `LOG_API_REQUESTS` environment variable:
+Logging behavior differs between success and error responses:
 
-- **`LOG_API_REQUESTS=true`**: Logging is enabled (string comparison)
-- **`LOG_API_REQUESTS` not set or any other value**: Logging is disabled
-- **Default**: Disabled (no logging)
+| Response Type | Status Range | Always Logged? | Controlled by `LOG_API_REQUESTS`? |
+|---|---|---|---|
+| Success | 2xx | No | Yes — only when `LOG_API_REQUESTS=true` |
+| Error | 4xx, 5xx | **Yes — always** | No — always logged regardless |
+
+### Success Response Logging (Opt-in)
+
+Success request logging is controlled via the `LOG_API_REQUESTS` environment variable:
+
+- **`LOG_API_REQUESTS=true`**: Success logging is enabled (string comparison)
+- **`LOG_API_REQUESTS` not set or any other value**: Success logging is disabled
+- **Default**: Disabled (no success logging)
 
 **Usage**:
 ```bash
-# Enable logging in development
+# Enable success logging in development
 export LOG_API_REQUESTS=true
 npm run dev
 
-# Disable logging in production (default)
+# Success logging disabled in production (default)
 npm run build && npm start
 ```
 
+### Error Response Logging (Always On)
+
+Error responses (4xx, 5xx) are **always logged** regardless of the `LOG_API_REQUESTS` environment variable. This ensures that errors are never silently swallowed in any environment.
+
 ### Rationale
 
-Operators can control logging verbosity without code changes or redeployment:
-- In development: Enable to debug request/response flow
-- In production: Disable by default to reduce log noise
-- Can be toggled at runtime on some container platforms
+- **Errors must always be visible**: Silent error suppression in production makes debugging impossible. Every 4xx/5xx must appear in logs unconditionally.
+- **Success logs are optional noise**: In high-traffic environments, success logs can be expensive. Operators can control verbosity without impacting error visibility.
+- Operators can toggle success logging verbosity via `LOG_API_REQUESTS` without affecting error visibility.
 
 ## Expected Response Structure
 

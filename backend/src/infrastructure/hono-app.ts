@@ -44,9 +44,8 @@ const errorResponses = {
 /**
  * Determines if a request path should be logged.
  * Only logs /api/* paths, skips other routes like /, /doc, etc.
- * 
- * @param path The request path to check
- * @returns true if the path should be logged, false otherwise
+ * @param {string} path The request path to check
+ * @returns {boolean} true if the path should be logged, false otherwise
  */
 function shouldLogPath(path: string): boolean {
   return path.startsWith('/api/');
@@ -54,9 +53,8 @@ function shouldLogPath(path: string): boolean {
 
 /**
  * Determines if a status code represents a successful response (2xx).
- * 
- * @param status HTTP status code
- * @returns true if status is in the 200-299 range, false otherwise
+ * @param {number} status HTTP status code
+ * @returns {boolean} true if status is in the 200-299 range, false otherwise
  */
 function isSuccessStatus(status: number): boolean {
   return status >= 200 && status < 300;
@@ -64,9 +62,8 @@ function isSuccessStatus(status: number): boolean {
 
 /**
  * Determines if a status code represents an error response (4xx or 5xx).
- * 
- * @param status HTTP status code
- * @returns true if status is in the 400-599 range, false otherwise
+ * @param {number} status HTTP status code
+ * @returns {boolean} true if status is in the 400-599 range, false otherwise
  */
 function isErrorStatus(status: number): boolean {
   return status >= 400 && status < 600;
@@ -75,11 +72,11 @@ function isErrorStatus(status: number): boolean {
 /**
  * Logs a successful API request with format: [METHOD] path → status (Xms)
  * Only logs if LOG_API_REQUESTS environment variable is set to 'true'.
- * 
- * @param method HTTP method (GET, POST, etc.)
- * @param path Request path
- * @param status HTTP status code
- * @param elapsedTimeMs Response time in milliseconds
+ * @param {string} method HTTP method (GET, POST, etc.)
+ * @param {string} path Request path
+ * @param {number} status HTTP status code
+ * @param {number} elapsedTimeMs Response time in milliseconds
+ * @returns {void}
  */
 function logSuccessRequest(method: string, path: string, status: number, elapsedTimeMs: number): void {
   if (process.env.LOG_API_REQUESTS !== 'true') {
@@ -94,14 +91,16 @@ function logSuccessRequest(method: string, path: string, status: number, elapsed
  * Expects response to follow structure: { error: { code: string, message: string } }
  * Returns null if the response body cannot be parsed, lacks an error property,
  * or the error property does not have the expected shape.
- * 
+ *
  * Side effects:
  * - Clones the response body (does not affect the original response)
  * - Logs warnings to console.warn() when extraction fails
- * 
+ *
  * Performance considerations:
  * - Response body is fully parsed for every error response
  * - Skipped if response body exceeds 10KB to prevent performance degradation
+ * @param {Context} context Hono context for response extraction
+ * @returns {Promise<{code: string; message: string} | null>} Extracted error details or null if extraction fails
  */
 async function extractErrorDetails(context: Context): Promise<{ code: string; message: string } | null> {
   try {
@@ -159,18 +158,14 @@ async function extractErrorDetails(context: Context): Promise<{ code: string; me
 /**
  * Logs an error API request with format: [METHOD] path → ERROR status — code: message
  * If error details cannot be extracted, falls back to: [METHOD] path → ERROR status
- * Only logs if LOG_API_REQUESTS environment variable is set to 'true'.
- * 
- * @param method HTTP method (GET, POST, etc.)
- * @param path Request path
- * @param status HTTP error status code (4xx or 5xx)
- * @param context Hono context for response body extraction
+ * Always logs regardless of LOG_API_REQUESTS environment variable.
+ * @param {string} method HTTP method (GET, POST, etc.)
+ * @param {string} path Request path
+ * @param {number} status HTTP error status code (4xx or 5xx)
+ * @param {Context} context Hono context for response body extraction
+ * @returns {Promise<void>}
  */
 async function logErrorRequest(method: string, path: string, status: number, context: Context): Promise<void> {
-  if (process.env.LOG_API_REQUESTS !== 'true') {
-    return;
-  }
-
   const errorDetails = await extractErrorDetails(context);
 
   if (errorDetails) {
@@ -191,6 +186,8 @@ type HonoAppDependencies = {
 
 /**
  * Creates the Hono application and binds thin HTTP handlers to controllers.
+ * @param {HonoAppDependencies} dependencies Object containing controllers and use cases
+ * @returns {Hono} Configured Hono application instance
  */
 export function createHonoApp(dependencies: HonoAppDependencies): Hono {
   const { authUsecase } = dependencies;
@@ -229,6 +226,7 @@ export function createHonoApp(dependencies: HonoAppDependencies): Hono {
     if (isSuccessStatus(status)) {
       logSuccessRequest(method, path, status, elapsedTime);
     } else if (isErrorStatus(status)) {
+      // eslint-disable-next-line @typescript-eslint/no-unsafe-argument
       await logErrorRequest(method, path, status, c);
     }
   });
@@ -641,6 +639,11 @@ export function createHonoApp(dependencies: HonoAppDependencies): Hono {
   return app;
 }
 
+/**
+ * Reads the request body and parses it as JSON.
+ * @param {Context} context Hono context
+ * @returns {Promise<unknown>} Parsed JSON object or empty object if parsing fails
+ */
 async function readRequestBody(context: Context): Promise<unknown> {
   try {
     return await context.req.json();
@@ -649,15 +652,32 @@ async function readRequestBody(context: Context): Promise<unknown> {
   }
 }
 
+/**
+ * Converts a JsonHttpResponse to a Hono response with appropriate status code.
+ * @param {Context} context Hono context
+ * @param {JsonHttpResponse} response The HTTP response object to convert
+ * @returns {Response} Hono JSON response
+ */
 function toJsonResponse(context: Context, response: JsonHttpResponse) {
   // status values are produced by http-presenter which only emits valid HTTP codes
   return context.json(response.body, response.status as ContentfulStatusCode);
 }
 
+/**
+ * Builds a validation error response body.
+ * @param {string} message Error message
+ * @returns {Object} Validation error response object
+ */
 function buildValidationErrorBody(message: string) {
   return { data: null, success: false, error: { code: 'VALIDATION_ERROR', message } } as const;
 }
 
+/**
+ * Parses and validates authentication credentials from request body.
+ * Validates email format and password length.
+ * @param {unknown} body Request body to parse
+ * @returns {Object} Parsed credentials with success flag or error message
+ */
 function parseAuthCredentials(body: unknown):
   | { success: true; email: string; password: string }
   | { success: false; message: string } {
