@@ -69,6 +69,25 @@ export function createHonoApp(dependencies: HonoAppDependencies): Hono {
     return c.json({ data: null, success: false, error: { code: 'INTERNAL_ERROR', message: 'Internal server error' } }, 500);
   });
 
+  app.use('*', async (c, next) => {
+    const startTime = Date.now();
+    await next();
+    
+    const path = c.req.path;
+    const method = c.req.method;
+    const status = c.res.status;
+    
+    // Only log successful API requests (2xx status, /api/* paths)
+    const isApiRoute = path.startsWith('/api/');
+    const isSuccessful = status >= 200 && status < 300;
+    
+    if (isApiRoute && isSuccessful) {
+      const elapsedTime = Date.now() - startTime;
+      // eslint-disable-next-line no-console
+      console.log(`[${method}] ${path} → ${status} (${elapsedTime}ms)`);
+    }
+  });
+
   app.get('/', c => c.text('Hello Hono!'));
 
   app.post('/api/v1/auth/signup', async c => {
