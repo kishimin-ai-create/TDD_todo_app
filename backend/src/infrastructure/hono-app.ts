@@ -80,17 +80,23 @@ async function extractErrorDetails(context: Context): Promise<{ code: string; me
     const responseText = await context.res.clone().text();
     const responseBody = JSON.parse(responseText) as unknown;
 
+    // Type guard: check if responseBody is a valid error response object
     if (
       typeof responseBody === 'object' &&
       responseBody !== null &&
-      'error' in responseBody &&
-      typeof (responseBody as any).error === 'object' &&
-      (responseBody as any).error !== null
+      'error' in responseBody
     ) {
-      const errorCode = (responseBody as any).error.code;
-      const errorMessage = (responseBody as any).error.message;
-      if (typeof errorCode === 'string' && typeof errorMessage === 'string') {
-        return { code: errorCode, message: errorMessage };
+      const errorObj = responseBody.error;
+      // Type guard: check if error object has the expected structure
+      if (
+        typeof errorObj === 'object' &&
+        errorObj !== null &&
+        'code' in errorObj &&
+        'message' in errorObj &&
+        typeof errorObj.code === 'string' &&
+        typeof errorObj.message === 'string'
+      ) {
+        return { code: errorObj.code, message: errorObj.message };
       }
     }
   } catch {
