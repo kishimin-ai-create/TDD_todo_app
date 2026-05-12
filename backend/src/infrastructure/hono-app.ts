@@ -213,7 +213,7 @@ export function createHonoApp(dependencies: HonoAppDependencies): Hono {
     const path = c.req.path;
     const method = c.req.method;
     const status = c.res.status;
-    const elapsedTime = Date.now() - startTime;
+    const elapsedTimeMs = Date.now() - startTime;
 
     // Only log API routes (not /, /doc, etc)
     if (!shouldLogPath(path)) {
@@ -222,7 +222,7 @@ export function createHonoApp(dependencies: HonoAppDependencies): Hono {
 
     // Log based on response status
     if (isSuccessStatus(status)) {
-      logSuccessRequest(method, path, status, elapsedTime);
+      logSuccessRequest(method, path, status, elapsedTimeMs);
     } else if (isErrorStatus(status)) {
       // eslint-disable-next-line @typescript-eslint/no-unsafe-argument
       await logErrorRequest(method, path, status, c);
