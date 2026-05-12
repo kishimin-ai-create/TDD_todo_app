@@ -41,6 +41,82 @@ const errorResponses = {
   },
 } as const;
 
+/**
+ * Determines if a request path should be logged.
+ * Only logs /api/* paths, skips other routes like /, /doc, etc.
+ */
+function shouldLogPath(path: string): boolean {
+  return path.startsWith('/api/');
+}
+
+/**
+ * Determines if a status code represents a successful response (2xx).
+ */
+function isSuccessStatus(status: number): boolean {
+  return status >= 200 && status < 300;
+}
+
+/**
+ * Determines if a status code represents an error response (4xx or 5xx).
+ */
+function isErrorStatus(status: number): boolean {
+  return status >= 400 && status < 600;
+}
+
+/**
+ * Logs a successful API request with format: [METHOD] path → status (Xms)
+ */
+function logSuccessRequest(method: string, path: string, status: number, elapsedTimeMs: number): void {
+  // eslint-disable-next-line no-console
+  console.log(`[${method}] ${path} → ${status} (${elapsedTimeMs}ms)`);
+}
+
+/**
+ * Extracts error code and message from the response body.
+ * Returns null if the response body doesn't have the expected error structure.
+ */
+async function extractErrorDetails(context: Context): Promise<{ code: string; message: string } | null> {
+  try {
+    const responseText = await context.res.clone().text();
+    const responseBody = JSON.parse(responseText) as unknown;
+
+    if (
+      typeof responseBody === 'object' &&
+      responseBody !== null &&
+      'error' in responseBody &&
+      typeof (responseBody as any).error === 'object' &&
+      (responseBody as any).error !== null
+    ) {
+      const errorCode = (responseBody as any).error.code;
+      const errorMessage = (responseBody as any).error.message;
+      if (typeof errorCode === 'string' && typeof errorMessage === 'string') {
+        return { code: errorCode, message: errorMessage };
+      }
+    }
+  } catch {
+    // If we can't parse the response body, return null
+  }
+
+  return null;
+}
+
+/**
+ * Logs an error API request with format: [METHOD] path → ERROR status — code: message
+ * If error details cannot be extracted, falls back to: [METHOD] path → ERROR status
+ */
+async function logErrorRequest(method: string, path: string, status: number, context: Context): Promise<void> {
+  const errorDetails = await extractErrorDetails(context);
+
+  if (errorDetails) {
+    // eslint-disable-next-line no-console
+    console.log(`[${method}] ${path} → ERROR ${status} — ${errorDetails.code}: ${errorDetails.message}`);
+  } else {
+    // Fallback if error structure is different or unparseable
+    // eslint-disable-next-line no-console
+    console.log(`[${method}] ${path} → ERROR ${status}`);
+  }
+}
+
 type HonoAppDependencies = {
   appController: AppController;
   todoController: TodoController;
@@ -72,19 +148,22 @@ export function createHonoApp(dependencies: HonoAppDependencies): Hono {
   app.use('*', async (c, next) => {
     const startTime = Date.now();
     await next();
-    
+
     const path = c.req.path;
     const method = c.req.method;
     const status = c.res.status;
-    
-    // Only log successful API requests (2xx status, /api/* paths)
-    const isApiRoute = path.startsWith('/api/');
-    const isSuccessful = status >= 200 && status < 300;
-    
-    if (isApiRoute && isSuccessful) {
-      const elapsedTime = Date.now() - startTime;
-      // eslint-disable-next-line no-console
-      console.log(`[${method}] ${path} → ${status} (${elapsedTime}ms)`);
+    const elapsedTime = Date.now() - startTime;
+
+    // Only log API routes (not /, /doc, etc)
+    if (!shouldLogPath(path)) {
+      return;
+    }
+
+    // Log based on response status
+    if (isSuccessStatus(status)) {
+      logSuccessRequest(method, path, status, elapsedTime);
+    } else if (isErrorStatus(status)) {
+      await logErrorRequest(method, path, status, c);
     }
   });
 
