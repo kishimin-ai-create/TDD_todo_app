@@ -667,5 +667,399 @@ describe('HonoApp integration', () => {
         expect(Number.isInteger(responseTime)).toBe(true);
       });
     });
+
+    describe('Error Logging (4xx, 5xx status) - New Specification', () => {
+      it('should log 409 conflict error from POST /api/v1/auth/signup with duplicate email using ERROR format', async () => {
+        // Arrange
+        const { app } = buildApp();
+        const email = 'conflict@example.com';
+        // Create first user to trigger conflict
+        await req(app, 'POST', '/api/v1/auth/signup', {
+          email,
+          password: 'password123',
+        });
+        consoleLogSpy.mockClear();
+
+        // Act
+        const res = await req(app, 'POST', '/api/v1/auth/signup', {
+          email,
+          password: 'password456',
+        });
+        expect(res.status).toBe(409);
+
+        // Assert
+        // Should log with ERROR format: [METHOD] path → ERROR status — code: message
+        expect(consoleLogSpy).toHaveBeenCalled();
+        const logCall = consoleLogSpy.mock.calls.find(call =>
+          typeof call[0] === 'string' && 
+          call[0].includes('POST') && 
+          call[0].includes('/api/v1/auth/signup') &&
+          call[0].includes('ERROR') &&
+          call[0].includes('409')
+        );
+        expect(logCall).toBeDefined();
+        const logMessage = logCall![0] as string;
+        // Verify format: [METHOD] path → ERROR status — code: message
+        expect(logMessage).toMatch(/\[POST\].*→ ERROR 409/);
+        expect(logMessage).toContain('EMAIL_ALREADY_EXISTS');
+      });
+
+      it('should log 401 unauthorized error from POST /api/v1/auth/login with invalid credentials using ERROR format', async () => {
+        // Arrange
+        const { app } = buildApp();
+        consoleLogSpy.mockClear();
+
+        // Act
+        const res = await req(app, 'POST', '/api/v1/auth/login', {
+          email: 'nonexistent@example.com',
+          password: 'wrongpassword',
+        });
+        expect(res.status).toBe(401);
+
+        // Assert
+        // Should log with ERROR format
+        expect(consoleLogSpy).toHaveBeenCalled();
+        const logCall = consoleLogSpy.mock.calls.find(call =>
+          typeof call[0] === 'string' && 
+          call[0].includes('POST') && 
+          call[0].includes('/api/v1/auth/login') &&
+          call[0].includes('ERROR') &&
+          call[0].includes('401')
+        );
+        expect(logCall).toBeDefined();
+        const logMessage = logCall![0] as string;
+        expect(logMessage).toMatch(/\[POST\].*→ ERROR 401/);
+        expect(logMessage).toContain('INVALID_CREDENTIALS');
+      });
+
+      it('should log 404 not found error from GET /api/v1/apps/:appId with invalid ID using ERROR format', async () => {
+        // Arrange
+        const { app } = buildApp();
+        const invalidId = 'nonexistent-id-12345';
+        consoleLogSpy.mockClear();
+
+        // Act
+        const res = await req(app, 'GET', `/api/v1/apps/${invalidId}`);
+        expect(res.status).toBe(404);
+
+        // Assert
+        // Should log with ERROR format
+        expect(consoleLogSpy).toHaveBeenCalled();
+        const logCall = consoleLogSpy.mock.calls.find(call =>
+          typeof call[0] === 'string' && 
+          call[0].includes('GET') && 
+          call[0].includes('/api/v1/apps/') &&
+          call[0].includes('ERROR') &&
+          call[0].includes('404')
+        );
+        expect(logCall).toBeDefined();
+        const logMessage = logCall![0] as string;
+        expect(logMessage).toMatch(/\[GET\].*→ ERROR 404/);
+      });
+
+      it('should log 422 validation error from POST /api/v1/apps with missing required field using ERROR format', async () => {
+        // Arrange
+        const { app } = buildApp();
+        consoleLogSpy.mockClear();
+
+        // Act
+        const res = await req(app, 'POST', '/api/v1/apps', {}); // Missing name field
+        expect(res.status).toBe(422);
+
+        // Assert
+        // Should log with ERROR format for validation errors
+        expect(consoleLogSpy).toHaveBeenCalled();
+        const logCall = consoleLogSpy.mock.calls.find(call =>
+          typeof call[0] === 'string' && 
+          call[0].includes('POST') && 
+          call[0].includes('/api/v1/apps') &&
+          call[0].includes('ERROR') &&
+          call[0].includes('422')
+        );
+        expect(logCall).toBeDefined();
+        const logMessage = logCall![0] as string;
+        expect(logMessage).toMatch(/\[POST\].*→ ERROR 422/);
+        expect(logMessage).toContain('VALIDATION_ERROR');
+      });
+
+      it('should include error code and message in 409 error log from POST /api/v1/auth/signup', async () => {
+        // Arrange
+        const { app } = buildApp();
+        const email = 'error-code-test@example.com';
+        await req(app, 'POST', '/api/v1/auth/signup', {
+          email,
+          password: 'password123',
+        });
+        consoleLogSpy.mockClear();
+
+        // Act
+        const res = await req(app, 'POST', '/api/v1/auth/signup', {
+          email,
+          password: 'password456',
+        });
+        expect(res.status).toBe(409);
+
+        // Assert
+        const logCall = consoleLogSpy.mock.calls.find(call =>
+          typeof call[0] === 'string' && 
+          call[0].includes('[POST]')
+        );
+        expect(logCall).toBeDefined();
+        const logMessage = logCall![0] as string;
+        // Should contain format: [METHOD] path → ERROR status — code: message
+        expect(logMessage).toMatch(/→ ERROR 409 —/);
+        expect(logMessage).toContain('EMAIL_ALREADY_EXISTS');
+      });
+
+      it('should include arrow (→) and ERROR keyword in error response logs', async () => {
+        // Arrange
+        const { app } = buildApp();
+        consoleLogSpy.mockClear();
+
+        // Act
+        const res = await req(app, 'GET', '/api/v1/apps/invalid-id');
+        expect(res.status).toBe(404);
+
+        // Assert
+        const logCall = consoleLogSpy.mock.calls.find(call =>
+          typeof call[0] === 'string' && call[0].includes('[GET]')
+        );
+        expect(logCall).toBeDefined();
+        const logMessage = logCall![0] as string;
+        expect(logMessage).toContain('→');
+        expect(logMessage).toContain('ERROR');
+      });
+
+      it('should have double dash (—) separator between status and error code in error logs', async () => {
+        // Arrange
+        const { app } = buildApp();
+        consoleLogSpy.mockClear();
+
+        // Act
+        const res = await req(app, 'POST', '/api/v1/apps', {});
+        expect(res.status).toBe(422);
+
+        // Assert
+        const logCall = consoleLogSpy.mock.calls.find(call =>
+          typeof call[0] === 'string' && call[0].includes('[POST]')
+        );
+        expect(logCall).toBeDefined();
+        const logMessage = logCall![0] as string;
+        // Should contain the double dash separator
+        expect(logMessage).toContain('—');
+      });
+
+      it('should log POST /api/v1/auth/login with 401 error and error code format', async () => {
+        // Arrange
+        const { app } = buildApp();
+        consoleLogSpy.mockClear();
+
+        // Act
+        const res = await req(app, 'POST', '/api/v1/auth/login', {
+          email: 'test@invalid.com',
+          password: 'short',
+        });
+
+        // Assert
+        // Should either return 422 (validation error) or 401 (invalid credentials)
+        if (res.status === 401) {
+          expect(consoleLogSpy).toHaveBeenCalled();
+          const logCall = consoleLogSpy.mock.calls.find(call =>
+            typeof call[0] === 'string' && call[0].includes('ERROR')
+          );
+          expect(logCall).toBeDefined();
+          const logMessage = logCall![0] as string;
+          expect(logMessage).toMatch(/\[POST\].*→ ERROR 401.*INVALID_CREDENTIALS/);
+        }
+      });
+
+      it('should log 404 error for GET /api/v1/apps/:id/todos with invalid app ID', async () => {
+        // Arrange
+        const { app } = buildApp();
+        consoleLogSpy.mockClear();
+
+        // Act
+        const res = await req(app, 'GET', '/api/v1/apps/nonexistent-app/todos');
+        expect(res.status).toBe(404);
+
+        // Assert
+        expect(consoleLogSpy).toHaveBeenCalled();
+        const logCall = consoleLogSpy.mock.calls.find(call =>
+          typeof call[0] === 'string' && 
+          call[0].includes('GET') && 
+          call[0].includes('/api/v1/apps/')
+        );
+        expect(logCall).toBeDefined();
+        const logMessage = logCall![0] as string;
+        expect(logMessage).toMatch(/ERROR 404/);
+      });
+    });
+
+    describe('Error Logging Format Specification Compliance', () => {
+      it('should have exact format [METHOD] path → ERROR status — code: message for 409 errors', async () => {
+        // Arrange
+        const { app } = buildApp();
+        const email = 'format-test@example.com';
+        await req(app, 'POST', '/api/v1/auth/signup', {
+          email,
+          password: 'password123',
+        });
+        consoleLogSpy.mockClear();
+
+        // Act
+        await req(app, 'POST', '/api/v1/auth/signup', {
+          email,
+          password: 'password456',
+        });
+
+        // Assert
+        const logCall = consoleLogSpy.mock.calls.find(call =>
+          typeof call[0] === 'string' && 
+          call[0].includes('[POST]')
+        );
+        expect(logCall).toBeDefined();
+        const logMessage = logCall![0] as string;
+        // Verify complete format: [METHOD] path → ERROR status — code: message
+        expect(logMessage).toMatch(/^\[POST\].*\/api\/v1\/auth\/signup.*→ ERROR 409 —/);
+      });
+
+      it('should have exact format [METHOD] path → ERROR status — code: message for 401 errors', async () => {
+        // Arrange
+        const { app } = buildApp();
+        consoleLogSpy.mockClear();
+
+        // Act
+        await req(app, 'POST', '/api/v1/auth/login', {
+          email: 'nonexistent@test.com',
+          password: 'wrongpassword',
+        });
+
+        // Assert
+        const logCall = consoleLogSpy.mock.calls.find(call =>
+          typeof call[0] === 'string' && 
+          call[0].includes('[POST]') &&
+          call[0].includes('auth/login')
+        );
+        expect(logCall).toBeDefined();
+        const logMessage = logCall![0] as string;
+        expect(logMessage).toMatch(/^\[POST\].*\/api\/v1\/auth\/login.*→ ERROR 401 —/);
+      });
+
+      it('should have exact format [METHOD] path → ERROR status — code: message for 404 errors', async () => {
+        // Arrange
+        const { app } = buildApp();
+        consoleLogSpy.mockClear();
+
+        // Act
+        await req(app, 'GET', '/api/v1/apps/invalid-app-id-xyz');
+
+        // Assert
+        const logCall = consoleLogSpy.mock.calls.find(call =>
+          typeof call[0] === 'string' && 
+          call[0].includes('[GET]')
+        );
+        expect(logCall).toBeDefined();
+        const logMessage = logCall![0] as string;
+        expect(logMessage).toMatch(/^\[GET\].*\/api\/v1\/apps\/.*→ ERROR 404 —/);
+      });
+
+      it('should have exact format [METHOD] path → ERROR status — code: message for 422 errors', async () => {
+        // Arrange
+        const { app } = buildApp();
+        consoleLogSpy.mockClear();
+
+        // Act
+        await req(app, 'POST', '/api/v1/apps', { name: null });
+
+        // Assert
+        const logCall = consoleLogSpy.mock.calls.find(call =>
+          typeof call[0] === 'string' && 
+          call[0].includes('[POST]') &&
+          call[0].includes('/api/v1/apps')
+        );
+        expect(logCall).toBeDefined();
+        const logMessage = logCall![0] as string;
+        expect(logMessage).toMatch(/^\[POST\].*\/api\/v1\/apps.*→ ERROR 422 —/);
+      });
+    });
+
+    describe('Error vs Success Logging Distinction', () => {
+      it('should log successful requests with → status format (no ERROR keyword)', async () => {
+        // Arrange
+        const { app } = buildApp();
+        consoleLogSpy.mockClear();
+
+        // Act
+        await req(app, 'GET', '/api/v1/apps');
+
+        // Assert
+        const successLogCall = consoleLogSpy.mock.calls.find(call =>
+          typeof call[0] === 'string' && 
+          call[0].includes('[GET]') &&
+          call[0].includes('/api/v1/apps')
+        );
+        expect(successLogCall).toBeDefined();
+        const successLog = successLogCall![0] as string;
+        // Success logs should NOT contain ERROR keyword
+        expect(successLog).not.toContain('ERROR');
+        // Should have simple format: → 200
+        expect(successLog).toMatch(/→ 200/);
+      });
+
+      it('should log error requests with → ERROR status format (with ERROR keyword)', async () => {
+        // Arrange
+        const { app } = buildApp();
+        consoleLogSpy.mockClear();
+
+        // Act
+        await req(app, 'GET', '/api/v1/apps/invalid');
+
+        // Assert
+        const errorLogCall = consoleLogSpy.mock.calls.find(call =>
+          typeof call[0] === 'string' && 
+          call[0].includes('[GET]')
+        );
+        expect(errorLogCall).toBeDefined();
+        const errorLog = errorLogCall![0] as string;
+        // Error logs should contain ERROR keyword
+        expect(errorLog).toContain('ERROR');
+        // Should have error format: → ERROR 404
+        expect(errorLog).toMatch(/→ ERROR 404/);
+      });
+
+      it('should differentiate between 2xx success (no ERROR) and 4xx error (with ERROR) in logs', async () => {
+        // Arrange
+        const { app } = buildApp();
+        consoleLogSpy.mockClear();
+
+        // Act - Create successful request
+        const createRes = await req(app, 'POST', '/api/v1/apps', { name: 'Success' });
+        expect(createRes.status).toBe(201);
+
+        // Act - Create failed request (validation error)
+        const failRes = await req(app, 'POST', '/api/v1/apps', {}); // Missing name
+        expect(failRes.status).toBe(422);
+
+        // Assert
+        const successLog = consoleLogSpy.mock.calls.find(call =>
+          typeof call[0] === 'string' && 
+          call[0].includes('[POST]') &&
+          call[0].includes('201')
+        );
+        const errorLog = consoleLogSpy.mock.calls.find(call =>
+          typeof call[0] === 'string' && 
+          call[0].includes('[POST]') &&
+          call[0].includes('422')
+        );
+
+        // Success log should exist and not have ERROR
+        expect(successLog).toBeDefined();
+        expect(successLog![0]).not.toContain('ERROR');
+
+        // Error log should exist and have ERROR keyword
+        expect(errorLog).toBeDefined();
+        expect(errorLog![0]).toContain('ERROR');
+      });
+    });
   });
 });
