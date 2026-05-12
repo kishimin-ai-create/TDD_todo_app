@@ -316,3 +316,4 @@ Before acting, read the following rule files and apply them throughout all work:
 | [`.github/rules/principles.rules.md`](../rules/principles.rules.md) | Core engineering principles |
 | [`.github/rules/protected-paths.rules.md`](../rules/protected-paths.rules.md) | Files that must not be modified without explicit user instruction |
 | [`.github/rules/git.rules.md`](../rules/git.rules.md) | Git workflow rules — reading history and diffs for evidence gathering |
+| [`.github/rules/no-local-paths.rules.md`](../rules/no-local-paths.rules.md) | No absolute local filesystem paths in committed files |
