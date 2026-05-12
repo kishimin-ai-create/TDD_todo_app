@@ -188,7 +188,7 @@ describe('HonoApp integration', () => {
 
         // Assert
         expect(consoleLogSpy).toHaveBeenCalled();
-        const logCall = consoleLogSpy.mock.calls.find(call =>
+        const logCall = consoleLogSpy.mock.calls.find((call: unknown[]) =>
           typeof call[0] === 'string' && call[0].includes('GET') && call[0].includes('/api/v1/apps')
         );
         expect(logCall).toBeDefined();
@@ -210,7 +210,7 @@ describe('HonoApp integration', () => {
 
         // Assert
         expect(consoleLogSpy).toHaveBeenCalled();
-        const logCall = consoleLogSpy.mock.calls.find(call =>
+        const logCall = consoleLogSpy.mock.calls.find((call: unknown[]) =>
           typeof call[0] === 'string' && call[0].includes('POST') && call[0].includes('/api/v1/apps')
         );
         expect(logCall).toBeDefined();
@@ -234,7 +234,7 @@ describe('HonoApp integration', () => {
 
         // Assert
         expect(consoleLogSpy).toHaveBeenCalled();
-        const logCall = consoleLogSpy.mock.calls.find(call =>
+        const logCall = consoleLogSpy.mock.calls.find((call: unknown[]) =>
           typeof call[0] === 'string' && call[0].includes('GET') && call[0].includes('/api/v1/apps/')
         );
         expect(logCall).toBeDefined();
@@ -256,7 +256,7 @@ describe('HonoApp integration', () => {
 
         // Assert
         expect(consoleLogSpy).toHaveBeenCalled();
-        const logCall = consoleLogSpy.mock.calls.find(call =>
+        const logCall = consoleLogSpy.mock.calls.find((call: unknown[]) =>
           typeof call[0] === 'string' && call[0].includes('PUT') && call[0].includes('/api/v1/apps/')
         );
         expect(logCall).toBeDefined();
@@ -278,7 +278,7 @@ describe('HonoApp integration', () => {
 
         // Assert
         expect(consoleLogSpy).toHaveBeenCalled();
-        const logCall = consoleLogSpy.mock.calls.find(call =>
+        const logCall = consoleLogSpy.mock.calls.find((call: unknown[]) =>
           typeof call[0] === 'string' && call[0].includes('DELETE') && call[0].includes('/api/v1/apps/')
         );
         expect(logCall).toBeDefined();
@@ -301,7 +301,7 @@ describe('HonoApp integration', () => {
 
         // Assert
         expect(consoleLogSpy).toHaveBeenCalled();
-        const logCall = consoleLogSpy.mock.calls.find(call =>
+        const logCall = consoleLogSpy.mock.calls.find((call: unknown[]) =>
           typeof call[0] === 'string' && call[0].includes('POST') && call[0].includes('/api/v1/auth/signup')
         );
         expect(logCall).toBeDefined();
@@ -330,7 +330,7 @@ describe('HonoApp integration', () => {
 
         // Assert
         expect(consoleLogSpy).toHaveBeenCalled();
-        const logCall = consoleLogSpy.mock.calls.find(call =>
+        const logCall = consoleLogSpy.mock.calls.find((call: unknown[]) =>
           typeof call[0] === 'string' && call[0].includes('POST') && call[0].includes('/api/v1/auth/login')
         );
         expect(logCall).toBeDefined();
@@ -353,7 +353,7 @@ describe('HonoApp integration', () => {
 
         // Assert
         // Check that no log starts with [GET] and contains only "/"
-        const logCalls = consoleLogSpy.mock.calls.filter(call =>
+        const logCalls = consoleLogSpy.mock.calls.filter((call: unknown[]) =>
           typeof call[0] === 'string' && call[0].match(/\[GET\].*\s+\/$/)
         );
         expect(logCalls.length).toBe(0);
@@ -370,7 +370,7 @@ describe('HonoApp integration', () => {
 
         // Assert
         // Check that no log contains /doc
-        const logCalls = consoleLogSpy.mock.calls.filter(call =>
+        const logCalls = consoleLogSpy.mock.calls.filter((call: unknown[]) =>
           typeof call[0] === 'string' && call[0].includes('/doc')
         );
         expect(logCalls.length).toBe(0);
@@ -387,7 +387,7 @@ describe('HonoApp integration', () => {
         await req(app, 'GET', '/api/v1/apps');
 
         // Assert
-        const logCall = consoleLogSpy.mock.calls.find(call =>
+        const logCall = consoleLogSpy.mock.calls.find((call: unknown[]) =>
           typeof call[0] === 'string' && call[0].includes('[GET]')
         );
         expect(logCall).toBeDefined();
@@ -404,7 +404,7 @@ describe('HonoApp integration', () => {
         await req(app, 'GET', '/api/v1/apps');
 
         // Assert
-        const logCall = consoleLogSpy.mock.calls.find(call =>
+        const logCall = consoleLogSpy.mock.calls.find((call: unknown[]) =>
           typeof call[0] === 'string' && call[0].includes('[GET]')
         );
         expect(logCall).toBeDefined();
@@ -421,7 +421,7 @@ describe('HonoApp integration', () => {
         await req(app, 'GET', '/api/v1/apps');
 
         // Assert
-        const logCall = consoleLogSpy.mock.calls.find(call =>
+        const logCall = consoleLogSpy.mock.calls.find((call: unknown[]) =>
           typeof call[0] === 'string' && call[0].includes('[GET]')
         );
         expect(logCall).toBeDefined();
@@ -438,7 +438,7 @@ describe('HonoApp integration', () => {
         await req(app, 'POST', '/api/v1/apps', { name: 'NewApp' });
 
         // Assert
-        const logCall = consoleLogSpy.mock.calls.find(call =>
+        const logCall = consoleLogSpy.mock.calls.find((call: unknown[]) =>
           typeof call[0] === 'string' && call[0].includes('[POST]')
         );
         expect(logCall).toBeDefined();
@@ -455,7 +455,7 @@ describe('HonoApp integration', () => {
         await req(app, 'GET', '/api/v1/apps');
 
         // Assert
-        const logCall = consoleLogSpy.mock.calls.find(call =>
+        const logCall = consoleLogSpy.mock.calls.find((call: unknown[]) =>
           typeof call[0] === 'string' && call[0].includes('[GET]')
         );
         expect(logCall).toBeDefined();
@@ -472,7 +472,7 @@ describe('HonoApp integration', () => {
         await req(app, 'GET', '/api/v1/apps');
 
         // Assert
-        const logCall = consoleLogSpy.mock.calls.find(call =>
+        const logCall = consoleLogSpy.mock.calls.find((call: unknown[]) =>
           typeof call[0] === 'string' && call[0].includes('[GET]')
         );
         expect(logCall).toBeDefined();
@@ -489,7 +489,7 @@ describe('HonoApp integration', () => {
         await req(app, 'GET', '/api/v1/apps');
 
         // Assert
-        const logCall = consoleLogSpy.mock.calls.find(call =>
+        const logCall = consoleLogSpy.mock.calls.find((call: unknown[]) =>
           typeof call[0] === 'string' && call[0].includes('[GET]')
         );
         expect(logCall).toBeDefined();
@@ -512,10 +512,10 @@ describe('HonoApp integration', () => {
 
         // Assert
         expect(consoleLogSpy.mock.calls.length).toBeGreaterThanOrEqual(2);
-        const getLogCall = consoleLogSpy.mock.calls.find(call =>
+        const getLogCall = consoleLogSpy.mock.calls.find((call: unknown[]) =>
           typeof call[0] === 'string' && call[0].includes('[GET]') && call[0].includes('/api/v1/apps')
         );
-        const postLogCall = consoleLogSpy.mock.calls.find(call =>
+        const postLogCall = consoleLogSpy.mock.calls.find((call: unknown[]) =>
           typeof call[0] === 'string' && call[0].includes('[POST]') && call[0].includes('/api/v1/apps')
         );
         expect(getLogCall).toBeDefined();
@@ -533,7 +533,7 @@ describe('HonoApp integration', () => {
         await req(app, 'GET', '/api/v1/apps');
 
         // Assert
-        const logCall = consoleLogSpy.mock.calls.find(call =>
+        const logCall = consoleLogSpy.mock.calls.find((call: unknown[]) =>
           typeof call[0] === 'string' && call[0].includes('[GET]')
         );
         expect(logCall).toBeDefined();
@@ -552,7 +552,7 @@ describe('HonoApp integration', () => {
         await req(app, 'POST', '/api/v1/apps', { name: 'TestApp' });
 
         // Assert
-        const logCall = consoleLogSpy.mock.calls.find(call =>
+        const logCall = consoleLogSpy.mock.calls.find((call: unknown[]) =>
           typeof call[0] === 'string' && call[0].includes('[POST]')
         );
         expect(logCall).toBeDefined();
@@ -587,7 +587,7 @@ describe('HonoApp integration', () => {
         // Assert
         // Should log with ERROR format: [METHOD] path → ERROR status — code: message
         expect(consoleLogSpy).toHaveBeenCalled();
-        const logCall = consoleLogSpy.mock.calls.find(call =>
+        const logCall = consoleLogSpy.mock.calls.find((call: unknown[]) =>
           typeof call[0] === 'string' && 
           call[0].includes('POST') && 
           call[0].includes('/api/v1/auth/signup') &&
@@ -616,7 +616,7 @@ describe('HonoApp integration', () => {
         // Assert
         // Should log with ERROR format
         expect(consoleLogSpy).toHaveBeenCalled();
-        const logCall = consoleLogSpy.mock.calls.find(call =>
+        const logCall = consoleLogSpy.mock.calls.find((call: unknown[]) =>
           typeof call[0] === 'string' && 
           call[0].includes('POST') && 
           call[0].includes('/api/v1/auth/login') &&
@@ -642,7 +642,7 @@ describe('HonoApp integration', () => {
         // Assert
         // Should log with ERROR format
         expect(consoleLogSpy).toHaveBeenCalled();
-        const logCall = consoleLogSpy.mock.calls.find(call =>
+        const logCall = consoleLogSpy.mock.calls.find((call: unknown[]) =>
           typeof call[0] === 'string' && 
           call[0].includes('GET') && 
           call[0].includes('/api/v1/apps/') &&
@@ -666,7 +666,7 @@ describe('HonoApp integration', () => {
         // Assert
         // Should log with ERROR format for validation errors
         expect(consoleLogSpy).toHaveBeenCalled();
-        const logCall = consoleLogSpy.mock.calls.find(call =>
+        const logCall = consoleLogSpy.mock.calls.find((call: unknown[]) =>
           typeof call[0] === 'string' && 
           call[0].includes('POST') && 
           call[0].includes('/api/v1/apps') &&
@@ -697,7 +697,7 @@ describe('HonoApp integration', () => {
         expect(res.status).toBe(409);
 
         // Assert
-        const logCall = consoleLogSpy.mock.calls.find(call =>
+        const logCall = consoleLogSpy.mock.calls.find((call: unknown[]) =>
           typeof call[0] === 'string' && 
           call[0].includes('[POST]')
         );
@@ -718,7 +718,7 @@ describe('HonoApp integration', () => {
         expect(res.status).toBe(404);
 
         // Assert
-        const logCall = consoleLogSpy.mock.calls.find(call =>
+        const logCall = consoleLogSpy.mock.calls.find((call: unknown[]) =>
           typeof call[0] === 'string' && call[0].includes('[GET]')
         );
         expect(logCall).toBeDefined();
@@ -737,7 +737,7 @@ describe('HonoApp integration', () => {
         expect(res.status).toBe(422);
 
         // Assert
-        const logCall = consoleLogSpy.mock.calls.find(call =>
+        const logCall = consoleLogSpy.mock.calls.find((call: unknown[]) =>
           typeof call[0] === 'string' && call[0].includes('[POST]')
         );
         expect(logCall).toBeDefined();
@@ -761,7 +761,7 @@ describe('HonoApp integration', () => {
         // Should either return 422 (validation error) or 401 (invalid credentials)
         if (res.status === 401) {
           expect(consoleLogSpy).toHaveBeenCalled();
-          const logCall = consoleLogSpy.mock.calls.find(call =>
+          const logCall = consoleLogSpy.mock.calls.find((call: unknown[]) =>
             typeof call[0] === 'string' && call[0].includes('ERROR')
           );
           expect(logCall).toBeDefined();
@@ -781,7 +781,7 @@ describe('HonoApp integration', () => {
 
         // Assert
         expect(consoleLogSpy).toHaveBeenCalled();
-        const logCall = consoleLogSpy.mock.calls.find(call =>
+        const logCall = consoleLogSpy.mock.calls.find((call: unknown[]) =>
           typeof call[0] === 'string' && 
           call[0].includes('GET') && 
           call[0].includes('/api/v1/apps/')
@@ -810,7 +810,7 @@ describe('HonoApp integration', () => {
         });
 
         // Assert
-        const logCall = consoleLogSpy.mock.calls.find(call =>
+        const logCall = consoleLogSpy.mock.calls.find((call: unknown[]) =>
           typeof call[0] === 'string' && 
           call[0].includes('[POST]')
         );
@@ -832,7 +832,7 @@ describe('HonoApp integration', () => {
         });
 
         // Assert
-        const logCall = consoleLogSpy.mock.calls.find(call =>
+        const logCall = consoleLogSpy.mock.calls.find((call: unknown[]) =>
           typeof call[0] === 'string' && 
           call[0].includes('[POST]') &&
           call[0].includes('auth/login')
@@ -851,7 +851,7 @@ describe('HonoApp integration', () => {
         await req(app, 'GET', '/api/v1/apps/invalid-app-id-xyz');
 
         // Assert
-        const logCall = consoleLogSpy.mock.calls.find(call =>
+        const logCall = consoleLogSpy.mock.calls.find((call: unknown[]) =>
           typeof call[0] === 'string' && 
           call[0].includes('[GET]')
         );
@@ -869,7 +869,7 @@ describe('HonoApp integration', () => {
         await req(app, 'POST', '/api/v1/apps', { name: null });
 
         // Assert
-        const logCall = consoleLogSpy.mock.calls.find(call =>
+        const logCall = consoleLogSpy.mock.calls.find((call: unknown[]) =>
           typeof call[0] === 'string' && 
           call[0].includes('[POST]') &&
           call[0].includes('/api/v1/apps')
@@ -890,7 +890,7 @@ describe('HonoApp integration', () => {
         await req(app, 'GET', '/api/v1/apps');
 
         // Assert
-        const successLogCall = consoleLogSpy.mock.calls.find(call =>
+        const successLogCall = consoleLogSpy.mock.calls.find((call: unknown[]) =>
           typeof call[0] === 'string' && 
           call[0].includes('[GET]') &&
           call[0].includes('/api/v1/apps')
@@ -912,7 +912,7 @@ describe('HonoApp integration', () => {
         await req(app, 'GET', '/api/v1/apps/invalid');
 
         // Assert
-        const errorLogCall = consoleLogSpy.mock.calls.find(call =>
+        const errorLogCall = consoleLogSpy.mock.calls.find((call: unknown[]) =>
           typeof call[0] === 'string' && 
           call[0].includes('[GET]')
         );
@@ -938,12 +938,12 @@ describe('HonoApp integration', () => {
         expect(failRes.status).toBe(422);
 
         // Assert
-        const successLog = consoleLogSpy.mock.calls.find(call =>
+        const successLog = consoleLogSpy.mock.calls.find((call: unknown[]) =>
           typeof call[0] === 'string' && 
           call[0].includes('[POST]') &&
           call[0].includes('201')
         );
-        const errorLog = consoleLogSpy.mock.calls.find(call =>
+        const errorLog = consoleLogSpy.mock.calls.find((call: unknown[]) =>
           typeof call[0] === 'string' && 
           call[0].includes('[POST]') &&
           call[0].includes('422')
