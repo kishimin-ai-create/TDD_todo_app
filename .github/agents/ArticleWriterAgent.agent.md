@@ -144,7 +144,7 @@ ArticleWriteAgent **MUST** deliver:
    title chosen by the agent**
 4. The file name should preserve the article title as much as possible while
    removing characters invalid for file systems
-5. Add the current date as a prefix only if needed to avoid collisions
+5. Do NOT add date prefixes to file names
 6. The first line of the file should be the article title as a Markdown heading
 
 ## 📝 File Writing Rules
