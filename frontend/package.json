@@ -10,7 +10,7 @@
     "preview": "vite preview",
     "test": "npm run test:stdout && npm run test:report",
     "test:stdout": "npm run test:small && npm run test:medium",
-    "test:report": "npm run test:report:small && npm run test:report:medium && node ..\\scripts\\merge-vitest-reports.cjs test-result.small.json test-result.medium.json test-result.json --delete-sources",
+    "test:report": "npm run test:report:small && npm run test:report:medium && node ../scripts/merge-vitest-reports.cjs test-result.small.json test-result.medium.json test-result.json --delete-sources",
     "test:report:small": "vitest run --config vitest.small.config.ts --reporter=json --outputFile=test-result.small.json",
     "test:report:medium": "vitest run --config vitest.medium.config.ts --reporter=json --outputFile=test-result.medium.json",
     "test:small": "vitest run --config vitest.small.config.ts --reporter=default",
