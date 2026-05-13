@@ -1,6 +1,6 @@
 ---
 description:
-  "Use when: turning completed development work into an English technical article,
+  "Use when: turning completed development work into a Japanese technical article,
   devlog, or release note. The ArticleWriteAgent reads diffs, changed files,
   specs, PR context, and notes, then produces a factual write-up that explains
   what changed, why it mattered, how it was implemented, and saves the article
