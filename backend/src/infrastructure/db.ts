@@ -22,9 +22,18 @@ export interface TodoTable {
   deletedAt: Date | null;
 }
 
+export interface UserTable {
+  id: string;
+  email: string;
+  token: string;
+  passwordHash: string;
+  createdAt: Date;
+}
+
 export interface Database {
   App: AppTable;
   Todo: TodoTable;
+  users: UserTable;
 }
 
 /**

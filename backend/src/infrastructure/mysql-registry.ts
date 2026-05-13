@@ -7,7 +7,7 @@ import { createKysely } from './db';
 import { createHonoApp } from './hono-app';
 import { createMysqlAppRepository } from './mysql-app-repository';
 import { createMysqlTodoRepository } from './mysql-todo-repository';
-import { createInMemoryUserRepository } from './in-memory-repositories';
+import { createMysqlUserRepository } from './mysql-user-repository';
 
 type MysqlBackendRegistry = {
   app: ReturnType<typeof createHonoApp>;
@@ -20,7 +20,7 @@ export function createMysqlBackendRegistry(): MysqlBackendRegistry {
   const db = createKysely();
   const appRepository = createMysqlAppRepository(db);
   const todoRepository = createMysqlTodoRepository(db);
-  const userRepository = createInMemoryUserRepository();
+  const userRepository = createMysqlUserRepository(db);
   const appUsecase = createAppInteractor({ appRepository, todoRepository });
   const todoUsecase = createTodoInteractor({ appRepository, todoRepository });
   const authUsecase = createAuthInteractor({ userRepository });
