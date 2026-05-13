@@ -310,6 +310,8 @@ export function createHonoApp(dependencies: HonoAppDependencies): Hono<AppEnv> {
           409,
         );
       }
+      // eslint-disable-next-line no-console
+      console.error('[signup] unexpected error:', err);
       return c.json(
         { success: false, data: null, error: { code: 'INTERNAL_ERROR', message: 'Internal server error' } },
         500,
@@ -347,6 +349,8 @@ export function createHonoApp(dependencies: HonoAppDependencies): Hono<AppEnv> {
           401,
         );
       }
+      // eslint-disable-next-line no-console
+      console.error('[login] unexpected error:', err);
       return c.json(
         { success: false, data: null, error: { code: 'INTERNAL_ERROR', message: 'Internal server error' } },
         500,
